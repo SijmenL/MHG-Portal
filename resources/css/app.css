@@ -1,3 +1,86 @@
 .logo {
     width: 200px;
 }
+
+
+* {
+    font-family: "Poppins", sans-serif;
+    transition: 0.1s;
+}
+
+.navbar {
+    box-shadow: -4px -10px 24px 11px rgba(0, 0, 0, 0.20);
+    min-height: 98px;
+}
+
+h1 {
+    color: var(--title-color);
+    font-weight: 600;
+    line-height: 1.2em;
+}
+
+.quick-action-bar {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.quick-action {
+    height: 50px;
+    aspect-ratio: unset;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.quick-action span {
+    font-size: 40px;
+    filter: drop-shadow(1px 1px 40px black);;
+}
+
+.quick-action img {
+    width: 40px;
+    filter: invert() drop-shadow(1px 1px 40px white);
+}
+
+@media screen and (min-width: 992px) {
+    .quick-action {
+        height: 150px !important;
+    }
+    .quick-action span {
+        font-size: 75px !important;
+    }
+    .quick-action img {
+        width: 75px !important;
+    }
+    h1 {
+        font-size: 54px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .quick-action {
+        height: 10vw;
+        aspect-ratio: 1/1;
+        flex-direction: column;
+    }
+    .quick-action span {
+        font-size: 50px;
+    }
+    .quick-action img {
+        width: 50px;
+    }
+}
+
+:root {
+    --primary-color: #0092df;
+    --secondary-color: #C1C1C0;
+    --accent-color: #CEE3F6;
+    --title-color: #1c244b;
+    --text-color: #000000;
+    --alternarive-white: #f3f5f8;
+}
