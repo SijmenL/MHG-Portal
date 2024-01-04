@@ -1,11 +1,23 @@
-.logo {
-    width: 200px;
-}
-
-
 * {
     font-family: "Poppins", sans-serif;
-    transition: 0.1s;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+::selection {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.logo {
+    width: 200px;
+    z-index: 100;
+    position: sticky;
 }
 
 .navbar {
@@ -27,14 +39,23 @@ h1 {
     justify-content: center;
 }
 
+.card {
+    max-width: 300px;
+}
+
 .quick-action {
     height: 50px;
     aspect-ratio: unset;
     align-items: center;
     display: flex;
-    justify-content: center;
+    justify-content: start;
     flex-direction: row;
     overflow: hidden;
+    flex-grow: 2;
+}
+
+.quick-action p {
+    margin: 3px;
 }
 
 .quick-action span {
@@ -45,6 +66,37 @@ h1 {
 .quick-action img {
     width: 40px;
     filter: invert() drop-shadow(1px 1px 40px white);
+}
+
+.profle-picture {
+    border-radius: 50%;
+    width: 50px;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.rolls {
+    max-width: 100%;
+    overflow: scroll;
+    display: flex;
+    flex-direction: row;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-left: 20px;
+    padding-right: 50px;
+
+    mask:
+        linear-gradient(to top,  transparent 10%, #fff 15% 90%, transparent 95%),
+        linear-gradient(to left, transparent 10%, #fff 15% 90%, transparent 95%);
+    mask-size: 110% 110%;
+    mask-position: center;
+    mask-repeat:no-repeat;
+    mask-composite: intersect;
+    transform: translateX(-20px);
+}
+
+.rolls::-webkit-scrollbar {
+    display: none;
 }
 
 @media screen and (min-width: 992px) {
@@ -60,19 +112,28 @@ h1 {
     h1 {
         font-size: 54px;
     }
+    .rolls {
+        max-width: 500px !important;
+    }
 }
 
 @media screen and (min-width: 768px) {
     .quick-action {
-        height: 10vw;
+        height: 18vh;
         aspect-ratio: 1/1;
         flex-direction: column;
     }
+
     .quick-action span {
         font-size: 50px;
     }
+
     .quick-action img {
         width: 50px;
+    }
+    .rolls {
+        max-width: 300px;
+        transform: translateX(0px);
     }
 }
 

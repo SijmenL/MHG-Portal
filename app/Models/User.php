@@ -8,9 +8,22 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+
+use App\Models\Role;
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_role');
+    }
+
+    public function insignes()
+    {
+        return $this->belongsToMany(Insigne::class, 'user_insigne');
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -18,9 +31,20 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
+        'sex',
+        'name',
+        'infix',
+        'last_name',
+        'birth_date',
+        'speltak',
+        'street',
+        'postal_code',
+        'city',
+        'phone',
+        'avg',
+        'profile_picture'
     ];
 
     /**

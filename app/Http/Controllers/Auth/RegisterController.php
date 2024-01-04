@@ -44,30 +44,48 @@ class RegisterController extends Controller
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
+     * @param array $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'sex' => ['nullable', 'string'],
+            'infix' => ['nullable', 'string'],
+            'last_name' => ['nullable', 'string'],
+            'birth_date' => ['nullable', 'date'],
+            'street' => ['nullable', 'string'],
+            'postal_code' => ['nullable', 'string'],
+            'city' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string'],
+            'avg' => ['nullable', 'bool'],
+            'profile_picture' => ['nullable', 'string'],
         ]);
     }
 
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
+     * @param array $data
      * @return \App\Models\User
      */
     protected function create(array $data)
     {
         return User::create([
-            'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'sex' => $data['sex'],
+            'name' => $data['name'],
+            'infix' => $data['infix'],
+            'last_name' => $data['last_name'],
+            'birth_date' => $data['birth_date'],
+            'street' => $data['street'],
+            'postal_code' => $data['postal_code'],
+            'city' => $data['city'],
+            'phone' => $data['phone'],
         ]);
     }
 }
