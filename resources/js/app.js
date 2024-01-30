@@ -6,6 +6,8 @@ let hamburgerIcon;
 let closeHamburgerIcon;
 let hamburgerMenu;
 let body;
+let select;
+let buttonContainer;
 
 function init() {
     deleteButtons()
@@ -15,6 +17,12 @@ function init() {
     hamburgerMenu = document.getElementById('hamburger-menu');
 
     body = document.getElementById('app')
+
+    if (document.getElementById('select-roles')) {
+        select = document.getElementById('select-roles');
+        buttonContainer = document.getElementById('button-container');
+        editRoles();
+    }
 
     hamburgerMenu.addEventListener('click', hamburger)
 }
@@ -77,4 +85,44 @@ function deleteButtons() {
 
         });
     }
+}
+
+function editRoles() {
+    select.querySelectorAll('option').forEach(option => {
+        const button = document.createElement('p');
+        const autoSubmit = document.getElementById("auto-submit");
+        button.title = option.getAttribute('data-description')
+        button.textContent = option.textContent;
+        button.classList.add('btn');
+        button.classList.add('btn-secondary');
+        button.dataset.value = option.value;
+
+        if (option.selected) {
+            button.classList.add('btn-primary');
+            button.classList.add('text-white');
+            button.classList.remove('btn-secondary');
+        } else {
+            button.classList.remove('btn-primary');
+            button.classList.remove('text-white');
+            button.classList.add('btn-secondary');
+        }
+
+        button.addEventListener('click', () => {
+            if (option.selected) {
+                option.selected = false;
+                button.classList.remove('btn-primary');
+                button.classList.remove('text-white');
+                button.classList.add('btn-secondary');
+                autoSubmit.submit();
+            } else {
+                option.selected = true;
+                button.classList.add('btn-primary');
+                button.classList.add('text-white');
+                button.classList.remove('btn-secondary');
+                autoSubmit.submit();
+            }
+        });
+
+        buttonContainer.appendChild(button);
+    });
 }

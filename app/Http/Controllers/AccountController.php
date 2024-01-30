@@ -15,7 +15,8 @@ class AccountController extends Controller
     public function myAccount()
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
 
         return view('account.account', ['user' => $user, 'roles' => $roles]);
     }

@@ -13,21 +13,28 @@ class AdminController extends Controller
     public function admin()
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
 
         return view('admin.admin', ['user' => $user, 'roles' => $roles]);
     }
 
+    // Account management
+
     public function accountManagement()
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         $search = '';
 
-        $users = User::paginate(25);
+        $users = User::with(['roles' => function ($query) {
+            $query->orderBy('role', 'asc');
+        }])
+            ->orderBy('last_name')
+            ->paginate(25);
 
-        $all_roles = Role::all();
+        $all_roles = Role::orderBy('role')->get();
 
         $selected_role = '';
 
@@ -37,7 +44,8 @@ class AdminController extends Controller
     public function accountManagementSearch(Request $request)
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
 
         $search = $request->input('search');
         $selected_role = $request->input('role');
@@ -54,11 +62,13 @@ class AdminController extends Controller
                     ->orWhere('postal_code', 'like', '%' . $search . '%')
                     ->orWhere('city', 'like', '%' . $search . '%')
                     ->orWhere('phone', 'like', '%' . $search . '%')
-                    ->orWhere('id', 'like', '%' . $search . '%');
+                    ->orWhere('id', 'like', '%' . $search . '%')
+                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
             })
                 ->whereHas('roles', function ($query) use ($selected_role) {
-                    $query->where('role', $selected_role);
+                    $query->where('role', $selected_role)->orderBy('role');
                 })
+                ->orderBy('last_name')
                 ->paginate(25);
         } else {
             $users = User::where(function ($query) use ($search) {
@@ -72,12 +82,16 @@ class AdminController extends Controller
                     ->orWhere('postal_code', 'like', '%' . $search . '%')
                     ->orWhere('city', 'like', '%' . $search . '%')
                     ->orWhere('phone', 'like', '%' . $search . '%')
-                    ->orWhere('id', 'like', '%' . $search . '%');
-            })->paginate(25);
+                    ->orWhere('id', 'like', '%' . $search . '%')
+                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+            })
+                ->orderBy('last_name')
+                ->with(['roles' => function ($query) {
+                    $query->orderBy('role');
+                }])
+                ->paginate(25);
         }
-
-
-        $all_roles = Role::all();
+            $all_roles = Role::orderBy('role')->get();
 
         return view('admin.account_management.list', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
     }
@@ -85,9 +99,13 @@ class AdminController extends Controller
     public function accountDetails($id)
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $account = User::find($id);
+
+        $account = User::with(['roles' => function ($query) {
+            $query->orderBy('role', 'asc');
+        }])->find($id);
+
 
         return view('admin.account_management.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
@@ -95,11 +113,16 @@ class AdminController extends Controller
     public function editAccount($id)
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $all_roles = Role::all();
 
         $account = User::find($id);
 
-        return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+        $selectedRoles = $account->roles->pluck('id')->toArray();
+
+        return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles]);
     }
 
     public function storeAccount(Request $request, $id)
@@ -119,6 +142,7 @@ class AdminController extends Controller
             'avg' => 'nullable|bool',
             'member_date' => 'nullable|date',
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'dolfijnen_name' => 'nullable|string',
         ]);
 
         if (isset($request->profile_picture)) {
@@ -135,28 +159,35 @@ class AdminController extends Controller
             return redirect()->back()->with('error', 'Gebruiker niet gevonden');
         }
 
-        if (User::where('email', $request->email)->exists()) {
-            return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik.']);
-        } else {
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->sex = $request->input('sex');
-            $user->infix = $request->input('infix');
-            $user->last_name = $request->input('last_name');
-            $user->birth_date = $request->input('birth_date');
-            $user->street = $request->input('street');
-            $user->postal_code = $request->input('postal_code');
-            $user->city = $request->input('city');
-            $user->phone = $request->input('phone');
-            $user->member_date = $request->input('member_date');
+        $accountWithSameEmail = User::where('email', $request->email)->get();
 
-            if (isset($request->profile_picture)) {
-                $user->profile_picture = $newPictureName;
+        foreach ($accountWithSameEmail as $account) {
+            if ($account->id !== $user->id) {
+                return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik door een andere gebruiker.']);
+            } else {
+                $user->name = $request->input('name');
+                $user->email = $request->input('email');
+                $user->sex = $request->input('sex');
+                $user->infix = $request->input('infix');
+                $user->last_name = $request->input('last_name');
+                $user->birth_date = $request->input('birth_date');
+                $user->street = $request->input('street');
+                $user->postal_code = $request->input('postal_code');
+                $user->city = $request->input('city');
+                $user->phone = $request->input('phone');
+                $user->member_date = $request->input('member_date');
+                $user->dolfijnen_name = $request->input('dolfijnen_name');
+
+                if (isset($request->profile_picture)) {
+                    $user->profile_picture = $newPictureName;
+                }
+
+                $user->save();
+
+                $user->roles()->sync($request->input('roles'));
+
+                return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
             }
-
-            $user->save();
-
-            return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
         }
     }
 
@@ -164,7 +195,7 @@ class AdminController extends Controller
     {
         $user = User::find($id);
 
-        if ($id === (string) Auth::id()) {
+        if ($id === (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();
@@ -175,15 +206,20 @@ class AdminController extends Controller
     public function createAccount()
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        return view('admin.account_management.create_account', ['user' => $user, 'roles' => $roles]);
+
+        $all_roles = Role::all();
+
+        return view('admin.account_management.create_account', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles]);
     }
 
+    // Make account
     public function createAccountStore(Request $request)
     {
         $user = Auth::user();
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
 
         $request->validate([
             'name' => 'string|max:255',
@@ -200,6 +236,7 @@ class AdminController extends Controller
             'avg' => 'nullable|bool',
             'member_date' => 'nullable|date',
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'dolfijnen_name' => 'nullable|string',
         ]);
 
         if (isset($request->profile_picture)) {
@@ -225,6 +262,7 @@ class AdminController extends Controller
                 'city' => $request->input('city'),
                 'phone' => $request->input('phone'),
                 'member_date' => $request->input('member_date'),
+                'dolfijnen_name' => $request->input('dolfijnen_name'),
             ]);
 
             if (isset($request->profile_picture)) {
@@ -232,8 +270,119 @@ class AdminController extends Controller
                 $user->save();
             }
 
+            if (!empty($request->roles)) {
+                $user->roles()->attach($request->roles);
+            }
+
             return redirect()->route('admin.create-account', ['user' => $user, 'roles' => $roles])->with('success', 'Gebruiker succesvol aangemaakt');
 
         }
+    }
+
+
+    // Rollen
+
+    public function roleManagement()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $search = '';
+
+        $all_roles = Role::orderBy('role')->paginate(25);
+
+
+        return view('admin.role_management.list', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'search' => $search]);
+    }
+
+    public function roleManagementSearch(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $search = $request->input('search');
+
+        $all_roles = Role::where(function ($query) use ($search) {
+            $query->where('role', 'like', '%' . $search . '%')
+                ->orWhere('description', 'like', '%' . $search . '%');
+        })->orderBy('role')->paginate(25);
+
+
+        return view('admin.role_management.list', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'search' => $search]);
+    }
+
+    public function editRole($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $role = Role::find($id);
+
+        return view('admin.role_management.edit', ['user' => $user, 'roles' => $roles, 'role' => $role]);
+    }
+
+    public function storeRole(Request $request, $id)
+    {
+        $request->validate([
+            'role' => 'string|max:255',
+            'description' => 'string',
+        ]);
+
+        $role = Role::find($id);;
+
+        if (!$role) {
+            return redirect()->back()->with('error', 'Rol niet gevonden');
+        }
+
+        $role->role = $request->input('role');
+        $role->description = $request->input('description');
+
+        $role->save();
+
+        return redirect()->route('admin.role-management')->with('success', 'Rol succesvol bijgewerkt');
+    }
+
+    public function deleteRole($id)
+    {
+        $role = Role::find($id);
+
+        $role->delete();
+        return redirect()->route('admin.role-management')->with('success', 'Rol verwijderd');
+
+    }
+
+    public function createRole()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        return view('admin.role_management.create_role', ['user' => $user, 'roles' => $roles]);
+    }
+
+    // Make account
+    public function createRoleStore(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $request->validate([
+            'role' => 'string|max:255',
+            'description' => 'string',
+        ]);
+
+        $role = Role::create([
+            'role' => $request->input('role'),
+            'description' => $request->input('description')
+        ]);
+
+        $role->save();
+
+        return redirect()->route('admin.role-management', ['user' => $user, 'roles' => $roles])->with('success', 'Rol succesvol aangemaakt');
+
     }
 }

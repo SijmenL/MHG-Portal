@@ -33,7 +33,7 @@
                 <table class="table table-striped">
                     <tbody>
                     <tr>
-                        <th><label for="name" class="col-md-4 col-form-label text-md-end">Voornaam</label></th>
+                        <th><label for="name" class="col-md-4 col-form-label ">Voornaam</label></th>
                         <th>
                             <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                                    name="name" value="{{ $account->name }}" autocomplete="name" autofocus>
@@ -45,7 +45,7 @@
                         </th>
                     </tr>
                     <tr>
-                        <th><label for="infix" class="col-md-4 col-form-label text-md-end">Tussenvoegsel</label></th>
+                        <th><label for="infix" class="col-md-4 col-form-label ">Tussenvoegsel</label></th>
                         <th>
                             <input id="infix" type="text" class="form-control @error('infix') is-invalid @enderror"
                                    name="infix" value="{{ $account->infix }}" autocomplete="infix" autofocus>
@@ -57,7 +57,7 @@
                         </th>
                     </tr>
                     <tr>
-                        <th><label for="last_name" class="col-md-4 col-form-label text-md-end">Achternaam</label></th>
+                        <th><label for="last_name" class="col-md-4 col-form-label ">Achternaam</label></th>
                         <th>
                             <input id="last_name" type="text"
                                    class="form-control @error('last_name') is-invalid @enderror"
@@ -71,7 +71,21 @@
                         </th>
                     </tr>
                     <tr>
-                        <th><label for="email" class="col-md-4 col-form-label text-md-end">E-mail</label></th>
+                        <th><label for="dolfijnen_name" class="col-md-4 col-form-label ">Dolfijnen Naam</label></th>
+                        <th>
+                            <input id="dolfijnen_name" type="text"
+                                   class="form-control @error('dolfijnen_name') is-invalid @enderror"
+                                   name="dolfijnen_name" value="{{ $account->dolfijnen_name }}" autocomplete="dolfijnen_name"
+                                   autofocus>
+                            @error('dolfijnen_name')
+                            <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                            @enderror
+                        </th>
+                    </tr>
+                    <tr>
+                        <th><label for="email" class="col-md-4 col-form-label ">E-mail</label></th>
                         <th><input id="email" value="{{ $account->email }}" type="email" class="form-control @error('email') is-invalid @enderror" name="email"  autocomplete="email">
                             @error('email')
                             <span class="invalid-feedback" role="alert">
@@ -80,7 +94,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="profile_picture" class="col-md-4 col-form-label text-md-end">Profielfoto</label></th>
+                        <th><label for="profile_picture" class="col-md-4 col-form-label ">Profielfoto</label></th>
                         <th>
                             @if($account->profile_picture)
                                 <img alt="profielfoto" class="w-25"
@@ -97,7 +111,23 @@
                         <th>
                     </tr>
                     <tr>
-                        <th><label for="sex" class="col-md-4 col-form-label text-md-end">Geslacht</label></th>
+                        <th><label for="roles" class="col-md-4 col-form-label ">Rollen</label></th>
+                        <th>
+                            <div class="custom-select">
+                                <select id="select-roles" class="d-none" id="roles" name="roles[]" multiple>
+                                    @foreach($all_roles as $role)
+                                        <option data-description="{{ $role->description }}" value="{{ $role->id }}" {{ in_array($role->id, $selectedRoles) ? 'selected' : '' }}>
+                                            {{ $role->role }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1" id="button-container">
+                            </div>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th><label for="sex" class="col-md-4 col-form-label ">Geslacht</label></th>
                         <th>
                             <select id="sex" type="text" class="form-select @error('sex') is-invalid @enderror" name="sex" >
                                 <option @if($account->sex === 'Man') selected @endif >Man</option>
@@ -112,7 +142,7 @@
                         </th>
                     </tr>
                     <tr>
-                        <th><label for="birth_date" class="col-md-4 col-form-label text-md-end">Geboortedatum</label></th>
+                        <th><label for="birth_date" class="col-md-4 col-form-label ">Geboortedatum</label></th>
                         <th><input id="birth_date" value="{{ $account->birth_date }}" type="date" class="form-control @error('birth_date') is-invalid @enderror" name="birth_date" >
                             @error('birth_date')
                             <span class="invalid-feedback" role="alert">
@@ -121,7 +151,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="street" class="col-md-4 col-form-label text-md-end">Straat & huisnummer</label></th>
+                        <th><label for="street" class="col-md-4 col-form-label ">Straat & huisnummer</label></th>
                         <th><input id="street" value="{{ $account->street }}" type="text" class="form-control @error('street') is-invalid @enderror" name="street" >
                             @error('street')
                             <span class="invalid-feedback" role="alert">
@@ -130,7 +160,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="postal_code" class="col-md-4 col-form-label text-md-end">Postcode</label></th>
+                        <th><label for="postal_code" class="col-md-4 col-form-label ">Postcode</label></th>
                         <th><input id="postal_code" value="{{ $account->postal_code }}" type="text" class="form-control @error('postal_code') is-invalid @enderror" name="postal_code" >
                             @error('postal_code')
                             <span class="invalid-feedback" role="alert">
@@ -139,7 +169,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="city" class="col-md-4 col-form-label text-md-end">Woonplaats</label></th>
+                        <th><label for="city" class="col-md-4 col-form-label ">Woonplaats</label></th>
                         <th><input id="city" value="{{ $account->city }}" type="text" class="form-control @error('city') is-invalid @enderror" name="city" >
                             @error('city')
                             <span class="invalid-feedback" role="alert">
@@ -148,7 +178,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="phone" class="col-md-4 col-form-label text-md-end">Telefoonnummer</label></th>
+                        <th><label for="phone" class="col-md-4 col-form-label ">Telefoonnummer</label></th>
                         <th><input id="phone" value="{{ $account->phone }}" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" >
                             @error('phone')
                             <span class="invalid-feedback" role="alert">
@@ -157,7 +187,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="avg" class="col-md-4 col-form-label text-md-end">AVG Toestemming</label></th>
+                        <th><label for="avg" class="col-md-4 col-form-label ">AVG Toestemming</label></th>
                         <th><select id="avg" type="text" class="form-select @error('avg') is-invalid @enderror" name="avg" >
                                 <option @if($account->avg === '1') selected @endif value="1">Ja</option>
                                 <option @if($account->avg === '0') selected @endif value="0">Nee</option>
@@ -169,7 +199,7 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="member_date" class="col-md-4 col-form-label text-md-end">Lid sinds</label></th>
+                        <th><label for="member_date" class="col-md-4 col-form-label ">Lid sinds</label></th>
                         <th><input id="member_date" value="{{ $account->member_date }}" type="date" class="form-control @error('member_date') is-invalid @enderror" name="member_date">
                             @error('member_date')
                             <span class="invalid-feedback" role="alert">

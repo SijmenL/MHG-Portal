@@ -28,7 +28,7 @@
                     <span class="material-symbols-rounded">supervisor_account</span>
                     <p>Koppel accounts</p>
                 </a>
-                <a class="btn btn-admin quick-action" href="{{ route('admin.account-management') }}">
+                <a class="btn btn-admin quick-action" href="{{ route('admin.role-management') }}">
                     <span class="material-symbols-rounded">account_circle</span>
                     <p>Rollen beheer</p>
                 </a>

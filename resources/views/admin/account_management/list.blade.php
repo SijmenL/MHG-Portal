@@ -49,7 +49,7 @@
             </div>
         </form>
 
-
+        @if($users->count() > 0)
         <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
             <table class="table table-striped">
                 <thead class="thead-dark table-bordered table-hover">
@@ -81,8 +81,8 @@
                         <th>
                             <div class="d-flex flex-row gap-1 flex-wrap">
                                 @foreach ($all_user->roles as $role)
-                                    <span
-                                        class="badge rounded-pill text-bg-primary text-white p-2">{{ $role->role }}</span>
+                                    <span title="{{ $role->description }}"
+                                        class="badge rounded-pill text-bg-primary text-white fs-6 p-2">{{ $role->role }}</span>
                                 @endforeach
                             </div>
                         </th>
@@ -105,5 +105,10 @@
             </table>
         </div>
         {{ $users->links() }}
+        @else
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <span class="material-symbols-rounded me-2">person_off</span>Geen gebruikers gevonden...
+            </div>
+        @endif
     </div>
 @endsection

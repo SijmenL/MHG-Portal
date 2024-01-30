@@ -27,11 +27,12 @@
                     <p>Mijn account</p>
                 </a>
 
-
+                    @if(auth()->user() && (auth()->user()->roles->contains('role', 'Ouder')) || auth()->user()->roles->contains('role', 'Administratie'))
                 <a class="btn btn-info quick-action" href="">
                     <span class="material-symbols-rounded">family_restroom</span>
                     <p>Mijn kinderen</p>
                 </a>
+                    @endif
 
 
 {{--                <a class="btn btn-info quick-action" href="">--}}
@@ -51,22 +52,30 @@
 {{--                </a>--}}
 
 
-                <a class="btn btn-dark quick-action" href="">
+                    @if(auth()->user() && (auth()->user()->roles->contains('role', 'Dolfijn')) || auth()->user()->roles->contains('role', 'Dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad'))
+                <a class="btn btn-dark quick-action" href="{{ route('dolfijnen') }}">
                     <img alt="dolfijnen" src="{{ asset('img/icons/dolfijnen.png') }}">
                     <p>Dolfijnen</p>
                 </a>
+                    @endif
+                    @if(auth()->user() && (auth()->user()->roles->contains('role', 'Zeeverkenner')) || auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad'))
                 <a class="btn btn-dark quick-action" href="">
                     <img alt="dolfijnen" src="{{ asset('img/icons/zeeverkenners.png') }}">
                     <p>Zeeverkenners</p>
                 </a>
+                    @endif
+                    @if(auth()->user() && (auth()->user()->roles->contains('role', 'Loods')) || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad'))
                 <a class="btn btn-dark quick-action" href="">
                     <img alt="dolfijnen" src="{{ asset('img/icons/loodsen.png') }}">
                     <p>Loodsen</p>
                 </a>
+                    @endif
+                    @if(auth()->user() && (auth()->user()->roles->contains('role', 'After Loods')) || auth()->user()->roles->contains('role', 'After Loodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad'))
                 <a class="btn btn-dark quick-action" href="">
                     <img alt="dolfijnen" src="{{ asset('img/icons/after_loodsen.png') }}">
                     <p>After Loodsen</p>
                 </a>
+                    @endif
 
 
 {{--                <a class="btn btn-secondary quick-action" href="">--}}

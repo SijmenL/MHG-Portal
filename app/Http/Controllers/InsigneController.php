@@ -15,7 +15,8 @@ class InsigneController extends Controller
 
         // Check if the user is authenticated
         // Retrieve the user's roles
-        $roles = $user->roles;
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
 
         $user_insignes = $user->insignes()->withPivot('date')->get();
 

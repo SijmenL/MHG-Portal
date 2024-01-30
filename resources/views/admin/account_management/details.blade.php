@@ -41,6 +41,10 @@
                     <th>Achternaam</th>
                     <th>{{ $account->last_name }}</th>
                 </tr>
+                <tr>
+                    <th>Dolfijnen Naam</th>
+                    <th>{{ $account->dolfijnen_name }}</th>
+                </tr>
                 @if($account->profile_picture)
                     <tr>
                         <th>Profielfoto</th>
@@ -50,6 +54,15 @@
                         <th>
                     </tr>
                 @endif
+                <tr>
+                    <th>Rollen</th>
+                    <th>
+                        @foreach ($account->roles as $role)
+                            <span title="{{ $role->description }}"
+                                class="badge rounded-pill text-bg-primary text-white fs-6 p-2">{{ $role->role }}</span>
+                        @endforeach
+                    </th>
+                </tr>
                 <tr>
                     <th>Geslacht</th>
                     <th>{{ $account->sex }}</th>
@@ -107,7 +120,8 @@
 
         <div class="d-flex flex-row flex-wrap gap-2">
             <a href="{{ route('admin.account-management')}}" class="btn btn-info">Terug</a>
-            <a href="{{ route('admin.account-management.edit', ['id' => $account->id]) }}" class="btn btn-dark">Bewerk</a>
+            <a href="{{ route('admin.account-management.edit', ['id' => $account->id]) }}"
+               class="btn btn-dark">Bewerk</a>
             <a class="delete-button btn btn-outline-danger"
                data-id="{{ $account->id }}"
                data-name="{{ $account->name . ' ' . $account->infix . ' ' . $account->last_name }}"
