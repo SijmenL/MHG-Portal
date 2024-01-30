@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AccountController extends Controller
 {
     public function myAccount()
     {
-        // Retrieve the currently authenticated user
         $user = Auth::user();
-
-        // Check if the user is authenticated
-        // Retrieve the user's roles
         $roles = $user->roles;
 
         return view('account.account', ['user' => $user, 'roles' => $roles]);
@@ -37,12 +37,12 @@ class AccountController extends Controller
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
         ]);
 
-
-        // Process and save the uploaded image
-        $newPictureName = time() . '-' . $request->name . '.' . $request->profile_picture->extension();
-        $destinationPath = 'profile_pictures';
-
-        if ($request->profile_picture->move($destinationPath, $newPictureName)) {
+        if (isset($request->profile_picture)) {
+            // Process and save the uploaded image
+            $newPictureName = time() . '-' . $request->name . '.' . $request->profile_picture->extension();
+            $destinationPath = 'profile_pictures';
+            $request->profile_picture->move($destinationPath, $newPictureName);
+        }
 
             $user = Auth::user();
 
@@ -64,17 +64,12 @@ class AccountController extends Controller
             $user->postal_code = $request->input('postal_code');
             $user->city = $request->input('city');
             $user->phone = $request->input('phone');
+
             $user->profile_picture = $newPictureName;
 
-//            if ($request->input('password') !== "") {
-//                $user->password = Hash::make($request->input('password'));
-//            }
 
             $user->save();
 
             return redirect()->route('dashboard')->with('success', 'Account succesvol bijgewerkt');
-        } else {
-            return redirect()->route('account.update')->with('error', 'Hier gaat iets mis.');
-        }
     }
 }

@@ -57,6 +57,11 @@
                     <button type="submit" class="btn btn-outline-primary">
                         {{ __('Inloggen') }}
                     </button>
+                    @if (Route::has('password.request'))
+                        <a class="btn btn-link" href="{{ route('password.request') }}">
+                            {{ __('Wachtwoord vergeten?') }}
+                        </a>
+                    @endif
                 </div>
             </div>
         </form>

@@ -44,7 +44,8 @@ class User extends Authenticatable
         'city',
         'phone',
         'avg',
-        'profile_picture'
+        'profile_picture',
+        'member_date'
     ];
 
     /**
