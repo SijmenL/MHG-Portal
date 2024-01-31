@@ -77,7 +77,7 @@
                             @endif
                         </th>
                         <th>{{ $all_user->name .' '. $all_user->infix.' '. $all_user->last_name }}</th>
-                        <th>{{ $all_user->email }}</th>
+                        <th><a href="mailto:{{ $all_user->email }}">{{ $all_user->email }}</a></th>
                         <th>
                             <div class="d-flex flex-row gap-1 flex-wrap">
                                 @foreach ($all_user->roles as $role)

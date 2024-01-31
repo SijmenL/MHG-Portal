@@ -33,37 +33,37 @@ Route::post('/account', [AccountController::class, 'updateAccount'])->name('acco
 
 //Admin
 Route::middleware(['checkRole:Administratie'])->group(function () {
-    Route::get('/admin', [AdminController::class, 'admin'])->name('admin');
+    Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
 
     // Account management
-    Route::get('/admin/account-management', [AdminController::class, 'accountManagement'])->name('admin.account-management');
-    Route::post('/admin/account-management', [AdminController::class, 'accountManagementSearch'])->name('admin.account-management.search');
+    Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
+    Route::post('/administratie/account-beheer', [AdminController::class, 'accountManagementSearch'])->name('admin.account-management.search');
 
-    Route::get('/admin/account-management/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
+    Route::get('/administratie/account-beheer/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
 
-    Route::get('/admin/account-management/edit/{id}', [AdminController::class, 'editAccount'])->name('admin.account-management.edit');
-    Route::post('/admin/account-management/edit/{id}', [AdminController::class, 'storeAccount'])->name('admin.account-management.store');
+    Route::get('/administratie/account-beheer/bewerk/{id}', [AdminController::class, 'editAccount'])->name('admin.account-management.edit');
+    Route::post('/administratie/account-beheer/bewerk/{id}', [AdminController::class, 'storeAccount'])->name('admin.account-management.store');
 
-    Route::get('/admin/account-management/delete/{id}', [AdminController::class, 'deleteAccount'])->name('admin.account-management.delete');
+    Route::get('/administratie/account-beheer/verwijder/{id}', [AdminController::class, 'deleteAccount'])->name('admin.account-management.delete');
 
 
     // Create account
-    Route::get('/admin/create-account', [AdminController::class, 'createAccount'])->name('admin.create-account');
-    Route::post('/admin/create-account', [AdminController::class, 'createAccountStore'])->name('admin.create-account-store');
+    Route::get('/administratie/maak-account', [AdminController::class, 'createAccount'])->name('admin.create-account');
+    Route::post('/administratie/maak-account', [AdminController::class, 'createAccountStore'])->name('admin.create-account-store');
 
 
     // Role management
-    Route::get('/admin/role-management', [AdminController::class, 'roleManagement'])->name('admin.role-management');
-    Route::post('/admin/role-management', [AdminController::class, 'roleManagementSearch'])->name('admin.role-management.search');
+    Route::get('/administratie/rol-beheer', [AdminController::class, 'roleManagement'])->name('admin.role-management');
+    Route::post('/administratie/rol-beheer', [AdminController::class, 'roleManagementSearch'])->name('admin.role-management.search');
 
 
-    Route::get('/admin/role-management/edit/{id}', [AdminController::class, 'editRole'])->name('admin.role-management.edit');
-    Route::post('/admin/role-management/edit/{id}', [AdminController::class, 'storeRole'])->name('admin.role-management.store');
+    Route::get('/administratie/rol-beheer/bewerk/{id}', [AdminController::class, 'editRole'])->name('admin.role-management.edit');
+    Route::post('/administratie/rol-beheer/bewerk/{id}', [AdminController::class, 'storeRole'])->name('admin.role-management.store');
 
-    Route::get('/admin/role-management/delete/{id}', [AdminController::class, 'deleteRole'])->name('admin.role-management.delete');
+    Route::get('/administratie/rol-beheer/verwijder/{id}', [AdminController::class, 'deleteRole'])->name('admin.role-management.delete');
 
-    Route::get('/admin/role-management/create', [AdminController::class, 'createRole'])->name('admin.role-management.create');
-    Route::post('/admin/role-management/create', [AdminController::class, 'createRoleStore'])->name('admin.role-management.create.store');
+    Route::get('/administratie/rol-beheer/nieuw', [AdminController::class, 'createRole'])->name('admin.role-management.create');
+    Route::post('/administratie/rol-beheer/nieuw', [AdminController::class, 'createRoleStore'])->name('admin.role-management.create.store');
 });
 
 
@@ -71,6 +71,12 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
 Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/dolfijnen', [DolfijnenController::class, 'view'])->name('dolfijnen');
     Route::get('/dolfijnen/leiding', [DolfijnenController::class, 'leiding'])->name('dolfijnen.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur'])->group(function () {
+    Route::get('/dolfijnen/groep', [DolfijnenController::class, 'group'])->name('dolfijnen.groep');
+    Route::post('/dolfijnen/groep', [DolfijnenController::class, 'groupSearch'])->name('dolfijnen.group.search');
+    Route::get('/dolfijnen/groep/details/{id}', [DolfijnenController::class, 'groupDetails'])->name('dolfijnen.groep.details');
 });
 
 //Insignes

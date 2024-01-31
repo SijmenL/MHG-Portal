@@ -45,7 +45,7 @@
                     </svg>
                 </a>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse navbar-info" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
                         <div class="rolls fade-out-left fade-out-right"
@@ -69,7 +69,7 @@
                             @endif
                         @else
                             <li class="nav-item dropdown" id="menu-dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                                <a id="navbarDropdown" class="dropdown-toggle" href="#" role="button"
                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                                     @if(Auth::user()->profile_picture)
                                         <img alt="profielfoto" class="profle-picture"

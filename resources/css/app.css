@@ -116,9 +116,6 @@ h1 {
     flex-direction: row;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    padding-left: 20px;
-    padding-right: 50px;
-
     mask:
         linear-gradient(to top,  transparent 10%, #fff 15% 90%, transparent 95%),
         linear-gradient(to left, transparent 10%, #fff 15% 90%, transparent 95%);
@@ -127,6 +124,9 @@ h1 {
     mask-repeat:no-repeat;
     mask-composite: intersect;
     transform: translateX(-20px);
+    margin-left: 5vw;
+    flex-wrap: wrap;
+    padding: 25px;
 }
 
 .rolls::-webkit-scrollbar {
@@ -206,7 +206,72 @@ h1 {
     object-fit: cover;
 }
 
+.navbar-info {
+    position: absolute;
+    top: 0;
+    margin-top: 100px;
+    left: 0;
+    background-color: var(--accent-color);
+    width: 100%;
+    font-size: larger;
+}
+
+.navbar-info ul {
+    align-items: start !important;
+}
+
+.navbar-info ul li {
+    margin-left: 5vw;
+    margin-bottom: 5px;
+}
+
+#menu-dropdown {
+    margin-bottom: 10px;
+}
+
+#navbarDropdown {
+    display: none;
+}
+
+#dropdown-menu {
+    display: block;
+    width: 90vw;
+}
+
+.dropdown-menu.show {
+    display: block !important;
+}
+
 @media screen and (min-width: 992px) {
+    .navbar-info {
+        position: unset;
+        top: unset;
+        margin-top: unset;
+        left: unset;
+        background-color: white;
+    }
+
+    .navbar-info ul {
+        align-items: center;
+    }
+
+    .navbar-info ul li {
+        margin-left: 0;
+        margin-bottom: 0;
+    }
+
+    #menu-dropdown {
+        margin-bottom: 0;
+    }
+
+    #navbarDropdown {
+        display: block;
+    }
+
+    #dropdown-menu {
+        display: none;
+        width: initial;
+    }
     .quick-action {
         height: 150px;
         aspect-ratio: 1/1;
@@ -225,6 +290,10 @@ h1 {
     }
     .rolls {
         max-width: 500px;
+        padding-left: 20px;
+        padding-right: 50px;
+        flex-wrap: nowrap;
+        margin-left: 5px;
     }
     .popup-body {
         width: 50vw;
@@ -243,6 +312,36 @@ h1 {
 }
 
 @media screen and (min-width: 768px) and (max-width: 991px) {
+    .navbar-info {
+        position: unset;
+        top: unset;
+        margin-top: unset;
+        left: unset;
+        background-color: white;
+    }
+
+    .navbar-info ul {
+        align-items: center;
+    }
+
+    .navbar-info ul li {
+        margin-left: 0;
+        margin-bottom: 0;
+    }
+
+    #menu-dropdown {
+        margin-bottom: 0;
+    }
+
+    #navbarDropdown {
+        display: block;
+    }
+
+    #dropdown-menu {
+        display: none;
+        width: initial;
+    }
+
     .quick-action {
         height: 18vh;
         aspect-ratio: 1/1;
@@ -269,6 +368,10 @@ h1 {
     .rolls {
         max-width: 300px;
         transform: translateX(0px);
+        padding-left: 20px;
+        padding-right: 50px;
+        flex-wrap: nowrap;
+        margin-left: 5px;
     }
 
     .button-container {

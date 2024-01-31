@@ -120,7 +120,11 @@ class AdminController extends Controller
 
         $account = User::find($id);
 
-        $selectedRoles = $account->roles->pluck('id')->toArray();
+        if($account !== null) {
+            $selectedRoles = $account->roles->pluck('id')->toArray();
+        } else {
+            $selectedRoles = '';
+        }
 
         return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles]);
     }
@@ -195,6 +199,9 @@ class AdminController extends Controller
     {
         $user = User::find($id);
 
+        if($user === null) {
+            return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om te verwijderen');
+        }
         if ($id === (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
@@ -348,6 +355,10 @@ class AdminController extends Controller
     public function deleteRole($id)
     {
         $role = Role::find($id);
+
+        if($role === null) {
+            return redirect()->route('admin.role-management')->with('error', 'Geen rol gevonden om te verwijderen');
+        }
 
         $role->delete();
         return redirect()->route('admin.role-management')->with('success', 'Rol verwijderd');

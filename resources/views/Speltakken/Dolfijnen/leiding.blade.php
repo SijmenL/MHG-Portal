@@ -2,12 +2,12 @@
 
 @section('content')
     <div class="container col-md-11">
-        <h1>Leiding</h1>
+        <h1>Dolfijnen leiding</h1>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dolfijnen') }}">Dolfijnen</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Leiding</li>
+                <li class="breadcrumb-item active" aria-current="page">Dolfijnen leiding</li>
             </ol>
         </nav>
 

@@ -45,7 +45,7 @@
                     </svg>
                 </a>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse navbar-info" id="navbarSupportedContent">
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto d-flex align-items-center">
@@ -55,23 +55,23 @@
                                 <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
                                    href="{{ route('dolfijnen') }}"><img alt="dolfijnen" class="navbar-icon" src="{{ asset('img/icons/dolfijnen.png') }}">Home</a>
                             </li>
+                            @if(auth()->user() && (auth()->user()->roles->contains('role', 'Dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')))
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
+                                       href="{{ route('dolfijnen.groep') }}"><span
+                                            class="material-symbols-rounded">groups_2</span>Groep</a>
+                                </li>
+                            @endif
                             <li class="nav-item">
                                 <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
                                    href="{{ route('dolfijnen.leiding') }}"><span
                                         class="material-symbols-rounded">supervisor_account</span>Leiding</a>
                             </li>
-                            @if(auth()->user() && (auth()->user()->roles->contains('role', 'Dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')))
-                            <li class="nav-item">
-                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
-                                   href="{{ route('dolfijnen') }}"><span
-                                        class="material-symbols-rounded">groups_2</span>Groep</a>
-                            </li>
-                            @endif
-                            <li class="nav-item">
-                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
-                                   href="{{ route('dolfijnen') }}"><span
-                                        class="material-symbols-rounded">event_upcoming</span>Aanwezigheid</a>
-                            </li>
+{{--                            <li class="nav-item">--}}
+{{--                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"--}}
+{{--                                   href="{{ route('dolfijnen') }}"><span--}}
+{{--                                        class="material-symbols-rounded">event_upcoming</span>Aanwezigheid</a>--}}
+{{--                            </li>--}}
                         </ul>
                         @guest
                             @if (Route::has('login'))

@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container col-md-11">
-        <h1>Bewerk {{$account->name}} {{$account->infix}} {{$account->last_name}}</h1>
+        <h1>Bewerk @if($account !== null) {{$account->name}} {{$account->infix}} {{$account->last_name}}@endif</h1>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -10,8 +10,7 @@
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a
                         href="{{route('admin.account-management')}}">Gebruikers</a></li>
-                <li class="breadcrumb-item active" aria-current="page">
-                    Bewerk {{$account->name}} {{$account->infix}} {{$account->last_name}}</li>
+                <li class="breadcrumb-item active" aria-current="page">Bewerk @if($account !== null) {{$account->name}} {{$account->infix}} {{$account->last_name}}@endif</li>
             </ol>
         </nav>
 
@@ -26,6 +25,7 @@
             </div>
         @endif
 
+        @if($account !== null)
         <form method="POST" action="{{ route('admin.account-management.store', $account) }}"
               enctype="multipart/form-data">
             @csrf
@@ -231,6 +231,16 @@
                 <a href="{{ route('admin.account-management.details', ['id' => $account->id]) }}"
                    class="btn btn-outline-danger">Annuleren</a>
             </div>
+
+            @else
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <span class="material-symbols-rounded me-2">person_off</span>Geen account gevonden...
+                </div>
+
+                <div class="d-flex flex-row flex-wrap gap-2">
+                    <a href="{{ route('admin.account-management')}}" class="btn btn-info">Terug</a>
+                </div>
+            @endif
 
 
 
