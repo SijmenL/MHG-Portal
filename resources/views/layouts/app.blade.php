@@ -9,7 +9,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>MHG Portal</title>
+    <title>Ledenportaal Waterscouting Matthijs Heldt Groep</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -81,6 +81,13 @@
                                 </a>
                                 <div id="dropdown-menu" class="dropdown-menu dropdown-menu-end"
                                      aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('settings.account.edit') }}">
+                                        Persoonlijke informatie
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('settings.change-password') }}">
+                                        Wijzig wachtwoord
+                                    </a>
+                                    <div class="devider mt-1 mb-1"></div>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">

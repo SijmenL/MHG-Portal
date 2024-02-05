@@ -2,12 +2,15 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\IsAllowedToRemoveParents;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
     protected $routeMiddleware = [
         'checkRole' => \App\Http\Middleware\CheckRole::class,
+        'hasChildren' => \App\Http\Middleware\HasChildren::class,
+        'isAllowedToRemoveParents' => IsAllowedToRemoveParents::class,
     ];
 
     /**

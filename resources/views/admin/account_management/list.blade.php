@@ -55,10 +55,10 @@
                 <thead class="thead-dark table-bordered table-hover">
                 <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Profielfoto</th>
+                    <th class="no-mobile" scope="col">Profielfoto</th>
                     <th scope="col">Naam</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Rollen</th>
+                    <th class="no-mobile" scope="col">Email</th>
+                    <th class="no-mobile" scope="col">Rollen</th>
                     <th scope="col">Opties</th>
                 </tr>
                 </thead>
@@ -67,7 +67,7 @@
                 @foreach ($users as $all_user)
                     <tr id="{{ $all_user->id }}">
                         <th>{{ $all_user->id }}</th>
-                        <th>
+                        <th class="no-mobile">
                             @if($all_user->profile_picture)
                                 <img alt="profielfoto" class="profle-picture"
                                      src="{{ asset('/profile_pictures/' .$all_user->profile_picture) }}">
@@ -77,8 +77,8 @@
                             @endif
                         </th>
                         <th>{{ $all_user->name .' '. $all_user->infix.' '. $all_user->last_name }}</th>
-                        <th><a href="mailto:{{ $all_user->email }}">{{ $all_user->email }}</a></th>
-                        <th>
+                        <th class="no-mobile"><a href="mailto:{{ $all_user->email }}">{{ $all_user->email }}</a></th>
+                        <th class="no-mobile">
                             <div class="d-flex flex-row gap-1 flex-wrap">
                                 @foreach ($all_user->roles as $role)
                                     <span title="{{ $role->description }}"
@@ -92,11 +92,6 @@
                                    class="btn btn-info">Details</a>
                                 <a href="{{ route('admin.account-management.edit', ['id' => $all_user->id]) }}"
                                    class="btn btn-dark">Bewerk</a>
-                                <a class="delete-button btn btn-outline-danger"
-                                   data-id="{{ $all_user->id }}"
-                                   data-name="{{ $all_user->name . ' ' . $all_user->infix . ' ' . $all_user->last_name }}"
-                                   data-link="{{ route('admin.account-management.delete', $all_user->id) }}">Verwijderen</a>
-
                             </div>
                         </th>
                     </tr>

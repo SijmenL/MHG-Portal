@@ -79,7 +79,11 @@
             <div class="d-flex flex-row flex-wrap gap-2">
                 <button type="submit" class="btn btn-success">Opslaan</button>
                 <a href="{{ route('admin.role-management') }}"
-                   class="btn btn-outline-danger">Annuleren</a>
+                   class="btn btn-danger text-white">Annuleren</a>
+                <a class="delete-button btn btn-outline-danger"
+                   data-id="{{ $role->id }}"
+                   data-name="{{ $role->role }}"
+                   data-link="{{ route('admin.role-management.delete', $role->id) }}">Verwijderen</a>
             </div>
 
             @else

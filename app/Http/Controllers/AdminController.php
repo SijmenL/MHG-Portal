@@ -115,6 +115,7 @@ class AdminController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        $all_users = User::all();
 
         $all_roles = Role::all();
 
@@ -126,7 +127,11 @@ class AdminController extends Controller
             $selectedRoles = '';
         }
 
-        return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles]);
+        $child_ids = $account->children()->pluck('users.id')->implode(', ');
+
+        $parent_ids = $account->parents()->pluck('users.id')->implode(', ');
+
+        return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles, 'all_users' => $all_users, 'child_ids' => $child_ids, 'parent_ids' => $parent_ids]);
     }
 
     public function storeAccount(Request $request, $id)
@@ -147,7 +152,40 @@ class AdminController extends Controller
             'member_date' => 'nullable|date',
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
             'dolfijnen_name' => 'nullable|string',
+            'children' => 'nullable|string',
+            'parents' => 'nullable|string',
         ]);
+
+        if (isset($request->children)) {
+            $parent = User::findOrFail($id);
+            $childIdsArray = array_map('intval', explode(',', $request->children));
+
+            // Detach existing relationships
+            $parent->children()->detach();
+
+            // Attach the new relationships
+            $children = User::find($childIdsArray);
+            $parent->children()->attach($children);
+        } else {
+            $parent = User::findOrFail($id);
+            $parent->children()->detach();
+        }
+
+        if (isset($request->parents)) {
+            $child = User::findOrFail($id);
+            $parentIdsArray = array_map('intval', explode(',', $request->parents));
+
+            // Detach existing relationships
+            $child->parents()->detach();
+
+            // Attach the new relationships
+            $parents = User::find($parentIdsArray);
+            $parent->parents()->attach($parents);
+        } else {
+            $child = User::findOrFail($id);
+            $child->parents()->detach();
+        }
+
 
         if (isset($request->profile_picture)) {
             // Process and save the uploaded image
@@ -181,6 +219,7 @@ class AdminController extends Controller
                 $user->phone = $request->input('phone');
                 $user->member_date = $request->input('member_date');
                 $user->dolfijnen_name = $request->input('dolfijnen_name');
+                $user->avg = $request->input('avg');
 
                 if (isset($request->profile_picture)) {
                     $user->profile_picture = $newPictureName;

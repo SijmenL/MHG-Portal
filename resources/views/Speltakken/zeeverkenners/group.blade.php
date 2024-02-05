@@ -1,4 +1,4 @@
-@extends('layouts.dolfijnen')
+@extends('layouts.zeeverkenners')
 
 @section('content')
     <div class="container col-md-11">
@@ -6,7 +6,7 @@
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('dolfijnen') }}">Dolfijnen</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('zeeverkenners') }}">Zeeverkenners</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Groep</li>
             </ol>
         </nav>
@@ -22,7 +22,7 @@
             </div>
         @endif
 
-        <form id="auto-submit" method="POST" action="{{ route('dolfijnen.group.search') }}">
+        <form id="auto-submit" method="POST" action="{{ route('zeeverkenners.group.search') }}">
             @csrf
             <div class="d-flex">
                 <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100">
@@ -72,7 +72,7 @@
                             <th>
                                 @if(auth()->user() && (auth()->user()->roles->contains('role', 'Dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')))
                                 <div class="d-flex flex-row flex-wrap gap-2">
-                                    <a href="{{ route('dolfijnen.groep.details', ['id' => $all_user->id]) }}"
+                                    <a href="{{ route('zeeverkenners.groep.details', ['id' => $all_user->id]) }}"
                                        class="btn btn-info">Details</a>
                                 </div>
                                 @endif
@@ -85,7 +85,7 @@
             {{ $users->links() }}
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <span class="material-symbols-rounded me-2">person_off</span>Geen dolfijnen gevonden...
+                <span class="material-symbols-rounded me-2">person_off</span>Geen zeeverkenners gevonden...
             </div>
         @endif
     </div>

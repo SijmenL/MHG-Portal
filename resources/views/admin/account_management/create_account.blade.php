@@ -92,7 +92,7 @@
                     </tr>
                     <tr>
                         <th><label for="password" class="col-md-4 col-form-label ">Wachtwoord</label></th>
-                        <th><input id="password" value="{{ old('password') }}"  type="password" class="form-control @error('password') is-invalid @enderror" name="password">
+                        <th><input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password">
                             @error('password')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

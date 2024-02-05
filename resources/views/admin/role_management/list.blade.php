@@ -46,7 +46,7 @@
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Naam</th>
-                    <th scope="col">Beschrijving</th>
+                    <th class="no-mobile" scope="col">Beschrijving</th>
                     <th scope="col">Opties</th>
                 </tr>
                 </thead>
@@ -56,16 +56,11 @@
                     <tr id="{{ $all_role->id }}">
                         <th>{{ $all_role->id }}</th>
                         <th>{{ $all_role->role }}</th>
-                        <th>{{ $all_role->description }}</th>
+                        <th class="no-mobile">{{ $all_role->description }}</th>
                         <th>
                             <div class="d-flex flex-row flex-wrap gap-2">
                                 <a href="{{ route('admin.role-management.edit', ['id' => $all_role->id]) }}"
                                    class="btn btn-dark">Bewerk</a>
-                                <a class="delete-button btn btn-outline-danger"
-                                   data-id="{{ $all_role->id }}"
-                                   data-name="{{ $all_role->role }}"
-                                   data-link="{{ route('admin.role-management.delete', $all_role->id) }}">Verwijderen</a>
-
                             </div>
                         </th>
                     </tr>

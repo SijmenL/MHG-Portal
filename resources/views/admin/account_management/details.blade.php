@@ -54,6 +54,7 @@
                         <th>
                     </tr>
                 @endif
+                @if($account->roles->count() > 0)
                 <tr>
                     <th>Rollen</th>
                     <th>
@@ -63,6 +64,47 @@
                         @endforeach
                     </th>
                 </tr>
+                @endif
+                @if($account->children->count() > 0)
+                <tr>
+                    <th>Kinderen</th>
+                    <th class="d-flex flex-wrap flex-row gap-2">
+                        @foreach ($account->children as $child)
+                            <a href="{{ route('admin.account-management.details', ['id' => $child->id]) }}"
+                               class="d-flex flex-column gap-1 align-items-center m-2 bg-light p-2 rounded" target="_blank">
+                                @if($child->profile_picture)
+                                    <img alt="profielfoto" class="profle-picture"
+                                         src="{{ asset('/profile_pictures/' . $child->profile_picture) }}">
+                                @else
+                                    <img alt="profielfoto" class="profle-picture"
+                                         src="{{ asset('img/no_profile_picture.webp') }}">
+                                @endif
+                                {{ $child->name.' '.$child->infic.' '.$child->last_name }}
+                            </a>
+                        @endforeach
+                    </th>
+                </tr>
+                @endif
+                @if($account->parents->count() > 0)
+                <tr>
+                    <th>Ouders</th>
+                    <th class="d-flex flex-wrap flex-row gap-2">
+                        @foreach ($account->parents as $parent)
+                            <a href="{{ route('admin.account-management.details', ['id' => $parent->id]) }}"
+                               class="d-flex flex-column gap-1 align-items-center m-2 bg-light p-2 rounded" target="_blank">
+                                @if($parent->profile_picture)
+                                    <img alt="profielfoto" class="profle-picture"
+                                         src="{{ asset('/profile_pictures/' . $parent->profile_picture) }}">
+                                @else
+                                    <img alt="profielfoto" class="profle-picture"
+                                         src="{{ asset('img/no_profile_picture.webp') }}">
+                                @endif
+                                {{ $parent->name.' '.$parent->infic.' '.$parent->last_name }}
+                            </a>
+                        @endforeach
+                    </th>
+                </tr>
+                @endif
                 <tr>
                     <th>Geslacht</th>
                     <th>{{ $account->sex }}</th>
@@ -124,14 +166,10 @@
         @endif
 
         <div class="d-flex flex-row flex-wrap gap-2">
-            <a href="{{ route('admin.account-management')}}" class="btn btn-info">Terug</a>
-            @if($account !== null)
+            <a href="{{ route('admin.account-management') }}" class="btn btn-info">Terug</a>
+        @if($account !== null)
             <a href="{{ route('admin.account-management.edit', ['id' => $account->id]) }}"
                class="btn btn-dark">Bewerk</a>
-            <a class="delete-button btn btn-outline-danger"
-               data-id="{{ $account->id }}"
-               data-name="{{ $account->name . ' ' . $account->infix . ' ' . $account->last_name }}"
-               data-link="{{ route('admin.account-management.delete', $account->id) }}">Verwijderen</a>
             @endif
 
         </div>

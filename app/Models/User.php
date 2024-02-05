@@ -25,6 +25,16 @@ class User extends Authenticatable
         return $this->belongsToMany(Insigne::class, 'user_insigne');
     }
 
+    public function children()
+    {
+        return $this->belongsToMany(User::class, 'parent_child', 'parent_id', 'child_id');
+    }
+
+    public function parents()
+    {
+        return $this->belongsToMany(User::class, 'parent_child', 'child_id', 'parent_id');
+    }
+
     /**
      * The attributes that are mass assignable.
      *

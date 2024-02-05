@@ -11,12 +11,41 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
      */
     public function handle($request, Closure $next, ...$roles)
     {
-        // Check if the user is authenticated and has any of the specified roles
-        if (!$request->user() || !$request->user()->roles->whereIn('role', $roles)->count()) {
+        $user = $request->user();
+
+
+        if (!$user) {
+            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
+        }
+
+
+        if ($user->roles->whereIn('role', $roles)->count()) {
+            return $next($request);
+        }
+
+        $childrenRoles = $user->children()
+            ->whereHas('roles', function ($query) use ($roles) {
+                $query->whereIn('role', ['Zeeverkenner', 'Dolfijn', 'Loods', 'After Loods']);
+            })
+            ->get();
+
+        $childHasRole = false;
+
+        foreach ($childrenRoles as $child) {
+            foreach ($roles as $role) {
+                if (in_array($role, $child->roles->pluck('role')->toArray()) &&
+                    ($role === 'Dolfijn' || $role === 'Zeeverkenner' || $role === 'Loods' || $role === 'After Loods')) {
+                    $childHasRole = true;
+                }
+            }
+        }
+
+
+        if (!$childHasRole) {
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 

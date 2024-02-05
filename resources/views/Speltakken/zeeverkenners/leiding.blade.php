@@ -1,13 +1,13 @@
-@extends('layouts.dolfijnen')
+@extends('layouts.zeeverkenners')
 
 @section('content')
     <div class="container col-md-11">
-        <h1>Dolfijnen leiding</h1>
+        <h1>Zeeverkennersleiding</h1>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('dolfijnen') }}">Dolfijnen</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Dolfijnen leiding</li>
+                <li class="breadcrumb-item"><a href="{{ route('zeeverkenners') }}">Zeeverkenners</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Zeeverkennersleiding</li>
             </ol>
         </nav>
 
@@ -30,19 +30,14 @@
                     @endif
                     <div class="card-body">
 
-                        @if(auth()->user()->roles->contains('role', 'Dolfijn'))
-                            <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
-                        @else
-                            <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
-                            <p class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</p>
-                        @endif
-                        @if($leiding_individual->roles->contains('role', 'Dolfijnen Hoofdleiding'))
+                            <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                        @if($leiding_individual->roles->contains('role', 'Zeeverkenners Hoofdleiding'))
                             <h3>Hoofdleiding</h3>
                         @endif
-                        @if($leiding_individual->roles->contains('role', 'Dolfijnen Penningmeester'))
+                        @if($leiding_individual->roles->contains('role', 'Zeeverkenners Penningmeester'))
                             <h3>Penningmeester</h3>
                         @endif
-                        @if(!$leiding_individual->roles->contains('role', 'Dolfijnen Penningmeester') && !$leiding_individual->roles->contains('role', 'Dolfijnen Hoofdleiding'))
+                        @if(!$leiding_individual->roles->contains('role', 'Zeeverkenners Penningmeester') && !$leiding_individual->roles->contains('role', 'Zeeverkenners Hoofdleiding'))
                             <h3>Leiding</h3>
                         @endif
 
