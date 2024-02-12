@@ -43,7 +43,7 @@
                         </div>
                     </div>
                         <div class="mt-4 card-footer d-flex gap-2 flex-column">
-                            <a class="btn btn-info">Bekijk details</a>
+{{--                            <a class="btn btn-info">Bekijk details</a>--}}
                             <a class="btn btn-outline-dark" href="{{ route('children.edit', ['id' => $child->id]) }}">Bewerk persoonlijke informatie</a>
                         </div>
                 </div>

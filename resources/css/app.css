@@ -202,7 +202,7 @@ h1 {
 .navbar-info {
     position: absolute;
     top: 0;
-    margin-top: 100px;
+    margin-top: 98px;
     left: 0;
     background-color: var(--accent-color);
     width: 100%;
@@ -317,7 +317,167 @@ h1 {
     scrollbar-width: initial;
 }
 
+.login-image {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-text {
+    width: 100%;
+}
+
+.login {
+    flex-direction: column;
+    min-height: 75vh;
+    width: 75vw;
+}
+
+.login-logo {
+    width: 75%;
+    padding: 25px;
+    filter: drop-shadow(0px 0px 15px #000000);
+}
+
+.clickable-button {
+    margin: 10px;
+    padding: 20px;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 500px;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    overflow: hidden;
+    user-select: none;
+}
+
+.button-text-main {
+    font-size: 25pt;
+    font-weight: bold;
+    margin: 0;
+}
+
+.button-text {
+    margin: 0;
+    line-break: strict;
+}
+
+.buttons {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+    flex-wrap: nowrap;
+    width: 100%;
+    padding: 10px;
+    ;
+}
+
+.flunky-background {
+    background-color: var(--accent-color);
+    min-height: 75vh;
+}
+
+#button-display {
+    display: none;
+}
+
+#loading {
+    width: 100px;
+    height: 100px;
+    border-radius: 100%;
+    border-top: var(--title-color) solid 10px;
+    border-right: var(--secondary-color) solid 10px;
+    border-left: var(--secondary-color) solid 10px;
+    border-bottom: var(--secondary-color) solid 10px;
+    animation: infinite rotateLoading 0.5s ease-in-out;
+}
+
+@keyframes rotateLoading {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.selected {
+    border: var(--primary-color) 5px solid;
+}
+
+.playing {
+    outline: var(--title-color) 5px solid;
+}
+
+.playing-no-remember {
+    outline: white 5px solid;
+}
+
+.sound-effect {
+    outline: red 5px solid;
+}
+
+.cover {
+    width: 100px;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    margin-right: 5px;
+}
+
+.form-file {
+    width: 200px;
+}
+
 @media screen and (min-width: 992px) {
+    .login {
+        flex-direction: row;
+    }
+
+    .logo-text {
+        display: block;
+    }
+
+    .clickable-button {
+        width: 250px;
+        height: 250px;
+        justify-content: center;
+    }
+
+    .buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-text {
+        width: 50%;
+    }
+
+    .login-image {
+        width: 100%;
+        height: 75vh;
+        max-width: 500px;
+        flex-direction: column-reverse;
+        justify-content: end;
+        align-items: end;
+    }
+
     .navbar-info {
         position: unset;
         top: unset;
@@ -423,6 +583,23 @@ h1 {
         margin-top: unset;
         left: unset;
         background-color: white;
+    }
+
+    .logo-text {
+        display: block;
+    }
+
+    .clickable-button {
+        width: 250px;
+        height: 250px;
+        justify-content: center;
+    }
+
+    .buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
     }
 
     .no-scrolbar::-webkit-scrollbar {

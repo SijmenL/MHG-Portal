@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LoodsenController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DolfijnenController;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 //Register should be disabled in the future, only admin accounts can create accounts.
-Auth::routes(['register' => false]);
+Auth::routes(['register' => false, 'password.request' => false,]);
 
 //Dashboard
 Route::get('/', [HomeController::class, 'index'])->name('dashboard');
@@ -79,6 +80,9 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
     Route::get('/administratie/account-beheer/bewerk/{id}', [AdminController::class, 'editAccount'])->name('admin.account-management.edit');
     Route::post('/administratie/account-beheer/bewerk/{id}', [AdminController::class, 'storeAccount'])->name('admin.account-management.store');
 
+    Route::get('/administratie/account-beheer/wachtwoord/{id}', [AdminController::class, 'editAccountPassword'])->name('admin.account-management.password');
+    Route::post('/administratie/account-beheer/wachtwoord/{id}', [AdminController::class, 'editAccountPasswordStore'])->name('admin.account-management.password.store');
+
     Route::get('/administratie/account-beheer/verwijder/{id}', [AdminController::class, 'deleteAccount'])->name('admin.account-management.delete');
 
 
@@ -130,6 +134,37 @@ Route::middleware(['checkRole:Administratie,Zeeverkenner Leiding,Bestuur,Ouderra
 
 Route::middleware(['checkRole:Administratie,Zeeverkenner Leiding,Bestuur'])->group(function () {
     Route::get('/zeeverkenners/groep/details/{id}', [ZeeverkennerController::class, 'groupDetails'])->name('zeeverkenners.groep.details');
+});
+
+// Loodsen
+Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
+    Route::get('/loodsen', [LoodsenController::class, 'view'])->name('loodsen');
+    Route::get('/loodsen/leiding', [LoodsenController::class, 'leiding'])->name('loodsen.leiding');
+
+    Route::get('/loodsen/flunkyball', [LoodsenController::class, 'flunkyball'])->name('loodsen.flunkyball');
+    Route::get('/loodsen/flunkyball/flunkydj', [LoodsenController::class, 'flunkydj'])->name('loodsen.flunkyball.flunkydj');
+});
+
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
+    Route::get('/loodsen/groep', [LoodsenController::class, 'group'])->name('loodsen.groep');
+    Route::post('/loodsen/groep', [LoodsenController::class, 'groupSearch'])->name('loodsen.group.search');
+});
+
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur'])->group(function () {
+    Route::get('/loodsen/groep/details/{id}', [LoodsenController::class, 'groupDetails'])->name('loodsen.groep.details');
+});
+
+// Flunkyball expansie
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste'])->group(function () {
+    Route::get('/loodsen/flunkyball/muziek', [LoodsenController::class, 'music'])->name('loodsen.flunkyball.music');
+
+    Route::get('/loodsen/flunkyball/muziek/add', [LoodsenController::class, 'addMusic'])->name('loodsen.flunkyball.music.add');
+    Route::post('/loodsen/flunkyball/muziek/add', [LoodsenController::class, 'storeMusic'])->name('loodsen.flunkyball.music.store');
+
+    Route::get('/loodsen/flunkyball/muziek/bewerk/{id}', [LoodsenController::class, 'editMusic'])->name('loodsen.flunkyball.music.edit');
+    Route::post('/loodsen/flunkyball/muziek/bewerk/{id}', [LoodsenController::class, 'saveMusic'])->name('loodsen.flunkyball.music.save');
+    Route::get('/loodsen/flunkyball/muziek/verwijder/{id}', [LoodsenController::class, 'deleteMusic'])->name('loodsen.flunkyball.music.delete');
+
 });
 
 //Insignes

@@ -138,7 +138,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'name' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|max:255',
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $id,
             'password' => 'nullable|string|min:8|confirmed',
             'sex' => 'nullable|string',
             'infix' => 'nullable|string',
@@ -156,6 +156,13 @@ class AdminController extends Controller
             'parents' => 'nullable|string',
         ]);
 
+        $user = User::find($id);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Gebruiker niet gevonden');
+        }
+
+        // Handle children relationships
         if (isset($request->children)) {
             $parent = User::findOrFail($id);
             $childIdsArray = array_map('intval', explode(',', $request->children));
@@ -171,6 +178,7 @@ class AdminController extends Controller
             $parent->children()->detach();
         }
 
+        // Handle parent relationships
         if (isset($request->parents)) {
             $child = User::findOrFail($id);
             $parentIdsArray = array_map('intval', explode(',', $request->parents));
@@ -180,59 +188,42 @@ class AdminController extends Controller
 
             // Attach the new relationships
             $parents = User::find($parentIdsArray);
-            $parent->parents()->attach($parents);
+            $child->parents()->attach($parents);
         } else {
             $child = User::findOrFail($id);
             $child->parents()->detach();
         }
 
-
+        // Handle profile picture
         if (isset($request->profile_picture)) {
-            // Process and save the uploaded image
             $newPictureName = time() . '-' . $request->name . '.' . $request->profile_picture->extension();
             $destinationPath = 'profile_pictures';
             $request->profile_picture->move($destinationPath, $newPictureName);
+            $user->profile_picture = $newPictureName;
         }
 
-        $user = User::find($id);;
+        // Update user fields
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->sex = $request->input('sex');
+        $user->infix = $request->input('infix');
+        $user->last_name = $request->input('last_name');
+        $user->birth_date = $request->input('birth_date');
+        $user->street = $request->input('street');
+        $user->postal_code = $request->input('postal_code');
+        $user->city = $request->input('city');
+        $user->phone = $request->input('phone');
+        $user->member_date = $request->input('member_date');
+        $user->dolfijnen_name = $request->input('dolfijnen_name');
+        $user->avg = $request->input('avg');
 
+        // Save user and sync roles
+        $user->save();
+        $user->roles()->sync($request->input('roles'));
 
-        if (!$user) {
-            return redirect()->back()->with('error', 'Gebruiker niet gevonden');
-        }
-
-        $accountWithSameEmail = User::where('email', $request->email)->get();
-
-        foreach ($accountWithSameEmail as $account) {
-            if ($account->id !== $user->id) {
-                return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik door een andere gebruiker.']);
-            } else {
-                $user->name = $request->input('name');
-                $user->email = $request->input('email');
-                $user->sex = $request->input('sex');
-                $user->infix = $request->input('infix');
-                $user->last_name = $request->input('last_name');
-                $user->birth_date = $request->input('birth_date');
-                $user->street = $request->input('street');
-                $user->postal_code = $request->input('postal_code');
-                $user->city = $request->input('city');
-                $user->phone = $request->input('phone');
-                $user->member_date = $request->input('member_date');
-                $user->dolfijnen_name = $request->input('dolfijnen_name');
-                $user->avg = $request->input('avg');
-
-                if (isset($request->profile_picture)) {
-                    $user->profile_picture = $newPictureName;
-                }
-
-                $user->save();
-
-                $user->roles()->sync($request->input('roles'));
-
-                return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
-            }
-        }
+        return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
     }
+
 
     public function deleteAccount($id)
     {
@@ -325,6 +316,31 @@ class AdminController extends Controller
         }
     }
 
+    // Verander wachtwoord
+
+    public function editAccountPassword($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $account = User::find($id);
+
+        return view('admin.account_management.change_password', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+    }
+
+    public function editAccountPasswordStore(Request $request, $id)
+    {
+        $request->validate([
+            'new_password' => 'required|confirmed|min:8',
+        ]);
+
+
+        User::whereId($id)->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return redirect()->route('admin.account-management.edit', $id)->with('success', 'Wachtwoord succesvol bijgewerkt!');
+    }
 
     // Rollen
 
@@ -332,7 +348,6 @@ class AdminController extends Controller
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
-
 
         $search = '';
 

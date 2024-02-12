@@ -98,7 +98,7 @@
                         $query->where('role', 'Loods');
                     })->exists())
                 )
-                    <a class="btn btn-dark quick-action" href="">
+                    <a class="btn btn-dark quick-action" href="{{ route('loodsen') }}">
                         <img alt="dolfijnen" src="{{ asset('img/icons/loodsen.png') }}">
                         <p>Loodsen</p>
                     </a>

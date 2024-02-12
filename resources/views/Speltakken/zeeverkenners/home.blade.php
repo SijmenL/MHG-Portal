@@ -1,7 +1,7 @@
 @extends('layouts.zeeverkenners')
 
 @section('content')
-    <div class="header" style="background-image: url({{ asset('img/general/Image-1-scaled.jpeg') }})">
+    <div class="header" style="background-image: url({{ asset('files/zeeverkenners/Image-1-scaled.jpeg') }})">
         <div>
             <p class="header-title">Zeeverkenners</p>
             <p class="header-text">Welkom op de digitale omgeving van de Zeeverkenners! </p>
@@ -40,7 +40,7 @@
                 </div>
             </div>
             <div class="">
-                <img class="w-100" alt="groepsfoto" src="{{ asset('img/general/zeeverkenners.jpg') }}">
+                <img class="w-100" alt="groepsfoto" src="{{ asset('files/zeeverkenners/zeeverkenners.jpg') }}">
             </div>
         </div>
 

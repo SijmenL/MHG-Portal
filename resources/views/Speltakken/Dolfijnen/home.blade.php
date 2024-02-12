@@ -1,7 +1,7 @@
 @extends('layouts.dolfijnen')
 
 @section('content')
-    <div class="header" style="background-image: url({{ asset('img/general/kanos.webp') }})">
+    <div class="header" style="background-image: url({{ asset('files/dolfijnen/kanos.webp') }})">
         <div>
             <p class="header-title">Dolfijnen</p>
             <p class="header-text">Welkom op de digitale omgeving van de Dolfijnen! </p>
@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="">
-                <img class="w-100" alt="groepsfoto" src="{{ asset('img/general/dolfijnen.jpg') }}">
+                <img class="w-100" alt="groepsfoto" src="{{ asset('files/dolfijnen/dolfijnen.jpg') }}">
             </div>
         </div>
 

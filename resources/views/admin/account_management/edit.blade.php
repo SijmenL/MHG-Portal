@@ -349,6 +349,8 @@
                 <button type="submit" class="btn btn-success">Opslaan</button>
                 <a href="{{ route('admin.account-management.details', ['id' => $account->id]) }}"
                    class="btn btn-danger text-white">Annuleren</a>
+                <a href="{{ route('admin.account-management.password', ['id' => $account->id]) }}"
+                   class="btn btn-dark text-white">Wijzig wachtwoord</a>
                 <a class="delete-button btn btn-outline-danger"
                    data-id="{{ $account->id }}"
                    data-name="{{ $account->name . ' ' . $account->infix . ' ' . $account->last_name }}"

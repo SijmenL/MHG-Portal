@@ -37,7 +37,7 @@ class SettingsController extends Controller
     {
         $request->validate([
             'name' => 'string|max:255',
-            'email' => 'string|email|max:255',
+            'email' => 'string|email|max:255|unique:users,email,' . Auth::user()->id,
             'sex' => 'string',
             'infix' => 'nullable|string',
             'last_name' => 'string',
@@ -50,45 +50,34 @@ class SettingsController extends Controller
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
         ]);
 
+        $user = Auth::user();
 
         if (isset($request->profile_picture)) {
             // Process and save the uploaded image
             $newPictureName = time() . '-' . $request->name . '.' . $request->profile_picture->extension();
             $destinationPath = 'profile_pictures';
             $request->profile_picture->move($destinationPath, $newPictureName);
+            $user->profile_picture = $newPictureName;
         }
 
-        $user = Auth::user();
+        // Update user fields
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->sex = $request->input('sex');
+        $user->infix = $request->input('infix');
+        $user->last_name = $request->input('last_name');
+        $user->birth_date = $request->input('birth_date');
+        $user->street = $request->input('street');
+        $user->postal_code = $request->input('postal_code');
+        $user->city = $request->input('city');
+        $user->phone = $request->input('phone');
+        $user->avg = $request->input('avg');
 
-        $accountWithSameEmail = User::where('email', $request->email)->get();
+        $user->save();
 
-        foreach ($accountWithSameEmail as $account) {
-            if ($account->id !== $user->id) {
-                return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik door een andere gebruiker.']);
-            } else {
-                $user->name = $request->input('name');
-                $user->email = $request->input('email');
-                $user->sex = $request->input('sex');
-                $user->infix = $request->input('infix');
-                $user->last_name = $request->input('last_name');
-                $user->birth_date = $request->input('birth_date');
-                $user->street = $request->input('street');
-                $user->postal_code = $request->input('postal_code');
-                $user->city = $request->input('city');
-                $user->phone = $request->input('phone');
-                $user->avg = $request->input('avg');
-
-
-                if (isset($request->profile_picture)) {
-                    $user->profile_picture = $newPictureName;
-                }
-
-                $user->save();
-
-                return redirect()->route('settings.account.edit')->with('success', 'Account succesvol bijgewerkt');
-            }
-        }
+        return redirect()->route('settings.account.edit')->with('success', 'Account succesvol bijgewerkt');
     }
+
 
     public function changePassword()
     {
