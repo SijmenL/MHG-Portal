@@ -240,4 +240,13 @@ class LoodsenController extends Controller
         return redirect()->route('loodsen.flunkyball.music')->with('success', 'Muziek verwijderd');
 
     }
+
+    public function rules()
+    {
+        $user = Auth::user();
+
+        $all_music = FlunkyDJMusic::paginate(25);
+
+        return view('speltakken.loodsen.flunkyball.rules', ['user' => $user, 'all_music' => $all_music]);
+    }
 }

@@ -100,6 +100,8 @@
 
                 <div class="d-flex flex-row flex-wrap gap-2 align-items-center mt-4">
                     <button class="btn btn-dark " type="submit">Opslaan</button>
+                    <a href="{{ route('loodsen.flunkyball.music') }}"
+                       class="btn btn-danger text-white">Annuleren</a>
                     <a class="delete-button btn btn-outline-danger"
                        data-id="{{ $music->id }}"
                        data-name="{{ $music->music_title }}"

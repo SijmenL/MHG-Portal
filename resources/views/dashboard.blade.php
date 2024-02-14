@@ -114,8 +114,8 @@
                         $query->where('role', 'After Loods');
                     })->exists())
                 )
-                    <a class="btn btn-dark quick-action" href="">
-                        <img alt="dolfijnen" src="{{ asset('img/icons/after_loodsen.png') }}">
+                    <a class="btn btn-dark quick-action" href="{{ route('afterloodsen') }}">
+                        <img alt="afterloodsen" src="{{ asset('img/icons/after_loodsen.png') }}">
                         <p>After Loodsen</p>
                     </a>
                 @endif

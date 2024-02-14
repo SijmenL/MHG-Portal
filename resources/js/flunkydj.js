@@ -24,9 +24,9 @@ let soundEffects = [];
 let selectedSong;
 let pauseTime = 0;
 let paused;
-
-let stopsound;
-let playStopSound = true;
+let newSource;
+let isStopping = false
+let decreasePlaybackRate;
 
 function BufferLoader(context, urlList, callback) {
     this.context = context;
@@ -85,7 +85,6 @@ function init() {
     buttonDisplay = document.getElementById('button-display');
     loadingDisplay = document.getElementById('loading');
     gainNode = context.createGain();
-    stopsound = document.getElementById('stop-sound')
 
     let allSources = document.querySelectorAll('a[class^=music-button]');
 
@@ -96,33 +95,36 @@ function init() {
 
     for (let i = 0; i < allSources.length; i++) {
         allSources[i].addEventListener('click', function (e) {
-            if (allSources[i].getAttribute('data-play-type') !== '3') {
+            if (isStopping === false) {
+                if (allSources[i].getAttribute('data-play-type') !== '3') {
 
-                // Clear the 'selected' class from all buttons
-                for (let j = 0; j < allSources.length; j++) {
-                    allSources[j].classList.remove('selected');
-                }
+                    // Clear the 'selected' class from all buttons
+                    for (let j = 0; j < allSources.length; j++) {
+                        allSources[j].classList.remove('selected');
+                    }
 
-                // Add the 'selected' class to the clicked button
-                allSources[i].classList.add('selected');
-                selectedSong = bufferLoader.bufferList[i];
-                // timeSinceButtonPressed = context.currentTime - timeSinceButtonPressed; // Set the start time when the button is pressed
+                    // Add the 'selected' class to the clicked button
+                    allSources[i].classList.add('selected');
+                    selectedSong = bufferLoader.bufferList[i];
+                    // timeSinceButtonPressed = context.currentTime - timeSinceButtonPressed; // Set the start time when the button is pressed
 
-                paused = false;
-                if (!musicPlaying) {
-                    crossfadeToNewSong(bufferLoader.bufferList[i], i, 0, 0, allSources[i], allSources[i].getAttribute('data-play-type'));
+                    paused = false;
+                    if (!musicPlaying) {
+                        crossfadeToNewSong(bufferLoader.bufferList[i], i, 0, 0, allSources[i], allSources[i].getAttribute('data-play-type'));
+                    } else {
+                        crossfadeToNewSong(bufferLoader.bufferList[i], i, allSources[i].getAttribute('data-fade-out'), allSources[i].getAttribute('data-fade-in'), allSources[i], allSources[i].getAttribute('data-play-type'));
+                    }
+                    fadeToSong.push(bufferLoader.bufferList[i], i, allSources[i].getAttribute('data-fade-out'), allSources[i].getAttribute('data-fade-in'), allSources[i], allSources[i].getAttribute('data-play-type'))
+                    timeSinceButtonPressed = 0;
                 } else {
-                    crossfadeToNewSong(bufferLoader.bufferList[i], i, allSources[i].getAttribute('data-fade-out'), allSources[i].getAttribute('data-fade-in'), allSources[i], allSources[i].getAttribute('data-play-type'));
+                    soundEffect(bufferLoader.bufferList[i], allSources[i])
                 }
-                fadeToSong.push(bufferLoader.bufferList[i], i, allSources[i].getAttribute('data-fade-out'), allSources[i].getAttribute('data-fade-in'), allSources[i], allSources[i].getAttribute('data-play-type'))
-                timeSinceButtonPressed = 0;
-            } else {
-                soundEffect(bufferLoader.bufferList[i], allSources[i])
             }
         });
         musicFiles.push(allSources[i].getAttribute('data-audio'));
         musicButtons.push(allSources[i]);
     }
+
 
     bufferLoader = new BufferLoader(
         context,
@@ -164,8 +166,40 @@ function init() {
 }
 
 function stop(allSources) {
-    console.log(playingAudio)
+    if (isStopping === true) {
+        clearInterval(decreasePlaybackRate)
+        clear(allSources);
+        stopButton.classList.remove('is-stopping');
+    }
+    if (isStopping === false && paused === false) {
+        stopButton.classList.add('is-stopping');
+        isStopping = true;
+        console.log(gainNode.playbackRate)
+
+        let playbackRate = 1;
+
+        decreasePlaybackRate = setInterval(function () {
+            if (playbackRate >= 0) {
+                newSource.playbackRate.value = playbackRate;
+                if (gainNode.gain.value > playbackRate) {
+                    gainNode.gain.value = playbackRate;
+                }
+                playbackRate -= 0.015;
+                console.log(playbackRate);
+            } else {
+                console.log("Playback rate reached 0");
+                clearInterval(decreasePlaybackRate);
+                clear(allSources)
+            }
+        }, 100);
+    }
+}
+
+function clear(allSources) {
+    console.log('paused')
     paused = true;
+    isStopping = false;
+
     // Stop all playing audio
     while (playingAudio.length > 0) {
         let stopAudio = playingAudio.shift();  // Remove the first item from the array
@@ -186,16 +220,13 @@ function stop(allSources) {
         stopAudio.stop();
     }
 
-    if (currentSource !== null && currentSource !== undefined && playStopSound === true) {
-        stopsound.play()
-    }
-
     currentSource = null
     musicPlaying = null
-    setPlayingClass()
+    setPlayingClass(null)
     timeSinceButtonPressed = -10
     elapsedTimes = null
     elapsedTimes = new Array(musicFiles.length).fill(0);
+    stopButton.classList.remove('is-stopping')
 }
 
 function finishedLoading() {
@@ -207,21 +238,25 @@ function finishedLoading() {
 
 // Callback function to set or remove the 'playing' class
 function setPlayingClass(element) {
+    currentlyPlayingElement = element
     // Remove 'playing' class from all buttons
     for (let j = 0; j < musicButtons.length; j++) {
         musicButtons[j].classList.remove('playing');
         musicButtons[j].classList.remove('playing-no-remember');
     }
-    // Add 'playing' class to the current button
-    if (element === currentlyPlayingElement) {
-        if (element.getAttribute('data-play-type') === '1') {
-            element.classList.add('playing');
+
+    if (element !== null) {
+        // Add 'playing' class to the current button
+        if (element === currentlyPlayingElement) {
+            if (element.getAttribute('data-play-type') === '1') {
+                element.classList.add('playing');
+            }
+            if (element.getAttribute('data-play-type') === '2') {
+                element.classList.add('playing-no-remember');
+            }
+        } else {
+            currentlyPlayingElement = null;
         }
-        if (element.getAttribute('data-play-type') === '2') {
-            element.classList.add('playing-no-remember');
-        }
-    } else {
-        currentlyPlayingElement = null;
     }
 }
 
@@ -253,11 +288,19 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
         if (timeSinceButtonPressed < 0) {
             timeSinceButtonPressed = 0;
         }
-
-        elapsedTimes[previousSong] += (timeSinceButtonPressed / 100) - fadeInTime
-
+        if (elapsedTimes[previousSong] >= 0) {
+            elapsedTimes[previousSong] += (timeSinceButtonPressed / 100) - fadeInTime
+        } else {
+            elapsedTimes[previousSong] = 0;
+        }
         previousSong = index;
 
+
+        while (elapsedTimes[previousSong] >= bufferLoader.bufferList[index].duration) {
+            elapsedTimes[previousSong] = elapsedTimes[previousSong] - bufferLoader.bufferList[index].duration;
+            console.warn('song looped')
+        }
+        console.warn(`${elapsedTimes[previousSong]} < ${bufferLoader.bufferList[index].duration}`)
         for (let i = 0; i < elapsedTimes.length; i++) {
             console.log(`${musicFiles[i]} = ${elapsedTimes[i]}`)
         }
@@ -266,7 +309,8 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
     newGainNode.gain.value = 0;
 
     // Create a new audio source for the new song
-    const newSource = context.createBufferSource();
+    newSource = undefined;
+    newSource = context.createBufferSource();
     playingAudio.push(newSource);  // Add the new source to the array
     newSource.buffer = newBuffer;
     newSource.loop = true;
@@ -280,6 +324,10 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
         elapsedTime = 0
     }
 
+    if (elapsedTime < 0 && elapsedTime) {
+        elapsedTime = 0
+    }
+
     // Connect the new source to the new gain node
     newSource.connect(newGainNode);
 
@@ -287,9 +335,6 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
     newGainNode.connect(context.destination);
 
     // Start the new source immediately with the new gain node
-    if (elapsedTime < 0) {
-        elapsedTime = 0
-    }
     newSource.start(0, elapsedTime);
 
     // Start fade out
@@ -301,6 +346,7 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
             if (gainNode.gain < 0.8) {
                 gainNode.gain.setValueAtTime(1, currentTime);
             }
+            gainNode.gain.setValueAtTime(1, currentTime);
             gainNode.gain.linearRampToValueAtTime(0, currentTime + fadeOutTime); // Adjusted to 0 for complete fade-out
         }
     }
@@ -317,17 +363,35 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
         for (let i = 0; i < playingAudio.length; i++) {
             if (playingAudio[i] !== undefined && playingAudio[i] !== playingAudio[playingAudio.length - 1]) {
                 console.warn('Previous fade in aborted.')
-                // if (playingAudio[i].playbackState === "playing") {
-                    playingAudio[i].stop();
-                // }
+                playingAudio[i].stop();
             }
         }
     }
 
-    // Schedule a linear fade-in for the new source
-    console.info(`Fade in: CT:${currentTime + fadeOutTime} FT:${fadeInTime}`)
-    newGainNode.gain.setValueAtTime(0, currentTime + fadeOutTime); // Adjusted to start from 0 after fade-out
-    newGainNode.gain.linearRampToValueAtTime(1, currentTime + fadeOutTime + fadeInTime); // Adjusted the time for fade-in
+    if (element !== currentlyPlayingElement && fadeIn !== 0) {
+        if (selectedSong === newBuffer) {
+            // Schedule a linear fade-in for the new source
+            console.info(`Fade in: CT:${currentTime + fadeOutTime} FT:${fadeInTime}`)
+            newGainNode.gain.setValueAtTime(0, currentTime + fadeOutTime); // Adjusted to start from 0 after fade-out
+            newGainNode.gain.linearRampToValueAtTime(1, currentTime + fadeOutTime + fadeInTime); // Adjusted the time for fade-in
+        }
+    } else {console.info(`Fade in: CT:${currentTime + fadeOutTime} FT:${fadeInTime}`)
+        console.error('spam prevented')
+
+        console.log(currentSource)
+        if (currentSource !== null && currentSource !== undefined) {
+            currentSource.disconnect();
+        }
+
+        newGainNode.gain.linearRampToValueAtTime(1, currentTime + fadeInTime + fadeOutTime);
+
+
+
+        for (let i = 1; i < playingAudio.length; i++) {
+            let stopAudio = playingAudio.shift();  // Remove the first item from the array
+            stopAudio.stop();
+        }
+    }
 
     displaySelectedSong(element, fadeOutTime, fadeInTime);
 
@@ -342,8 +406,6 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
 
         fadeToSong = [];
     }, (fadeInTime + fadeOutTime));
-    fadeToSong = [];
-    currentlyPlayingElement = element;
 }
 
 

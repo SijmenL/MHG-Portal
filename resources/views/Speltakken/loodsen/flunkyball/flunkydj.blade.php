@@ -24,8 +24,6 @@
 
 
         </div>
-        <audio id="stop-sound"
-               src="{{ asset('files/loodsen/flunkyball/stop.mp3') }}"></audio>
         <div class="buttons">
             <div id="loading"></div>
             <div class="buttons" id="button-display">

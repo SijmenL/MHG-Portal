@@ -28,7 +28,7 @@
                 <p class="button-text-main">FlunkyDJ</p>
                 <p class="button-text">De klassieke Flunkyball DJ muziek app!</p>
             </a>
-            <a href="" class="clickable-button"
+            <a href="{{ route('loodsen.flunkyball.rules') }}" class="clickable-button"
                style="background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.9)), url('{{ asset('files/loodsen/flunkyball/handboek-image.jpg')}}')">
                 <p class="button-text-main">Handboek</p>
                 <p class="button-text">Het officiële Flunkyball Handboek, met alle regels!</p>
@@ -40,11 +40,6 @@
                 <p class="button-text">Stamoudste: Beheer de FlunkyDJ muziek</p>
             </a>
 
-                <a href="" class="clickable-button"
-                   style="background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.9)), url('{{ asset('files/loodsen/flunkyball/rule-image.jpg')}}')">
-                    <p class="button-text-main">Regel Beheer</p>
-                    <p class="button-text">Stamoudste: Pas de regels in het handboek aan</p>
-                </a>
             @endif
         </div>
     </div>

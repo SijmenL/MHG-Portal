@@ -64,7 +64,7 @@
             {{ $all_music->links() }}
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <span class="material-symbols-rounded me-2">no_accounts</span>Geen muziek gevonden...
+                <span class="material-symbols-rounded me-2">music_note</span>Geen muziek gevonden...
             </div>
         @endif
     </div>

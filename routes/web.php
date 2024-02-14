@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AfterloodsenController;
 use App\Http\Controllers\LoodsenController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
@@ -143,6 +144,7 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
 
     Route::get('/loodsen/flunkyball', [LoodsenController::class, 'flunkyball'])->name('loodsen.flunkyball');
     Route::get('/loodsen/flunkyball/flunkydj', [LoodsenController::class, 'flunkydj'])->name('loodsen.flunkyball.flunkydj');
+    Route::get('/loodsen/flunkyball/regels', [LoodsenController::class, 'rules'])->name('loodsen.flunkyball.rules');
 });
 
 Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
@@ -165,6 +167,21 @@ Route::middleware(['checkRole:Administratie,Loodsen Stamoudste'])->group(functio
     Route::post('/loodsen/flunkyball/muziek/bewerk/{id}', [LoodsenController::class, 'saveMusic'])->name('loodsen.flunkyball.music.save');
     Route::get('/loodsen/flunkyball/muziek/verwijder/{id}', [LoodsenController::class, 'deleteMusic'])->name('loodsen.flunkyball.music.delete');
 
+});
+
+// After loodsen
+Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Leiding,Bestuur,Ouderraad'])->group(function () {
+    Route::get('/afterloodsen', [AfterloodsenController::class, 'view'])->name('afterloodsen');
+    Route::get('/afterloodsen/organisatie', [AfterloodsenController::class, 'leiding'])->name('afterloodsen.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur,Ouderraad'])->group(function () {
+    Route::get('/afterloodsen/leden', [AfterloodsenController::class, 'group'])->name('afterloodsen.groep');
+    Route::post('/afterloodsen/leden', [AfterloodsenController::class, 'groupSearch'])->name('afterloodsen.group.search');
+});
+
+Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur'])->group(function () {
+    Route::get('/afterloodsen/leden/details/{id}', [AfterloodsenController::class, 'groupDetails'])->name('afterloodsen.groep.details');
 });
 
 //Insignes
