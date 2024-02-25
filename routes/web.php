@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AfterloodsenController;
+use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LoodsenController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
@@ -30,6 +31,9 @@ Auth::routes(['register' => false, 'password.request' => false,]);
 Route::get('/', [HomeController::class, 'index'])->name('dashboard');
 Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
+Route::get('/changelog', [HomeController::class, 'changelog'])->name('changelog');
+Route::get('/credits', [HomeController::class, 'credits'])->name('credits');
+
 //Instelling (account veranderen etc.)
 Route::get('/instellingen', [SettingsController::class, 'account'])->name('settings');
 
@@ -47,6 +51,7 @@ Route::get('/instellingen/ouder-account/link/{id}', [SettingsController::class, 
 
 Route::get('/instellingen/ouder-account/maak-account', [SettingsController::class, 'createAccount'])->name('settings.link-new-parent.create');
 Route::post('/instellingen/ouder-account/maak-account', [SettingsController::class, 'createAccountStore'])->name('settings.link-new-parent.store');
+
 
 Route::middleware(['isAllowedToRemoveParents'])->group(function () {
     Route::get('/instellingen/ouder-account/verwijder', [SettingsController::class, 'removeParentLink'])->name('settings.remove-parent-link');
@@ -110,7 +115,19 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
 // Dolfijnen
 Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/dolfijnen', [DolfijnenController::class, 'view'])->name('dolfijnen');
+    Route::post('/dolfijnen', [DolfijnenController::class, 'postMessage'])->name('dolfijnen.message-post');
+
+    Route::get('/dolfijnen/post/{id}', [DolfijnenController::class, 'viewPost'])->name('dolfijnen.post');
+    Route::post('/dolfijnen/post/{id}', [DolfijnenController::class, 'postComment'])->name('dolfijnen.comment-post');
+
+    Route::get('/dolfijnen/post/edit/{id}', [DolfijnenController::class, 'editPost'])->name('dolfijnen.post.edit');
+    Route::post('/dolfijnen/post/edit/{id}', [DolfijnenController::class, 'storePost'])->name('dolfijnen.post.store');
+
+    Route::get('/dolfijnen/post/delete/{id}', [DolfijnenController::class, 'deletePost'])->name('dolfijnen.post.delete');
+    Route::get('/dolfijnen/comment/delete/{id}/{postId}', [DolfijnenController::class, 'deleteComment'])->name('dolfijnen.comment.delete');
+
     Route::get('/dolfijnen/leiding', [DolfijnenController::class, 'leiding'])->name('dolfijnen.leiding');
+
 });
 
 Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
@@ -183,6 +200,14 @@ Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur,Ouderra
 Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur'])->group(function () {
     Route::get('/afterloodsen/leden/details/{id}', [AfterloodsenController::class, 'groupDetails'])->name('afterloodsen.groep.details');
 });
+
+// Forum
+Route::post('/upload-image', [ForumController::class, 'upload'])->name('forum.image');
+Route::post('/posts/{postId}/toggle-like', [ForumController::class, 'toggleLike'])->name('forum.toggle-like');
+Route::post('/comments/{id}', [ForumController::class, 'updateComment'])->name('forum.comments.update');
+
+
+
 
 //Insignes
 //Route::get('/insignes', [InsigneController::class, 'myInsignes'])->name('insignes');

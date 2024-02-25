@@ -47,4 +47,20 @@ class HomeController extends Controller
 
         return view('dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate]);
     }
+
+    public function changelog() {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        return view('changelog', ['user' => $user, 'roles' => $roles]);
+    }
+
+    public function credits() {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        return view('credits', ['user' => $user, 'roles' => $roles]);
+    }
 }

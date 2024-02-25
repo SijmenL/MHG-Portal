@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Like;
+use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,7 +16,130 @@ class DolfijnenController extends Controller
     {
         $user = Auth::user();
 
-        return view('speltakken.dolfijnen.home', ['user' => $user]);
+        $posts = Post::where('location', 0)
+            ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
+            ->paginate(25);
+
+
+        return view('speltakken.dolfijnen.home', ['user' => $user, 'posts' => $posts]);
+    }
+
+    public function postMessage(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $request->validate([
+            'content' => 'string|max:65535',
+        ]);
+
+        $post = Post::create([
+            'content' => $request->input('content'),
+            'user_id' => Auth::id(),
+            'location' => 0,
+        ]);
+
+        return redirect()->route('dolfijnen', ['user' => $user, 'roles' => $roles])->with('success', 'Je bericht is gepost!');
+    }
+
+    public function viewPost($id)
+    {
+        $user = Auth::user();
+
+        $post = Post::with(['comments' => function ($query) {
+            $query->orderBy('created_at', 'desc'); // Sort comments by newest
+        }])->findOrFail($id);
+
+        return view('speltakken.dolfijnen.post', ['user' => $user, 'post' => $post]);
+    }
+
+    public function postComment(Request $request, $id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+
+        $request->validate([
+            'content' => 'string|max:65535',
+        ]);
+
+        $comment = Comment::create([
+            'content' => $request->input('content'),
+            'user_id' => Auth::id(),
+            'post_id' => $id,
+        ]);
+
+        return redirect()->route('dolfijnen.post', $id);
+    }
+
+    public function editPost($id)
+    {
+        $user = Auth::user();
+
+        $post = Post::findOrFail($id);
+
+        if ($post->user_id === Auth::id()) {
+            return view('speltakken.dolfijnen.post_edit', ['user' => $user, 'post' => $post]);
+        } else {
+            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+        }
+    }
+
+    public function storePost(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        $post = Post::findOrFail($id);
+
+        if ($post->user_id === Auth::id()) {
+            $validatedData = $request->validate([
+                'content' => 'string|max:65535',
+            ]);
+
+            $post->update($validatedData);
+
+
+            return redirect()->route('dolfijnen.post', $id);
+        } else {
+            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+        }
+    }
+
+    public function deletePost($id)
+    {
+        $post = Post::findOrFail($id);
+
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+
+            foreach ($post->comments as $comment) {
+                $comment->delete();
+            }
+
+            foreach ($post->likes as $like) {
+                $like->delete();
+            }
+
+            $post->delete();
+
+            return redirect()->route('dolfijnen');
+        } else {
+            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+        }
+    }
+
+    public function deleteComment($id, $postId)
+    {
+        $comment = Comment::findOrFail($id);
+
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+
+            $comment->delete();
+
+            return redirect()->route('dolfijnen.post', $postId);
+        } else {
+            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+        }
     }
 
     public function leiding()
@@ -108,7 +234,6 @@ class DolfijnenController extends Controller
                 $query->where('role', 'Dolfijn');
             })
             ->find($id);
-
 
 
         return view('speltakken.dolfijnen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);

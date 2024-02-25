@@ -24,7 +24,9 @@ function init() {
         editRoles();
     }
 
-    hamburgerMenu.addEventListener('click', hamburger)
+    if (hamburgerMenu) {
+        hamburgerMenu.addEventListener('click', hamburger)
+    }
 }
 
 function hamburger() {

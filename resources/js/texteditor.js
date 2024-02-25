@@ -1,0 +1,361 @@
+let optionsButtons = document.querySelectorAll(".option-button");
+let advancedOptionButton = document.querySelectorAll(".adv-option-button");
+let linkButton = document.getElementById("createLink");
+let alignButtons = document.querySelectorAll(".align");
+let spacingButtons = document.querySelectorAll(".spacing");
+let formatButtons = document.querySelectorAll(".format");
+let scriptButtons = document.querySelectorAll(".script");
+let mediaButons = document.querySelectorAll(".media");
+let textInput = document.getElementById('text-input')
+let message = document.getElementById('content');
+let characters = document.getElementById('characters');
+let body = document.getElementById('app')
+let imageUpload = document.getElementById('insertImage');
+let videoUpload = document.getElementById('insertYouTube');
+let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+//Initial Settings
+const initializer = () => {
+    //function calls for highlighting buttons
+    //No highlights for link, unlink,lists, undo,redo since they are one time operations
+    highlighter(alignButtons, true);
+    // highlighter(spacingButtons, true);
+    highlighter(formatButtons, false);
+    highlighter(scriptButtons, true);
+
+    characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+
+    textInput.addEventListener('input', function () {
+        // Call the function when the content changes
+        editText();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Find and remove all o:wrapblock elements
+        let wrapblocks = document.getElementsByTagName("o:wrapblock");
+        let editButtons = document.querySelectorAll('.edit-button');
+
+        for (let i = 0; i < wrapblocks.length; i++) {
+            let wrapblock = wrapblocks[i];
+            wrapblock.parentNode.removeChild(wrapblock);
+        }
+
+        let likeButtons = document.querySelectorAll('.like-button');
+
+        likeButtons.forEach(function (button) {
+            button.addEventListener('click', () => likeButton(button));
+        });
+
+        editButtons.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault(); // Prevent default click behavior
+
+                const comment = button.closest('.comment');
+                const content = comment.querySelector('.content');
+                const editForm = comment.querySelector('.editable-content');
+                const editableDiv = editForm.querySelector('.text-input');
+                const cancelButton = editForm.querySelector('.cancel-button');
+                const saveButton = editForm.querySelector('.save-button');
+
+                console.log(content);
+
+                content.style.display = 'none';
+                editForm.style.display = 'block';
+                editableDiv.focus();
+
+                cancelButton.addEventListener('click', function () {
+                    content.style.display = 'block';
+                    editForm.style.display = 'none';
+                });
+
+                saveButton.addEventListener('click', function () {
+                    event.preventDefault(); // Prevent form submission
+                    const comment = button.closest('.comment');
+                    const content = comment.querySelector('.content');
+                    const commentContent = comment.querySelector('.comment-content');
+                    const editableDiv = editForm.querySelector('.text-input');
+
+                    const commentId = comment.dataset.commentId;
+
+                    const updatedContent = editableDiv.innerHTML; // Get the edited content from the editable div
+
+                    // Send AJAX request to update the comment
+                    fetch(`/comments/${commentId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({content: updatedContent})
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to update comment');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Update the content of the comment
+                            commentContent.innerHTML = updatedContent;
+                            content.style.display = 'block';
+                            editForm.style.display = 'none';
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            });
+        });
+
+        if (imageUpload) {
+            imageUpload.addEventListener('click', () => {
+                addImage()
+            })
+        }
+
+        if (videoUpload) {
+            videoUpload.addEventListener('click', () => {
+                addYouTubeVideo()
+            })
+        }
+
+
+        textInput.addEventListener('paste', function (event) {
+            // Prevent the default paste behavior
+            event.preventDefault();
+
+            // Get the plain text from the clipboard
+            const plainText = (event.clipboardData || window.clipboardData).getData('text');
+
+            // Insert the plain text into the editor
+            document.execCommand('insertText', false, plainText);
+        });
+    });
+}
+
+    const likeButton = (button) => {
+        let postId = button.dataset.postId;
+
+
+        // Send the AJAX request with the CSRF token
+        fetch(`/posts/${postId}/toggle-like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken // Include the CSRF token in the request headers
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Handle response data
+                console.log(data);
+                button.innerHTML = `${data.likeCount} <span
+                                                class="material-symbols-rounded">favorite</span>`
+
+                if (data.isLiked === true) {
+                    button.classList.add('liked')
+                } else {
+                    button.classList.remove('liked')
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    };
+
+
+    function addImage() {
+        // Open file upload dialog
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = function (event) {
+            let file = event.target.files[0];
+
+            // Create FormData object to upload file
+            let formData = new FormData();
+            formData.append('image', file);
+
+            // Add CSRF token to FormData
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+            // Send AJAX request to upload image
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload-image', true);
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    // Log the response from the server
+                    console.log(xhr.responseText);
+                    // Image uploaded successfully
+                    let imageUrl = xhr.responseText;
+                    insertImageIntoEditor(imageUrl);
+                } else {
+                    // Handle error
+                    invalidImage();
+                    console.error('Image upload failed');
+                }
+            };
+            xhr.onerror = () => {
+                // Handle network errors
+                console.error('Network error during image upload');
+            };
+            xhr.send(formData);
+        };
+        input.click();
+    }
+
+    function invalidImage() {
+        imageUpload.classList.add('invalid')
+
+        setTimeout(function () {
+            imageUpload.classList.remove('invalid');
+        }, 500);
+    }
+
+
+    function insertImageIntoEditor(imageUrl) {
+        console.log(imageUrl)
+        let image = document.createElement('img')
+        let url = JSON.parse(imageUrl);
+        image.src = url.imageUrl
+        image.alt = 'Afbeelding'
+        image.classList.add('forum-image')
+        textInput.appendChild(image)
+        editText()
+    }
+
+    function addYouTubeVideo() {
+        // Prompt the user to input the YouTube video ID
+        let videoURL = prompt('YouTube link:');
+
+        let videoId = '';
+
+        if (videoURL.includes('youtube.com') && videoURL.includes('v=')) {
+            let urlParams = new URLSearchParams(new URL(videoURL).search);
+            videoId = urlParams.get('v');
+        } else if (videoURL.includes('youtu.be/')) {
+            videoId = videoURL.split('youtu.be/')[1];
+        }
+
+        if (videoId === '') {
+            invalidVideo();
+            console.error('No YouTube video detected.')
+        }
+
+        if (videoId) {
+            // Construct the embeddable YouTube video URL
+            let videoUrl = 'https://www.youtube.com/embed/' + videoId;
+
+            // Create an iframe element
+            let iframe = document.createElement('iframe');
+            iframe.width = '560'; // Set iframe width (optional)
+            iframe.height = '315'; // Set iframe height (optional)
+            iframe.src = videoUrl;
+            iframe.classList.add('forum-image')
+            iframe.setAttribute('allowfullscreen', ''); // Allow fullscreen mode
+            iframe.setAttribute('frameborder', '0'); // Remove iframe border
+
+            // Append the iframe to the container
+            textInput.appendChild(iframe);
+            editText();
+        }
+    }
+
+    function invalidVideo() {
+        videoUpload.classList.add('invalid')
+
+        setTimeout(function () {
+            videoUpload.classList.remove('invalid');
+        }, 500);
+    }
+
+//main logic
+    const modifyText = (command, defaultUi, value) => {
+        //execCommand executes command on selected text
+        document.execCommand(command, defaultUi, value);
+    };
+
+//For basic operations which don't need value parameter
+    optionsButtons.forEach((button) => {
+        if (button.id !== 'insertImage' && button.id !== 'createLink') {
+            button.addEventListener("click", () => {
+                modifyText(button.id, false, null);
+            });
+        }
+    });
+
+//options that require value parameter (e.g colors, fonts)
+    advancedOptionButton.forEach((button) => {
+        button.addEventListener("change", () => {
+            modifyText(button.id, false, button.value);
+        });
+    });
+
+//link
+if (linkButton) {
+    linkButton.addEventListener("click", () => {
+        let userLink = prompt("Voeg een URL toe");
+        if (userLink !== null && userLink !== '') {
+            console.log(userLink)
+            //if link has http then pass directly else add https
+            if (/http/i.test(userLink)) {
+                modifyText(linkButton.id, false, userLink);
+            } else {
+                userLink = "http://" + userLink;
+                modifyText(linkButton.id, false, userLink);
+            }
+        }
+    });
+}
+
+//Highlight clicked button
+    const highlighter = (className, needsRemoval) => {
+        className.forEach((button) => {
+            button.addEventListener("click", () => {
+                //needsRemoval = true means only one button should be highlight and other would be normal
+                if (needsRemoval) {
+                    let alreadyActive = false;
+
+                    //If currently clicked button is already active
+                    if (button.classList.contains("active-button")) {
+                        alreadyActive = true;
+                    }
+
+                    //Remove highlight from other buttons
+                    highlighterRemover(className);
+                    if (!alreadyActive) {
+                        //highlight clicked button
+                        button.classList.add("active-button");
+                    }
+                } else {
+                    //if other buttons can be highlighted
+                    button.classList.toggle("active-button");
+                }
+            });
+        });
+    };
+
+    const highlighterRemover = (className) => {
+        className.forEach((button) => {
+            button.classList.remove("active-button");
+        });
+    };
+
+    function editText() {
+        message.value = textInput.innerHTML.toString()
+
+        characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+
+        if (textInput.innerHTML.toString().length > 65535) {
+            characters.style.color = 'red';
+        } else {
+            characters.style.color = 'black';
+        }
+    }
+
+    window.onload = initializer();
