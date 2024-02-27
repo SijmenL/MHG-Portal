@@ -11,7 +11,8 @@ class Comment extends Model
     protected $fillable = [
         'content',
         'user_id',
-        'post_id'
+        'post_id',
+        'comment_id'
     ];
 
     public function user()
@@ -22,5 +23,15 @@ class Comment extends Model
     public function post()
     {
         return $this->belongsTo(Post::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(Like::class, 'post_id')->where('location', 1);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'comment_id');
     }
 }

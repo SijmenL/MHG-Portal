@@ -7,8 +7,11 @@ use App\Models\Like;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
+use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class DolfijnenController extends Controller
 {
@@ -24,6 +27,10 @@ class DolfijnenController extends Controller
         return view('speltakken.dolfijnen.home', ['user' => $user, 'posts' => $posts]);
     }
 
+    /*
+     * Forum section, including posts, comments and like handling.
+     */
+
     public function postMessage(Request $request)
     {
         $user = Auth::user();
@@ -34,13 +41,39 @@ class DolfijnenController extends Controller
             'content' => 'string|max:65535',
         ]);
 
+        $content = $request->input('content');
+
+        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
+            throw ValidationException::withMessages(['content' => 'Je post kan niet geplaatst worden vanwege ongeldige inhoud.']);
+        }
+
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($content);
+
+
+        $elements = $dom->getElementsByTagName('*');
+        $containsClasses = false;
+
+        foreach ($elements as $element) {
+            $classes = $element->getAttribute('class');
+            if (!empty($classes) && strpos($classes, 'forum-image') === false) {
+                $containsClasses = true;
+                break;
+            }
+        }
+
+        if ($containsClasses) {
+            throw ValidationException::withMessages(['content' => 'Je post kan niet geplaatst worden.']);
+        }
+
         $post = Post::create([
-            'content' => $request->input('content'),
+            'content' => $content,
             'user_id' => Auth::id(),
             'location' => 0,
         ]);
 
-        return redirect()->route('dolfijnen', ['user' => $user, 'roles' => $roles])->with('success', 'Je bericht is gepost!');
+        return redirect()->route('dolfijnen', ['#'.$post->id]);
     }
 
     public function viewPost($id)
@@ -48,7 +81,11 @@ class DolfijnenController extends Controller
         $user = Auth::user();
 
         $post = Post::with(['comments' => function ($query) {
-            $query->orderBy('created_at', 'desc'); // Sort comments by newest
+            $query->withCount('likes') // Count the number of likes for each comment
+            ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
+            ->with(['comments' => function ($query) {
+                $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
+            }]);
         }])->findOrFail($id);
 
         return view('speltakken.dolfijnen.post', ['user' => $user, 'post' => $post]);
@@ -56,21 +93,86 @@ class DolfijnenController extends Controller
 
     public function postComment(Request $request, $id)
     {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-
         $request->validate([
             'content' => 'string|max:65535',
         ]);
+
+        $content = $request->input('content');
+
+        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
+            throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden vanwege ongeldige inhoud.']);
+        }
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($content);
+
+        $elements = $dom->getElementsByTagName('*');
+        $containsClasses = false;
+
+        foreach ($elements as $element) {
+            $classes = $element->getAttribute('class');
+            if (!empty($classes) && strpos($classes, 'forum-image') === false) {
+                $containsClasses = true;
+                break;
+            }
+        }
+
+        if ($containsClasses) {
+            throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden.']);
+        }
+
+        $comment = Comment::create([
+            'content' => $content,
+            'user_id' => Auth::id(),
+            'post_id' => $id,
+        ]);
+
+
+        return redirect()->route('dolfijnen.post', [$id, '#comments']);
+
+    }
+
+    public function postReaction(Request $request, $id, $commentId)
+    {
+        $validator = Validator::make($request->all(), [
+            'content' => 'required|max:65535',
+        ]);
+
+        $content = $request->input('content');
+
+        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
+            throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden vanwege ongeldige inhoud.']);
+        }
+
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($content);
+
+
+        $elements = $dom->getElementsByTagName('*');
+        $containsClasses = false;
+
+        foreach ($elements as $element) {
+            $classes = $element->getAttribute('class');
+            if (!empty($classes) && strpos($classes, 'forum-image') === false) {
+                $containsClasses = true;
+                break;
+            }
+        }
+
+        if ($containsClasses) {
+            throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden.']);
+        }
 
         $comment = Comment::create([
             'content' => $request->input('content'),
             'user_id' => Auth::id(),
             'post_id' => $id,
+            'comment_id' => $commentId,
         ]);
 
-        return redirect()->route('dolfijnen.post', $id);
+
+        return redirect()->route('dolfijnen.post', [$id, '#comment-'.$comment->id]);
     }
 
     public function editPost($id)
@@ -97,8 +199,33 @@ class DolfijnenController extends Controller
                 'content' => 'string|max:65535',
             ]);
 
-            $post->update($validatedData);
+            $content = $request->input('content');
 
+            if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
+                throw ValidationException::withMessages(['content' => 'Je post kan niet bewerkt worden vanwege ongeldige inhoud.']);
+            }
+
+
+            $dom = new DOMDocument();
+            $dom->loadHTML($content);
+
+
+            $elements = $dom->getElementsByTagName('*');
+            $containsClasses = false;
+
+            foreach ($elements as $element) {
+                $classes = $element->getAttribute('class');
+                if (!empty($classes) && strpos($classes, 'forum-image') === false) {
+                    $containsClasses = true;
+                    break;
+                }
+            }
+
+            if ($containsClasses) {
+                throw ValidationException::withMessages(['content' => 'Je post kan niet bewerkt worden.']);
+            } else {
+                $post->update($validatedData);
+            }
 
             return redirect()->route('dolfijnen.post', $id);
         } else {
@@ -122,7 +249,8 @@ class DolfijnenController extends Controller
 
             $post->delete();
 
-            return redirect()->route('dolfijnen');
+            return redirect()->route('dolfijnen', ['#posts']);
+
         } else {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
         }
@@ -136,11 +264,15 @@ class DolfijnenController extends Controller
 
             $comment->delete();
 
-            return redirect()->route('dolfijnen.post', $postId);
+            return redirect()->route('dolfijnen.post', [$postId, '#comments']);
         } else {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
+
+    /*
+     * End of forum section
+     */
 
     public function leiding()
     {

@@ -119,6 +119,7 @@ Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ou
 
     Route::get('/dolfijnen/post/{id}', [DolfijnenController::class, 'viewPost'])->name('dolfijnen.post');
     Route::post('/dolfijnen/post/{id}', [DolfijnenController::class, 'postComment'])->name('dolfijnen.comment-post');
+    Route::post('/dolfijnen/post/reaction/{id}/{commentId}', [DolfijnenController::class, 'postReaction'])->name('dolfijnen.reaction-post');
 
     Route::get('/dolfijnen/post/edit/{id}', [DolfijnenController::class, 'editPost'])->name('dolfijnen.post.edit');
     Route::post('/dolfijnen/post/edit/{id}', [DolfijnenController::class, 'storePost'])->name('dolfijnen.post.store');
@@ -203,7 +204,7 @@ Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur'])->gro
 
 // Forum
 Route::post('/upload-image', [ForumController::class, 'upload'])->name('forum.image');
-Route::post('/posts/{postId}/toggle-like', [ForumController::class, 'toggleLike'])->name('forum.toggle-like');
+Route::post('/posts/{postId}/{likeType}/toggle-like', [ForumController::class, 'toggleLike'])->name('forum.toggle-like');
 Route::post('/comments/{id}', [ForumController::class, 'updateComment'])->name('forum.comments.update');
 
 

@@ -1,7 +1,7 @@
 * {
     font-family: "Poppins", sans-serif;
     scroll-margin-top: 100px;
-    scroll-behavior: smooth;
+    scroll-behavior: auto !important;
 }
 
 #app {
@@ -90,8 +90,8 @@ h1, .h1 {
 
 .profle-picture {
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 25px;
+    height: 25px;
     aspect-ratio: 1/1;
     object-fit: cover;
 }
@@ -510,7 +510,10 @@ pre {
 
 .forum-user-info {
     padding: 5px;
+    transform: translateY(20px);
 }
+
+
 
 .align {
     display: flex !important;
@@ -524,20 +527,123 @@ pre {
     color: red !important;
 }
 
+.user-liked {
+    animation: likeAnimation 1s 1 ease-in-out;
+}
+
+@keyframes likeAnimation {
+    0% {
+        transform: scale(1) translateY(0);
+    }
+    25% {
+        transform: scale(1.5) translateY(-3px);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+    }
+}
+
 .post-op {
     background-color: var(--secondary-color);
     border-radius: 5px;
     padding: 3px;
-    margin-right: 5px;
+}
+
+.rotating {
+    animation: infinite rotateLoading 0.5s ease-in-out;
+}
+
+.comment-time {
+    margin-top: -15px;
+    font-size: 12px;
+}
+
+.comment-input {
+    align-items: start;
+}
+
+.show-form {
+    display: block !important;
+}
+
+.reactions {
+    margin-left: 0;
+}
+
+.forum-buttons {
+    display: flex;
+    flex-direction: row;
+}
+
+
+.forum-buttons a, .forum-buttons button {
+    width: 30px;
+    align-items: center;
+    justify-content: center;
+}
+
+.forum-buttons a span, .forum-buttons button span {
+    font-size: 12pt;
+}
+
+.forum-profile-picture {
+    margin-top: 15px;
+}
+
+.user-forum-picture {
+    max-width: 75px;
+    aspect-ratio: 1/1;
+    object-fit: cover
+}
+
+.mobile-only {
+    display: block;
 }
 
 @media screen and (min-width: 992px) {
+    .mobile-only {
+        display: none;
+    }
+
     .message-arrow {
         position: relative;
         top: 70px;
         border: 25px solid transparent;
         border-left-width: 0;
         border-right-color: white;
+    }
+
+    .profle-picture {
+        width: 50px;
+        height: 50px;
+    }
+
+    .forum-profile-picture {
+        margin-top: 0px;
+    }
+
+    .user-forum-picture {
+        max-width: 150px;
+    }
+
+    .forum-buttons a span, .forum-buttons button span {
+        font-size: 15pt;
+    }
+
+    .forum-buttons a, .forum-buttons button {
+        width: 40px;
+    }
+
+    .comment-input {
+        align-items: end;
+    }
+
+    .reactions {
+        margin-left: 60px;
+    }
+
+    .comment-time {
+        margin-top: 0px;
     }
 
     .align {
@@ -551,6 +657,7 @@ pre {
     .forum-user-info {
         margin-left: -20px;
         padding: 25px;
+        transform: translateX(20px);
     }
 
     .forum-content {
@@ -712,9 +819,39 @@ pre {
         background-color: white;
     }
 
+    .mobile-only {
+        display: none;
+    }
+
+    .profle-picture {
+        width: 40px;
+        height: 40px;
+    }
+
+    .forum-profile-picture {
+        margin-top: 5px;
+    }
+
+    .user-forum-picture {
+        max-width: 100px;
+    }
+
+    .reactions {
+        margin-left: 45px;
+    }
+
+    .comment-input {
+        align-items: end;
+    }
+
+    .comment-time {
+        margin-top: 0px;
+    }
+
     .forum-user-info {
         margin-left: -20px;
         padding: 25px;
+        transform: translateX(20px);
     }
 
     .forum-post {
@@ -724,7 +861,6 @@ pre {
     .forum-content {
         min-height: 280px;
     }
-
 
     .message-arrow {
         position: relative;

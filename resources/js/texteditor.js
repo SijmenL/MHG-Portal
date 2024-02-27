@@ -6,6 +6,7 @@ let spacingButtons = document.querySelectorAll(".spacing");
 let formatButtons = document.querySelectorAll(".format");
 let scriptButtons = document.querySelectorAll(".script");
 let mediaButons = document.querySelectorAll(".media");
+let inputFields = document.querySelectorAll(".text-input");
 let textInput = document.getElementById('text-input')
 let message = document.getElementById('content');
 let characters = document.getElementById('characters');
@@ -13,9 +14,14 @@ let body = document.getElementById('app')
 let imageUpload = document.getElementById('insertImage');
 let videoUpload = document.getElementById('insertYouTube');
 let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+let addComments = document.querySelectorAll('.add-comment');
+let commentForms = document.querySelectorAll('.comment-form');
+
 
 //Initial Settings
 const initializer = () => {
+    console.log(inputFields)
+
     //function calls for highlighting buttons
     //No highlights for link, unlink,lists, undo,redo since they are one time operations
     highlighter(alignButtons, true);
@@ -69,7 +75,10 @@ const initializer = () => {
                 });
 
                 saveButton.addEventListener('click', function () {
-                    event.preventDefault(); // Prevent form submission
+                    event.preventDefault();
+
+                    saveButton.innerHTML = '<span class="save-button material-symbols-rounded rotating">progress_activity</span>';
+
                     const comment = button.closest('.comment');
                     const content = comment.querySelector('.content');
                     const commentContent = comment.querySelector('.comment-content');
@@ -99,6 +108,7 @@ const initializer = () => {
                             commentContent.innerHTML = updatedContent;
                             content.style.display = 'block';
                             editForm.style.display = 'none';
+                            saveButton.innerHTML = '<span class="save-button material-symbols-rounded">save</span>';
                         })
                         .catch(error => {
                             console.error('Error:', error);
@@ -119,182 +129,247 @@ const initializer = () => {
             })
         }
 
+        inputFields.forEach(function (field) {
+            field.addEventListener('paste', function (event) {
+                console.log('Paste event detected');
 
-        textInput.addEventListener('paste', function (event) {
-            // Prevent the default paste behavior
-            event.preventDefault();
+                // Prevent the default paste behavior
+                event.preventDefault();
 
-            // Get the plain text from the clipboard
-            const plainText = (event.clipboardData || window.clipboardData).getData('text');
+                // Check if clipboard data is available
+                const clipboardData = event.clipboardData || window.clipboardData;
+                if (!clipboardData) {
+                    console.error('Clipboard data not available');
+                    return;
+                }
 
-            // Insert the plain text into the editor
-            document.execCommand('insertText', false, plainText);
+                // Get the plain text from the clipboard
+                const plainText = clipboardData.getData('text/plain');
+                if (!plainText) {
+                    console.error('No plain text found in clipboard data');
+                    return;
+                }
+
+                // Insert the plain text into the editable div at the current cursor position
+                document.execCommand('insertText', false, plainText);
+
+                console.log('Plain text pasted:', plainText);
+                editText()
+            });
+
+            // field.addEventListener('dragover', function(event) {
+            //     event.preventDefault();
+            // });
+            //
+            // field.addEventListener('drop', function(event) {
+            //     event.preventDefault();
+            // });
+            //
+            // field.addEventListener('dragenter', function(event) {
+            //     event.preventDefault();
+            // });
         });
+
+        if (addComments) {
+            addComments.forEach(function (addCommentButton) {
+                addCommentButton.addEventListener('click', function () {
+                    // Find the parent element of the button
+                    const parentElement = addCommentButton.closest('.content');
+                    console.log('Parent element:', parentElement);
+
+                    // Find the form within the parent element
+                    const form = parentElement.querySelector('.comment-form');
+                    if (form) {
+                        form.classList.toggle('show-form'); // Define a CSS class to control the visibility
+                    } else {
+                        console.error('Form not found');
+                    }
+                });
+            });
+        }
+
+
+        if (commentForms) {
+            commentForms.forEach(function (form) {
+                const textInput = form.querySelector('.text-input');
+                const contentInput = form.querySelector('.content-input');
+
+                textInput.addEventListener('input', function () {
+                    contentInput.value = textInput.textContent;
+                });
+            });
+        }
     });
 }
 
-    const likeButton = (button) => {
-        let postId = button.dataset.postId;
+const likeButton = (button) => {
+
+    button.innerHTML = `<span class="material-symbols-rounded rotating">progress_activity</span>`
+
+    let likeType = button.dataset.postType
+    let postId = button.dataset.postId;
 
 
-        // Send the AJAX request with the CSRF token
-        fetch(`/posts/${postId}/toggle-like`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken // Include the CSRF token in the request headers
-            },
+    // Send the AJAX request with the CSRF token
+    fetch(`/posts/${postId}/${likeType}/toggle-like`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken // Include the CSRF token in the request headers
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Handle response data
-                console.log(data);
-                button.innerHTML = `${data.likeCount} <span
+        .then(data => {
+            // Handle response data
+            console.log(data);
+            button.innerHTML = `${data.likeCount} <span
                                                 class="material-symbols-rounded">favorite</span>`
 
-                if (data.isLiked === true) {
-                    button.classList.add('liked')
-                } else {
-                    button.classList.remove('liked')
-                }
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-    };
+            if (data.isLiked === true) {
+                button.classList.add('liked')
+                button.classList.add('user-liked')
+            } else {
+                button.classList.remove('liked')
+                button.classList.remove('user-liked')
+            }
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+};
 
 
-    function addImage() {
-        // Open file upload dialog
-        let input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = function (event) {
-            let file = event.target.files[0];
+function addImage() {
+    // Open file upload dialog
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function (event) {
+        let file = event.target.files[0];
 
-            // Create FormData object to upload file
-            let formData = new FormData();
-            formData.append('image', file);
+        // Create FormData object to upload file
+        let formData = new FormData();
+        formData.append('image', file);
 
-            // Add CSRF token to FormData
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        // Add CSRF token to FormData
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
-            // Send AJAX request to upload image
-            let xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload-image', true);
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    // Log the response from the server
-                    console.log(xhr.responseText);
-                    // Image uploaded successfully
-                    let imageUrl = xhr.responseText;
-                    insertImageIntoEditor(imageUrl);
-                } else {
-                    // Handle error
-                    invalidImage();
-                    console.error('Image upload failed');
-                }
-            };
-            xhr.onerror = () => {
-                // Handle network errors
-                console.error('Network error during image upload');
-            };
-            xhr.send(formData);
+        // Send AJAX request to upload image
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload-image', true);
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                // Log the response from the server
+                console.log(xhr.responseText);
+                // Image uploaded successfully
+                let imageUrl = xhr.responseText;
+                insertImageIntoEditor(imageUrl);
+            } else {
+                // Handle error
+                invalidImage();
+                console.error('Image upload failed');
+            }
         };
-        input.click();
+        xhr.onerror = () => {
+            // Handle network errors
+            console.error('Network error during image upload');
+        };
+        xhr.send(formData);
+    };
+    input.click();
+}
+
+function invalidImage() {
+    imageUpload.classList.add('invalid')
+
+    setTimeout(function () {
+        imageUpload.classList.remove('invalid');
+    }, 500);
+}
+
+
+function insertImageIntoEditor(imageUrl) {
+    console.log(imageUrl)
+    let image = document.createElement('img')
+    let url = JSON.parse(imageUrl);
+    image.src = url.imageUrl
+    image.alt = 'Afbeelding'
+    image.classList.add('forum-image')
+    textInput.appendChild(image)
+    editText()
+}
+
+function addYouTubeVideo() {
+    // Prompt the user to input the YouTube video ID
+    let videoURL = prompt('YouTube link:');
+
+    let videoId = '';
+
+    if (videoURL.includes('youtube.com') && videoURL.includes('v=')) {
+        let urlParams = new URLSearchParams(new URL(videoURL).search);
+        videoId = urlParams.get('v');
+    } else if (videoURL.includes('youtu.be/')) {
+        videoId = videoURL.split('youtu.be/')[1];
     }
 
-    function invalidImage() {
-        imageUpload.classList.add('invalid')
-
-        setTimeout(function () {
-            imageUpload.classList.remove('invalid');
-        }, 500);
+    if (videoId === '') {
+        invalidVideo();
+        console.error('No YouTube video detected.')
     }
 
+    if (videoId) {
+        // Construct the embeddable YouTube video URL
+        let videoUrl = 'https://www.youtube.com/embed/' + videoId;
 
-    function insertImageIntoEditor(imageUrl) {
-        console.log(imageUrl)
-        let image = document.createElement('img')
-        let url = JSON.parse(imageUrl);
-        image.src = url.imageUrl
-        image.alt = 'Afbeelding'
-        image.classList.add('forum-image')
-        textInput.appendChild(image)
-        editText()
+        // Create an iframe element
+        let iframe = document.createElement('iframe');
+        iframe.width = '560'; // Set iframe width (optional)
+        iframe.height = '315'; // Set iframe height (optional)
+        iframe.src = videoUrl;
+        iframe.classList.add('forum-image')
+        iframe.setAttribute('allowfullscreen', ''); // Allow fullscreen mode
+        iframe.setAttribute('frameborder', '0'); // Remove iframe border
+
+        // Append the iframe to the container
+        textInput.appendChild(iframe);
+        editText();
     }
+}
 
-    function addYouTubeVideo() {
-        // Prompt the user to input the YouTube video ID
-        let videoURL = prompt('YouTube link:');
+function invalidVideo() {
+    videoUpload.classList.add('invalid')
 
-        let videoId = '';
-
-        if (videoURL.includes('youtube.com') && videoURL.includes('v=')) {
-            let urlParams = new URLSearchParams(new URL(videoURL).search);
-            videoId = urlParams.get('v');
-        } else if (videoURL.includes('youtu.be/')) {
-            videoId = videoURL.split('youtu.be/')[1];
-        }
-
-        if (videoId === '') {
-            invalidVideo();
-            console.error('No YouTube video detected.')
-        }
-
-        if (videoId) {
-            // Construct the embeddable YouTube video URL
-            let videoUrl = 'https://www.youtube.com/embed/' + videoId;
-
-            // Create an iframe element
-            let iframe = document.createElement('iframe');
-            iframe.width = '560'; // Set iframe width (optional)
-            iframe.height = '315'; // Set iframe height (optional)
-            iframe.src = videoUrl;
-            iframe.classList.add('forum-image')
-            iframe.setAttribute('allowfullscreen', ''); // Allow fullscreen mode
-            iframe.setAttribute('frameborder', '0'); // Remove iframe border
-
-            // Append the iframe to the container
-            textInput.appendChild(iframe);
-            editText();
-        }
-    }
-
-    function invalidVideo() {
-        videoUpload.classList.add('invalid')
-
-        setTimeout(function () {
-            videoUpload.classList.remove('invalid');
-        }, 500);
-    }
+    setTimeout(function () {
+        videoUpload.classList.remove('invalid');
+    }, 500);
+}
 
 //main logic
-    const modifyText = (command, defaultUi, value) => {
-        //execCommand executes command on selected text
-        document.execCommand(command, defaultUi, value);
-    };
+const modifyText = (command, defaultUi, value) => {
+    //execCommand executes command on selected text
+    document.execCommand(command, defaultUi, value);
+};
 
 //For basic operations which don't need value parameter
-    optionsButtons.forEach((button) => {
-        if (button.id !== 'insertImage' && button.id !== 'createLink') {
-            button.addEventListener("click", () => {
-                modifyText(button.id, false, null);
-            });
-        }
-    });
+optionsButtons.forEach((button) => {
+    if (button.id !== 'insertImage' && button.id !== 'createLink') {
+        button.addEventListener("click", () => {
+            modifyText(button.id, false, null);
+        });
+    }
+});
 
 //options that require value parameter (e.g colors, fonts)
-    advancedOptionButton.forEach((button) => {
-        button.addEventListener("change", () => {
-            modifyText(button.id, false, button.value);
-        });
+advancedOptionButton.forEach((button) => {
+    button.addEventListener("change", () => {
+        modifyText(button.id, false, button.value);
     });
+});
 
 //link
 if (linkButton) {
@@ -314,48 +389,48 @@ if (linkButton) {
 }
 
 //Highlight clicked button
-    const highlighter = (className, needsRemoval) => {
-        className.forEach((button) => {
-            button.addEventListener("click", () => {
-                //needsRemoval = true means only one button should be highlight and other would be normal
-                if (needsRemoval) {
-                    let alreadyActive = false;
+const highlighter = (className, needsRemoval) => {
+    className.forEach((button) => {
+        button.addEventListener("click", () => {
+            //needsRemoval = true means only one button should be highlight and other would be normal
+            if (needsRemoval) {
+                let alreadyActive = false;
 
-                    //If currently clicked button is already active
-                    if (button.classList.contains("active-button")) {
-                        alreadyActive = true;
-                    }
-
-                    //Remove highlight from other buttons
-                    highlighterRemover(className);
-                    if (!alreadyActive) {
-                        //highlight clicked button
-                        button.classList.add("active-button");
-                    }
-                } else {
-                    //if other buttons can be highlighted
-                    button.classList.toggle("active-button");
+                //If currently clicked button is already active
+                if (button.classList.contains("active-button")) {
+                    alreadyActive = true;
                 }
-            });
+
+                //Remove highlight from other buttons
+                highlighterRemover(className);
+                if (!alreadyActive) {
+                    //highlight clicked button
+                    button.classList.add("active-button");
+                }
+            } else {
+                //if other buttons can be highlighted
+                button.classList.toggle("active-button");
+            }
         });
-    };
+    });
+};
 
-    const highlighterRemover = (className) => {
-        className.forEach((button) => {
-            button.classList.remove("active-button");
-        });
-    };
+const highlighterRemover = (className) => {
+    className.forEach((button) => {
+        button.classList.remove("active-button");
+    });
+};
 
-    function editText() {
-        message.value = textInput.innerHTML.toString()
+function editText() {
+    message.value = textInput.innerHTML.toString()
 
-        characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+    characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
 
-        if (textInput.innerHTML.toString().length > 65535) {
-            characters.style.color = 'red';
-        } else {
-            characters.style.color = 'black';
-        }
+    if (textInput.innerHTML.toString().length > 65535) {
+        characters.style.color = 'red';
+    } else {
+        characters.style.color = 'black';
     }
+}
 
-    window.onload = initializer();
+window.onload = initializer();

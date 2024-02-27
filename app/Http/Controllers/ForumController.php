@@ -42,15 +42,15 @@ class ForumController extends Controller
         return response()->json(['error' => 'Invalid image uploaded'], 400);
     }
 
-    public function toggleLike($postId)
+    public function toggleLike($postId, $postType)
     {
 
         // Get the authenticated user
         $user = Auth::user();
 
-        // Check if the user has already liked the post
         $like = Like::where('user_id', $user->id)
             ->where('post_id', $postId)
+            ->where('location', $postType)
             ->first();
 
         if ($like) {
@@ -61,19 +61,21 @@ class ForumController extends Controller
             // If the user hasn't liked the post yet, add the like
             Like::create([
                 'user_id' => $user->id,
-                'post_id' => $postId
+                'post_id' => $postId,
+                'location' => $postType
             ]);
             $isLiked = true;
         }
 
         // Get the updated like count
-        $likeCount = Like::where('post_id', $postId)->count();
+        $likeCount = Like::where('post_id', $postId)->where('location', $postType)->count();
 
 
         // Return JSON response with updated like count and like status
         return response()->json([
             'likeCount' => $likeCount,
-            'isLiked' => $isLiked
+            'isLiked' => $isLiked,
+            'location' => $postType
         ]);
     }
 
@@ -87,11 +89,16 @@ class ForumController extends Controller
         // Find the comment by ID
         $comment = Comment::findOrFail($id);
 
-        // Update the comment content
-        $comment->content = $request->input('content');
-        $comment->save();
+        if ($comment->user_id === Auth::id()) {
+            // Update the comment content
+            $comment->content = $request->input('content');
+            $comment->save();
 
-        // Return a response
-        return response()->json(['message' => 'Comment updated successfully'], 200);
+            // Return a response
+            return response()->json(['message' => 'Reactie succesvol bijgewerkt.'], 200);
+        } else {
+            return response()->json(['message' => 'Bewerking mislukt'], 401);
+        }
     }
+
 }

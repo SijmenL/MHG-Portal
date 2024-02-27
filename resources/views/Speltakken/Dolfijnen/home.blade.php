@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <div class="mt-5">
+        <div class="mt-5" id="posts">
             <h1>Prikbord</h1>
             <p>Deel iets met de Dolfijnen, hun ouders en de dolfijnenleiding!</p>
 
@@ -59,7 +59,7 @@
                 <div class="container">
                     @yield('editor')
 
-                    <div id="text-input" contenteditable="true">{!! old('content') !!}</div>
+                    <div id="text-input" contenteditable="true" class="text-input">{!! old('content') !!}</div>
                     <small id="characters"></small>
 
                     @error('content')
@@ -87,12 +87,10 @@
                                     class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">
                                     <div class="rounded overflow-hidden">
                                         @if($post->user->profile_picture)
-                                            <img alt="profielfoto"
-                                                 style="max-width: 150px; aspect-ratio: 1/1; object-fit: cover"
+                                            <img alt="profielfoto" class="user-forum-picture"
                                                  src="{{ asset('/profile_pictures/' .$post->user->profile_picture) }}">
                                         @else
-                                            <img alt="profielfoto"
-                                                 style="max-width: 150px; aspect-ratio: 1/1; object-fit: cover"
+                                            <img alt="profielfoto" class="user-forum-picture"
                                                  src="{{ asset('img/no_profile_picture.webp') }}">
                                         @endif
                                     </div>
@@ -122,10 +120,13 @@
                                     <div class="d-flex flex-row">
                                         <a title="@foreach($post->likes as $like) {{ $like->user->name.' '.$like->user->infix.' '.$like->user->last_name }} @endforeach"
                                            class="btn d-flex align-items-center like-button {{ $post->likes->contains('user_id', auth()->id()) ? ' liked' : '' }}"
-                                           data-post-id="{{ $post->id }}">{{ $post->likes->count() }} <span
+                                           data-post-id="{{ $post->id }}" data-post-type="0">{{ $post->likes->count() }} <span
                                                 class="material-symbols-rounded">favorite</span></a>
-                                        <a href="{{ route('dolfijnen.post', $post->id) }}" class="btn d-flex align-items-center comment">{{ $post->comments->count() }} <span
-                                                class="material-symbols-rounded">chat</span></a>
+                                        <a href="{{ route('dolfijnen.post', $post->id) }}#comments" class="btn d-flex align-items-center comment">
+                                            {{ $post->comments->count() }}
+                                            <span class="material-symbols-rounded">chat</span>
+                                        </a>
+
                                     </div>
 
                                         <div class="d-flex flex-row">

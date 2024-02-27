@@ -10,6 +10,7 @@ class Like extends Model
     protected $fillable = [
         'user_id',
         'post_id',
+        'location'
     ];
 
     public function post()

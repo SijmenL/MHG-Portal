@@ -36,12 +36,10 @@
                         class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">
                         <div class="rounded overflow-hidden">
                             @if($post->user->profile_picture)
-                                <img alt="profielfoto"
-                                     style="max-width: 150px; aspect-ratio: 1/1; object-fit: cover"
+                                <img alt="profielfoto" class="user-forum-picture"
                                      src="{{ asset('/profile_pictures/' .$post->user->profile_picture) }}">
                             @else
-                                <img alt="profielfoto"
-                                     style="max-width: 150px; aspect-ratio: 1/1; object-fit: cover"
+                                <img alt="profielfoto" class="user-forum-picture"
                                      src="{{ asset('img/no_profile_picture.webp') }}">
                             @endif
                         </div>
@@ -66,7 +64,7 @@
                          class="w-100 forum-content bg-white p-3 rounded">
                         <div class="container">
                             @yield('editor')
-                            <div id="text-input" contenteditable="true">{!! $post->content !!}</div>
+                            <div id="text-input" contenteditable="true" class="text-input">{!! $post->content !!}</div>
                             <small id="characters"></small>
 
                             @error('content')
