@@ -162,7 +162,7 @@ pre {
 }
 
 .popup {
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(3px) brightness(50%);
     background: rgba(0, 0, 0, 0.41);
     width: 100vw;
     height: 100vh;

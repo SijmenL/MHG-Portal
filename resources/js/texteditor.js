@@ -1,5 +1,6 @@
 let optionsButtons = document.querySelectorAll(".option-button");
 let advancedOptionButton = document.querySelectorAll(".adv-option-button");
+let formatBlock = document.getElementById("formatBlock");
 let linkButton = document.getElementById("createLink");
 let alignButtons = document.querySelectorAll(".align");
 let spacingButtons = document.querySelectorAll(".spacing");
@@ -163,15 +164,15 @@ const initializer = () => {
                 editText()
             });
 
-            field.addEventListener('dragover', function(event) {
+            field.addEventListener('dragover', function (event) {
                 event.preventDefault();
             });
 
-            field.addEventListener('drop', function(event) {
+            field.addEventListener('drop', function (event) {
                 event.preventDefault();
             });
 
-            field.addEventListener('dragenter', function(event) {
+            field.addEventListener('dragenter', function (event) {
                 event.preventDefault();
             });
         });
@@ -205,7 +206,32 @@ const initializer = () => {
                 });
             });
         }
-    });
+
+        document.addEventListener('selectionchange', function (event) {
+            const activeElement = document.activeElement;
+
+            if (activeElement === textInput || textInput.contains(activeElement)) {
+                formatButtons.forEach(button => {
+                    const command = button.id;
+                    updateButtonState(button, command);
+                });
+
+                alignButtons.forEach(button => {
+                    const command = button.id;
+                    updateButtonState(button, command);
+                });
+            }
+        });
+    })
+}
+
+function updateButtonState(button, command) {
+    const isActive = document.queryCommandState(command);
+    if (isActive) {
+        button.classList.add('active-button');
+    } else {
+        button.classList.remove('active-button');
+    }
 }
 
 const likeButton = (button) => {

@@ -13,7 +13,7 @@
     <div class="wysiwyg-button">
         <div class="input-wrapper">
             <input type="color" id="foreColor" class="adv-option-button color-picker"/>
-            <button type="button" title="tekst kleur"
+            <button type="button" title="tekst kleur" id="textColorButton"
                     class="option-button color d-flex justify-content-center">
                 <label for="foreColor"><span
                         class="material-symbols-rounded">format_color_text</span></label>
@@ -21,8 +21,8 @@
         </div>
         <div class="input-wrapper">
             <input type="color" id="backColor" class="adv-option-button color-picker"/>
-            <button type="button" title="markeer kleur"
-                    class="option-button color d-flex justify-content-center">
+            <button type="button" title="markeer kleur" id="highlightColorButton"
+                    class="option-button color d-flex justify-content-center overflow-hidden">
                 <label for="backColor"><span
                         class="material-symbols-rounded">format_color_fill</span></label>
             </button>
@@ -91,7 +91,7 @@
     <!-- Alignment -->
     <div class="wysiwyg-button">
         <button type="button" title="links uitlijnen" id="justifyLeft"
-                class="option-button align justify-content-center justifyLeft">
+                class="option-button align justify-content-center justifyLeft active-button">
             <span class="material-symbols-rounded">format_align_left</span>
         </button>
         <button type="button" title="midden uitlijnen" id="justifyCenter"
