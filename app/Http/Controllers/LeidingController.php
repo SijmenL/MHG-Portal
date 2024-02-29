@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Post;
-use App\Models\Role;
 use App\Models\User;
 use DOMDocument;
 use Illuminate\Http\Request;
@@ -12,18 +11,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-class ZeeverkennerController extends Controller
+class LeidingController extends Controller
 {
     public function view()
     {
         $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $posts = Post::where('location', 1)
+        $posts = Post::where('location', 4)
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
             ->paginate(25);
 
 
-        return view('speltakken.zeeverkenners.home', ['user' => $user, 'posts' => $posts]);
+        return view('leiding.home', ['user' => $user, 'posts' => $posts, 'roles' => $roles]);
     }
 
     /*
@@ -69,10 +69,10 @@ class ZeeverkennerController extends Controller
         $post = Post::create([
             'content' => $content,
             'user_id' => Auth::id(),
-            'location' => 1,
+            'location' => 4,
         ]);
 
-        return redirect()->route('zeeverkenners', ['#'.$post->id]);
+        return redirect()->route('leiding', ['#' . $post->id]);
     }
 
     public function viewPost($id)
@@ -87,11 +87,11 @@ class ZeeverkennerController extends Controller
             }]);
         }])->findOrFail($id);
 
-        if ($post->location !== 1) {
+        if ($post->location !== 4) {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        return view('speltakken.zeeverkenners.post', ['user' => $user, 'post' => $post]);
+        return view('leiding.post', ['user' => $user, 'post' => $post]);
     }
 
     public function postComment(Request $request, $id)
@@ -131,7 +131,7 @@ class ZeeverkennerController extends Controller
         ]);
 
 
-        return redirect()->route('zeeverkenners.post', [$id, '#comments']);
+        return redirect()->route('leiding.post', [$id, '#comments']);
 
     }
 
@@ -175,7 +175,7 @@ class ZeeverkennerController extends Controller
         ]);
 
 
-        return redirect()->route('zeeverkenners.post', [$id, '#comment-'.$comment->id]);
+        return redirect()->route('leiding.post', [$id, '#comment-' . $comment->id]);
     }
 
     public function editPost($id)
@@ -184,12 +184,12 @@ class ZeeverkennerController extends Controller
 
         $post = Post::findOrFail($id);
 
-        if ($post->location !== 1) {
+        if ($post->location !== 4) {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         if ($post->user_id === Auth::id()) {
-            return view('speltakken.zeeverkenners.post_edit', ['user' => $user, 'post' => $post]);
+            return view('leiding.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
         }
@@ -234,7 +234,7 @@ class ZeeverkennerController extends Controller
                 $post->update($validatedData);
             }
 
-            return redirect()->route('zeeverkenners.post', $id);
+            return redirect()->route('leiding.post', $id);
         } else {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
         }
@@ -244,7 +244,7 @@ class ZeeverkennerController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -256,7 +256,7 @@ class ZeeverkennerController extends Controller
 
             $post->delete();
 
-            return redirect()->route('zeeverkenners', ['#posts']);
+            return redirect()->route('leiding', ['#posts']);
 
         } else {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
@@ -267,11 +267,11 @@ class ZeeverkennerController extends Controller
     {
         $comment = Comment::findOrFail($id);
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie')) {
 
             $comment->delete();
 
-            return redirect()->route('zeeverkenners.post', [$postId, '#comments']);
+            return redirect()->route('leiding.post', [$postId, '#comments']);
         } else {
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
         }
@@ -285,97 +285,44 @@ class ZeeverkennerController extends Controller
     {
         $user = Auth::user();
 
-        $hoofdleiding = User::whereHas('roles', function ($query) {
-            $query->where('role', 'Zeeverkenners Hoofdleiding');
+        $bestuur = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Bestuur');
+        })->get();
+
+        $dolfijnen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Dolfijnen Leiding');
+        })->get();
+
+        $zeeverkenners = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Zeeverkenners Leiding');
+        })->get();
+
+        $stamoudste = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Loodsen Stamoudste');
         })->get();
 
         $penningmeester = User::whereHas('roles', function ($query) {
-            $query->where('role', 'Zeeverkenners Penningmeester');
+            $query->where('role', 'Loodsen Penningmeester');
         })->get();
 
-        $other_leiding = User::whereHas('roles', function ($query) {
-            $query->where('role', 'Zeeverkenners Leiding');
-        })->whereDoesntHave('roles', function ($query) {
-            $query->whereIn('role', ['Zeeverkenners Hoofdleiding', 'Zeeverkenners Penningmeester']);
+        $loodsen = $stamoudste->merge($penningmeester);
+
+        $afterloodsen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Afterloodsen Organisator');
         })->get();
 
-        $leiding = $hoofdleiding->merge($penningmeester)->merge($other_leiding);
+        $ouderraad = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Ouderraad');
+        })->get();
 
-        return view('speltakken.zeeverkenners.leiding', ['user' => $user, 'leiding' => $leiding]);
-    }
+        $admin = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Administratie');
+        })->get();
 
-    public function group()
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $vrijwilliger = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Vrijwilliger');
+        })->get();
 
-        $search = '';
-
-        $users = User::with(['roles' => function ($query) {
-            $query->where('role', 'Zeeverkenner')->orderBy('role', 'asc');
-        }])
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Zeeverkenner');
-            })
-            ->orderBy('last_name')
-            ->paginate(25);
-
-        $selected_role = '';
-
-        return view('speltakken.zeeverkenners.group', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'selected_role' => $selected_role]);
-    }
-
-    public function groupSearch(Request $request)
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-
-        $search = $request->input('search');
-        $selected_role = $request->input('role');
-
-        $users = User::where(function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('last_name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%')
-                ->orWhere('sex', 'like', '%' . $search . '%')
-                ->orWhere('infix', 'like', '%' . $search . '%')
-                ->orWhere('birth_date', 'like', '%' . $search . '%')
-                ->orWhere('street', 'like', '%' . $search . '%')
-                ->orWhere('postal_code', 'like', '%' . $search . '%')
-                ->orWhere('city', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%')
-                ->orWhere('id', 'like', '%' . $search . '%')
-                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-        })
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Zeeverkenner');
-            })
-            ->orderBy('last_name')
-            ->paginate(25);
-
-
-        $all_roles = Role::orderBy('role')->get();
-
-        return view('speltakken.zeeverkenners.group', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
-    }
-
-    public function groupDetails($id)
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-
-        $account = User::with(['roles' => function ($query) {
-            $query->orderBy('role', 'asc');
-        }])
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Zeeverkenner');
-            })
-            ->find($id);
-
-
-
-        return view('speltakken.zeeverkenners.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+        return view('leiding.leiding', ['user' => $user, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'vrijwilliger' => $vrijwilliger]);
     }
 }

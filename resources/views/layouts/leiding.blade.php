@@ -9,7 +9,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Loodsen</title>
+    <title>Leiding & Organisatie</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -26,7 +26,7 @@
         <nav class="navbar navbar-expand-md navbar-light bg-white sticky-top">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
-                    <img class="logo" alt="logo" src="{{ asset('img/logo/MHGlogoloodsen.webp') }}">
+                    <img class="logo" alt="logo" src="{{ asset('img/logo/MHGlogoalgemeen.png') }}">
                 </a>
                 <a id="hamburger-menu" class="navbar-toggler" data-bs-toggle="collapse"
                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -53,33 +53,18 @@
                         <ul class="navbar-nav align-items-start justify-content-start justify-content-md-start" id="navbar">
                             <li class="nav-item">
                                 <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
-                                   href="{{ route('loodsen') }}"><img alt="loodsen" class="navbar-icon" src="{{ asset('img/icons/loodsen.png') }}">Home</a>
+                                   href="{{ route('leiding') }}"><img alt="afterloodsen" class="navbar-icon" src="{{ asset('img/icons/after_loodsen.png') }}">Home</a>
                             </li>
-                            @if(auth()->user() && (auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
-                                <li class="nav-item">
-                                    <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
-                                       href="{{ route('loodsen.groep') }}"><span
-                                            class="material-symbols-rounded">groups_2</span>Groep</a>
-                                </li>
-                            @endif
                             <li class="nav-item">
                                 <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"
-                                   href="{{ route('loodsen.leiding') }}"><span
-                                        class="material-symbols-rounded">supervisor_account</span>Leiding</a>
+                                   href="{{ route('leiding.leiding') }}"><span
+                                        class="material-symbols-rounded">supervisor_account</span>Leiding & Organisatie</a>
                             </li>
                             {{--                            <li class="nav-item">--}}
                             {{--                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text"--}}
-                            {{--                                   href="{{ route('loodsen') }}"><span--}}
+                            {{--                                   href="{{ route('zeeverkenners') }}"><span--}}
                             {{--                                        class="material-symbols-rounded">event_upcoming</span>Aanwezigheid</a>--}}
                             {{--                            </li>--}}
-                            <li class="nav-item">
-                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text no-tablet"
-                                   href="{{ route('loodsen.flunkyball') }}"><img alt="flunkyball" class="navbar-icon" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">Flunkyball</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text no-tablet"
-                                   href="{{ route('loodsen') }}"><img alt="loodsenbar" class="navbar-icon" src="{{ asset('files/loodsen/logo-bar.webp') }}">Loodsenbar</a>
-                            </li>
                         </ul>
                         @guest
                             @if (Route::has('login'))
@@ -118,7 +103,7 @@
             </div>
         </nav>
 
-        <main class="">
+        <main class="py-4">
             @yield('content')
         </main>
     </div>

@@ -16,6 +16,8 @@ let videoUpload = document.getElementById('insertYouTube');
 let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 let addComments = document.querySelectorAll('.add-comment');
 let commentForms = document.querySelectorAll('.comment-form');
+let popUp;
+let html = document.querySelector('html')
 
 
 //Initial Settings
@@ -29,12 +31,16 @@ const initializer = () => {
     highlighter(formatButtons, false);
     highlighter(scriptButtons, true);
 
-    characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+    if (characters) {
+        characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+    }
 
-    textInput.addEventListener('input', function () {
-        // Call the function when the content changes
-        editText();
-    });
+    if (textInput) {
+        textInput.addEventListener('input', function () {
+            // Call the function when the content changes
+            editText();
+        });
+    }
 
     document.addEventListener("DOMContentLoaded", function () {
         // Find and remove all o:wrapblock elements
@@ -157,17 +163,17 @@ const initializer = () => {
                 editText()
             });
 
-            // field.addEventListener('dragover', function(event) {
-            //     event.preventDefault();
-            // });
-            //
-            // field.addEventListener('drop', function(event) {
-            //     event.preventDefault();
-            // });
-            //
-            // field.addEventListener('dragenter', function(event) {
-            //     event.preventDefault();
-            // });
+            field.addEventListener('dragover', function(event) {
+                event.preventDefault();
+            });
+
+            field.addEventListener('drop', function(event) {
+                event.preventDefault();
+            });
+
+            field.addEventListener('dragenter', function(event) {
+                event.preventDefault();
+            });
         });
 
         if (addComments) {
@@ -305,9 +311,65 @@ function insertImageIntoEditor(imageUrl) {
 }
 
 function addYouTubeVideo() {
-    // Prompt the user to input the YouTube video ID
-    let videoURL = prompt('YouTube link:');
+    const scrollPosition = window.scrollY;
+    html.classList.add('no-scroll');
+    window.scrollTo(0, scrollPosition);
 
+
+    // Prompt the user to input the YouTube video ID
+    popUp = document.createElement('div');
+    popUp.classList.add('popup')
+    body.appendChild(popUp)
+
+    let popUpBody = document.createElement('div')
+    popUpBody.classList.add('popup-body')
+    popUp.appendChild(popUpBody)
+
+    let popUpTitle = document.createElement('h2')
+    popUpTitle.innerText = `Geef de url naar de YouTube video`;
+    popUpBody.appendChild(popUpTitle)
+
+    let inputLabel = document.createElement('label')
+    inputLabel.classList.add('form-label')
+    inputLabel.htmlFor = 'youtube-input'
+    inputLabel.innerText = 'Video'
+    popUpBody.appendChild(inputLabel)
+
+    let inputField = document.createElement('input')
+    inputField.classList.add('form-control')
+    inputField.id = 'youtube-input';
+    popUpBody.appendChild(inputField)
+
+    let buttonContainer = document.createElement('div')
+    buttonContainer.classList.add('button-container')
+    popUpBody.appendChild(buttonContainer)
+
+
+    let continueButton = document.createElement('a')
+    continueButton.classList.add('btn')
+    continueButton.classList.add('btn-success')
+    continueButton.innerText = 'Toevoegen'
+    buttonContainer.appendChild(continueButton)
+
+    let cancelButton = document.createElement('a')
+    cancelButton.classList.add('btn')
+    cancelButton.classList.add('btn-outline-danger')
+    cancelButton.innerText = 'Annuleren'
+    buttonContainer.appendChild(cancelButton)
+
+    continueButton.addEventListener('click', () => {
+        addYouTubeVideoToDiv(inputField.value)
+        popUp.remove()
+        html.classList.remove('no-scroll')
+    });
+
+    cancelButton.addEventListener('click', () => {
+        popUp.remove();
+        html.classList.remove('no-scroll')
+    });
+}
+
+function addYouTubeVideoToDiv(videoURL) {
     let videoId = '';
 
     if (videoURL.includes('youtube.com') && videoURL.includes('v=')) {
@@ -374,19 +436,106 @@ advancedOptionButton.forEach((button) => {
 //link
 if (linkButton) {
     linkButton.addEventListener("click", () => {
-        let userLink = prompt("Voeg een URL toe");
-        if (userLink !== null && userLink !== '') {
-            console.log(userLink)
-            //if link has http then pass directly else add https
-            if (/http/i.test(userLink)) {
-                modifyText(linkButton.id, false, userLink);
-            } else {
-                userLink = "http://" + userLink;
-                modifyText(linkButton.id, false, userLink);
-            }
-        }
+        const scrollPosition = window.scrollY;
+        html.classList.add('no-scroll');
+        window.scrollTo(0, scrollPosition);
+
+        // Prompt the user to input the YouTube video ID
+        popUp = document.createElement('div');
+        popUp.classList.add('popup')
+        body.appendChild(popUp)
+
+        let popUpBody = document.createElement('div')
+        popUpBody.classList.add('popup-body')
+        popUp.appendChild(popUpBody)
+
+        let popUpTitle = document.createElement('h2')
+        popUpTitle.innerText = `Voeg een hyperlink toe`;
+        popUpBody.appendChild(popUpTitle)
+
+        let inputLabelName = document.createElement('label')
+        inputLabelName.classList.add('form-label')
+        inputLabelName.htmlFor = 'link-display'
+        inputLabelName.innerText = 'Tekst om weer te geven'
+        popUpBody.appendChild(inputLabelName)
+
+        let inputFieldName = document.createElement('input')
+        inputFieldName.classList.add('form-control')
+        inputFieldName.id = 'link-display';
+        let selection = window.getSelection()
+        inputFieldName.value = selection.toString();
+        document.execCommand("delete", false, null);
+        popUpBody.appendChild(inputFieldName)
+
+        let inputLabel = document.createElement('label')
+        inputLabel.classList.add('form-label')
+        inputLabel.htmlFor = 'link-input'
+        inputLabel.innerText = 'Hyperlink'
+        popUpBody.appendChild(inputLabel)
+
+        let inputField = document.createElement('input')
+        inputField.classList.add('form-control')
+        inputField.id = 'link-input';
+        popUpBody.appendChild(inputField)
+
+        let buttonContainer = document.createElement('div')
+        buttonContainer.classList.add('button-container')
+        popUpBody.appendChild(buttonContainer)
+
+
+        let continueButton = document.createElement('a')
+        continueButton.classList.add('btn')
+        continueButton.classList.add('btn-success')
+        continueButton.innerText = 'Toevoegen'
+        buttonContainer.appendChild(continueButton)
+
+        let cancelButton = document.createElement('a')
+        cancelButton.classList.add('btn')
+        cancelButton.classList.add('btn-outline-danger')
+        cancelButton.innerText = 'Annuleren'
+        buttonContainer.appendChild(cancelButton)
+
+        continueButton.addEventListener('click', () => {
+            addLink(inputFieldName.value, inputField.value)
+            popUp.remove()
+            html.classList.remove('no-scroll')
+        });
+
+        cancelButton.addEventListener('click', () => {
+            popUp.remove();
+            document.execCommand("undo", false, null);
+            html.classList.remove('no-scroll')
+        });
+
     });
 }
+
+function addLink(userText, userLink) {
+    if (userLink !== null && userLink !== '') {
+        if (!userLink.startsWith("https://")) {
+            userLink = "https://" + userLink;
+        }
+
+        if (userText !== null && userText !== '') {
+            let hyperlink = document.createElement('a');
+            hyperlink.href = userLink;
+            hyperlink.target = "_blank";
+            hyperlink.innerText = userText;
+            textInput.appendChild(hyperlink);
+        } else {
+            let hyperlink = document.createElement('a');
+            hyperlink.href = userLink;
+            hyperlink.target = "_blank";
+            hyperlink.innerText = userLink;
+            textInput.appendChild(hyperlink);
+        }
+    } else {
+        document.execCommand("undo", false, null);
+    }
+    editText();
+}
+
+
 
 //Highlight clicked button
 const highlighter = (className, needsRemoval) => {

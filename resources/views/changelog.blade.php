@@ -11,6 +11,30 @@
             </ol>
         </nav>
 
+        <h2>Update 0.6</h2>
+        <p class="fst-italic">28/02/2024</p>
+        <ul>
+            <li class="added">Prikbord toegevoegd aan elke speltak</li>
+            <ul>
+                <li class="added">Gebruikers kunnen posts maken, bewerken en verwijderen</li>
+                <li class="added">Gebruikers kunnen reacties onder de posts en andere reacties achter laten</li>
+                <li class="added">Reacties kunnen worden bewerkt en verwijderd</li>
+                <li class="added">Posts en reacties kunnen worden geliked door gebruikers</li>
+                <li class="added">Administratieve achterkant voor het prikbord</li>
+                <ul>
+                    <li class="added">Het bestuur, team Admin, de ouderraad en de leiding kan posts verwijderen, niemand
+                        kan deze bewerken behalve de gebruiker die de post gemaakt heeft
+                    </li>
+                </ul>
+            </ul>
+            <li class="added">Omgeving voor Leiding & Organisatie</li>
+            <ul>
+                <li class="added">Eigen prikbord</li>
+                <li class="added">Directe link naar de notules van de afgelopen groepsraden</li>
+            </ul>
+        </ul>
+
+
         <h2>Update 0.5</h2>
         <p class="fst-italic">14/02/2024</p>
         <ul>

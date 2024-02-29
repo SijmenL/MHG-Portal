@@ -8,6 +8,7 @@ let hamburgerMenu;
 let body;
 let select;
 let buttonContainer;
+let html;
 
 function init() {
     deleteButtons()
@@ -17,6 +18,8 @@ function init() {
     hamburgerMenu = document.getElementById('hamburger-menu');
 
     body = document.getElementById('app')
+
+    html = document.querySelector('html')
 
     if (document.getElementById('select-roles')) {
         select = document.getElementById('select-roles');
@@ -39,6 +42,10 @@ function deleteButtons() {
     let popUp;
     for (let i = 0; i < allButtons.length; i++) {
         allButtons[i].addEventListener('click', function (e) {
+
+            const scrollPosition = window.scrollY;
+            html.classList.add('no-scroll');
+            window.scrollTo(0, scrollPosition);
 
             popUp = document.createElement('div');
             popUp.classList.add('popup')
@@ -77,10 +84,12 @@ function deleteButtons() {
 
             continueButton.addEventListener('click', () => {
                 window.location.href = allButtons[i].dataset.link;
+                html.classList.remove('no-scroll')
             });
 
             cancelButton.addEventListener('click', () => {
                 popUp.remove();
+                html.classList.remove('no-scroll')
             });
 
 

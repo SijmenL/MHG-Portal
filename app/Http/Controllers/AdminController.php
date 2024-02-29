@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
+use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -91,7 +96,7 @@ class AdminController extends Controller
                 }])
                 ->paginate(25);
         }
-            $all_roles = Role::orderBy('role')->get();
+        $all_roles = Role::orderBy('role')->get();
 
         return view('admin.account_management.list', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
     }
@@ -121,7 +126,7 @@ class AdminController extends Controller
 
         $account = User::find($id);
 
-        if($account !== null) {
+        if ($account !== null) {
             $selectedRoles = $account->roles->pluck('id')->toArray();
         } else {
             $selectedRoles = '';
@@ -229,7 +234,7 @@ class AdminController extends Controller
     {
         $user = User::find($id);
 
-        if($user === null) {
+        if ($user === null) {
             return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om te verwijderen');
         }
         if ($id === (string)Auth::id()) {
@@ -410,7 +415,7 @@ class AdminController extends Controller
     {
         $role = Role::find($id);
 
-        if($role === null) {
+        if ($role === null) {
             return redirect()->route('admin.role-management')->with('error', 'Geen rol gevonden om te verwijderen');
         }
 
@@ -450,4 +455,100 @@ class AdminController extends Controller
         return redirect()->route('admin.role-management', ['user' => $user, 'roles' => $roles])->with('success', 'Rol succesvol aangemaakt');
 
     }
+
+    public function postManagement()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = request('search');
+        $search_user = request('user');
+
+        if ($search !== '' && $search_user !== '') {
+            if ($search_user !== null) {
+                $posts = Post::where('content', 'like', '%' . $search . '%')
+                    ->where('user_id', $search_user)
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(25);
+
+            } else {
+                $posts = Post::where('content', 'like', '%' . $search . '%')
+                    ->orderBy('created_at', 'desc')->paginate(25);
+
+            }
+        } else {
+            $posts = Post::orderBy('created_at', 'desc')->paginate(25);
+        }
+
+        return view('admin.forum_management.posts', ['search_user' => $search_user, 'user' => $user, 'search' => $search, 'roles' => $roles, 'posts' => $posts]);
+    }
+
+    public function commentManagement()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = request('search');
+        $search_user = request('user');
+
+        if ($search !== '' && $search_user !== '') {
+            if ($search_user !== null) {
+                $comments = Comment::where('content', 'like', '%' . $search . '%')
+                    ->where('user_id', $search_user)
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(25);
+            } else {
+                $comments = Comment::where('content', 'like', '%' . $search . '%')
+                    ->orderBy('created_at', 'desc')->paginate(25);
+            }
+        } else {
+            $comments = Comment::orderBy('created_at', 'desc')->paginate(25);
+        }
+
+        return view('admin.forum_management.comments', ['search_user' => $search_user, 'user' => $user, 'search' => $search, 'roles' => $roles, 'comments' => $comments]);
+    }
+
+    public function viewPost($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $post = Post::with(['comments' => function ($query) {
+            $query->withCount('likes') // Count the number of likes for each comment
+            ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
+            ->with(['comments' => function ($query) {
+                $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
+            }]);
+        }])->findOrFail($id);
+
+        return view('admin.forum_management.post', ['user' => $user, 'roles' => $roles, 'post' => $post]);
+    }
+
+    public function deletePost($id)
+    {
+        $post = Post::findOrFail($id);
+
+        foreach ($post->comments as $comment) {
+            $comment->delete();
+        }
+
+        foreach ($post->likes as $like) {
+            $like->delete();
+        }
+
+        $post->delete();
+
+        return redirect()->route('admin.forum-management', ['#posts']);
+    }
+
+    public function deleteComment($id, $postId)
+    {
+        $comment = Comment::findOrFail($id);
+
+        $comment->delete();
+
+        return redirect()->route('admin.forum-management.post', [$postId, '#comments']);
+
+    }
+
 }

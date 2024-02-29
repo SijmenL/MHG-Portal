@@ -88,6 +88,10 @@ class DolfijnenController extends Controller
             }]);
         }])->findOrFail($id);
 
+        if ($post->location !== 0) {
+            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+        }
+
         return view('speltakken.dolfijnen.post', ['user' => $user, 'post' => $post]);
     }
 
@@ -180,6 +184,10 @@ class DolfijnenController extends Controller
         $user = Auth::user();
 
         $post = Post::findOrFail($id);
+
+        if ($post->location !== 0) {
+            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+        }
 
         if ($post->user_id === Auth::id()) {
             return view('speltakken.dolfijnen.post_edit', ['user' => $user, 'post' => $post]);

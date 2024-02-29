@@ -1,4 +1,4 @@
-@extends('layouts.zeeverkenners')
+@extends('layouts.leiding')
 
 @include('partials.editor')
 
@@ -8,10 +8,9 @@
 @endphp
 
 @section('content')
-    <div class="header" style="background-image: url({{ asset('files/zeeverkenners/Image-1-scaled.jpeg') }})">
+    <div class="header" style="background-image: url({{ asset('files/leiding/hendrika.jpeg') }})">
         <div>
-            <p class="header-title">Zeeverkenners</p>
-            <p class="header-text">Welkom op de digitale omgeving van de Zeeverkenners! </p>
+            <p class="header-title">Leiding & Organisatie</p>
         </div>
     </div>
     <div class="container col-md-11">
@@ -25,36 +24,31 @@
         <div class="d-flex flex-row-responsive justify-content-center align-items-center gap-5">
             <div class="">
                 <h1 class="">Opties</h1>
-                <p>Voor nu zijn er een aantal opties in het portaal beschikbaar, je kunt op dit moment bijvoorbeeld de
-                    leiding
-                    bekijken. In de toekomst zal hier meer mogelijk zijn, zoals dingen
-                    delen met je groep, je aan- of af melden voor groepdraaien & activiteiten en bijvoorbeeld de agenda
-                    bekijken. Hou de omgeving dus goed in de gaten!</p>
+                <p>Voor de leiding & organisatie zijn er nu een aantal opties beschikbaar, zo kun je basis gegevens zoals telefoonnummer van elkaar opvragen en kun je posts maken op het prikbord.</p>
                 <div class="bg-light rounded-2 p-3">
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
 
-                        @if(auth()->user() && (auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
-                            <a class="btn btn-info quick-action" href="{{ route('zeeverkenners.groep') }}">
-                                <span class="material-symbols-rounded">groups_2</span>
-                                <p>Groep</p>
-                            </a>
-                        @endif
-                        <a class="btn btn-info quick-action" href="{{ route('zeeverkenners.leiding') }}">
+                        <a class="btn btn-info quick-action" href="{{ route('leiding.leiding') }}">
                             <span class="material-symbols-rounded">supervisor_account</span>
-                            <p>Leiding</p>
+                            <p>Leiding & Organisatie</p>
+                        </a>
+
+                        <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EqidloTtwghPjAJeAib9T6oBucznxbtgtT7J_0hIQY8Sjw?e=JSdTsl">
+                            <span class="material-symbols-rounded">description</span>
+                            <p>Notules Groepsraad</p>
                         </a>
                     </div>
                 </div>
             </div>
             <div class="">
-                <img class="w-100" alt="groepsfoto" src="{{ asset('files/zeeverkenners/zeeverkenners.jpg') }}">
+                <img class="w-100" alt="groepsfoto" src="{{ asset('files/leiding/leiding.jpg') }}">
             </div>
         </div>
 
         <div class="mt-5" id="posts">
             <h1>Prikbord</h1>
-            <p>Deel iets met de Zeeverkenners, hun ouders en de zeeverkennersleiding!</p>
+            <p>Deel iets met de leiding, organisatie en vrijwilligers!!</p>
 
             <div class="bg-light rounded-2 p-3">
                 <div class="container">
@@ -69,7 +63,7 @@
                                     </span>
                     @enderror
 
-                    <form method="POST" action="{{ route('zeeverkenners.message-post') }}">
+                    <form method="POST" action="{{ route('leiding.message-post') }}">
                         @csrf
                         <input id="content" name="content" type="text" class="d-none">
 
@@ -83,7 +77,7 @@
                     @foreach($posts as $post)
                         <div id="{{$post->id}}" class="mt-5 rounded bg-white">
                             <div
-                                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Zeeverkenners Leiding') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id === Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
+                                class="@if($post->user->id === Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
                                 @if(isset($post->user))
                                     <div
                                         class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">
@@ -113,7 +107,7 @@
 
                                 <div class="d-flex flex-column w-100">
                                     <a class="text-decoration-none" style="color: unset"
-                                       href="{{ route('zeeverkenners.post', $post->id) }}">
+                                       href="{{ route('leiding.post', $post->id) }}">
                                         <div style="overflow: auto"
                                              class="w-100 forum-content bg-white p-3 rounded">{!! $post->content !!}</div>
                                     </a>
@@ -124,7 +118,7 @@
                                                data-post-id="{{ $post->id }}"
                                                data-post-type="0">{{ $post->likes->count() }} <span
                                                     class="material-symbols-rounded">favorite</span></a>
-                                            <a href="{{ route('zeeverkenners.post', $post->id) }}#comments"
+                                            <a href="{{ route('leiding.post', $post->id) }}#comments"
                                                class="btn d-flex align-items-center comment">
                                                 {{ $post->comments->count() }}
                                                 <span class="material-symbols-rounded">chat</span>
@@ -134,7 +128,7 @@
 
                                         <div class="d-flex flex-row">
                                             @if($post->user->id === Auth::id())
-                                                <a href="{{ route('zeeverkenners.post.edit', $post->id) }}"
+                                                <a href="{{ route('leiding.post.edit', $post->id) }}"
                                                    class="btn d-flex align-items-center edit"><span
                                                         class="material-symbols-rounded">edit</span></a>
                                             @endif
@@ -156,5 +150,6 @@
                 </div>
             @endif
         </div>
+
     </div>
 @endsection

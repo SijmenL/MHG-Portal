@@ -13,6 +13,15 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            let html = document.querySelector('html');
+            html.classList.add('no-scroll')
+
+            function enableScrolling() {
+                html.classList.remove('no-scroll')
+            }
+        </script>
     @endif
 
 

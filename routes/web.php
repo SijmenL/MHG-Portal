@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AfterloodsenController;
 use App\Http\Controllers\ForumController;
+use App\Http\Controllers\LeidingController;
 use App\Http\Controllers\LoodsenController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
@@ -109,8 +110,35 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
 
     Route::get('/administratie/rol-beheer/nieuw', [AdminController::class, 'createRole'])->name('admin.role-management.create');
     Route::post('/administratie/rol-beheer/nieuw', [AdminController::class, 'createRoleStore'])->name('admin.role-management.create.store');
+
+    Route::get('/administratie/prikbord-beheer/posts', [AdminController::class, 'postManagement'])->name('admin.forum-management.posts');
+    Route::get('/administratie/prikbord-beheer/comments', [AdminController::class, 'commentManagement'])->name('admin.forum-management.comments');
+
+    Route::get('/administratie/prikbord-beheer/post/{id}', [AdminController::class, 'viewPost'])->name('admin.forum-management.post');
+
+    Route::get('/administratie/prikbord-beheer/post/delete/{id}', [AdminController::class, 'deletePost'])->name('admin.forum-management.post.delete');
+    Route::get('/administratie/prikbord-beheer/comment/delete/{id}/{postId}', [AdminController::class, 'deleteComment'])->name('admin.forum-management.comment.delete');
 });
 
+// Leiding
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad'])->group(function () {
+    Route::get('/leiding', [LeidingController::class, 'view'])->name('leiding');
+
+
+    Route::post('/leiding', [LeidingController::class, 'postMessage'])->name('leiding.message-post');
+
+    Route::get('/leiding/post/{id}', [LeidingController::class, 'viewPost'])->name('leiding.post');
+    Route::post('/leiding/post/{id}', [LeidingController::class, 'postComment'])->name('leiding.comment-post');
+    Route::post('/leiding/post/reaction/{id}/{commentId}', [LeidingController::class, 'postReaction'])->name('leiding.reaction-post');
+
+    Route::get('/leiding/post/edit/{id}', [LeidingController::class, 'editPost'])->name('leiding.post.edit');
+    Route::post('/leiding/post/edit/{id}', [LeidingController::class, 'storePost'])->name('leiding.post.store');
+
+    Route::get('/leiding/post/delete/{id}', [LeidingController::class, 'deletePost'])->name('leiding.post.delete');
+    Route::get('/leiding/comment/delete/{id}/{postId}', [LeidingController::class, 'deleteComment'])->name('leiding.comment.delete');
+
+    Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
+});
 
 // Dolfijnen
 Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
@@ -143,6 +171,19 @@ Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur'])->group(
 // Zeeverkenners
 Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenner Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/zeeverkenners', [ZeeverkennerController::class, 'view'])->name('zeeverkenners');
+
+    Route::post('/zeeverkenners', [ZeeverkennerController::class, 'postMessage'])->name('zeeverkenners.message-post');
+
+    Route::get('/zeeverkenners/post/{id}', [ZeeverkennerController::class, 'viewPost'])->name('zeeverkenners.post');
+    Route::post('/zeeverkenners/post/{id}', [ZeeverkennerController::class, 'postComment'])->name('zeeverkenners.comment-post');
+    Route::post('/zeeverkenners/post/reaction/{id}/{commentId}', [ZeeverkennerController::class, 'postReaction'])->name('zeeverkenners.reaction-post');
+
+    Route::get('/zeeverkenners/post/edit/{id}', [ZeeverkennerController::class, 'editPost'])->name('zeeverkenners.post.edit');
+    Route::post('/zeeverkenners/post/edit/{id}', [ZeeverkennerController::class, 'storePost'])->name('zeeverkenners.post.store');
+
+    Route::get('/zeeverkenners/post/delete/{id}', [ZeeverkennerController::class, 'deletePost'])->name('zeeverkenners.post.delete');
+    Route::get('/zeeverkenners/comment/delete/{id}/{postId}', [ZeeverkennerController::class, 'deleteComment'])->name('zeeverkenners.comment.delete');
+
     Route::get('/zeeverkenners/leiding', [ZeeverkennerController::class, 'leiding'])->name('zeeverkenners.leiding');
 });
 
@@ -158,6 +199,20 @@ Route::middleware(['checkRole:Administratie,Zeeverkenner Leiding,Bestuur'])->gro
 // Loodsen
 Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
     Route::get('/loodsen', [LoodsenController::class, 'view'])->name('loodsen');
+
+    Route::post('/loodsen', [LoodsenController::class, 'postMessage'])->name('loodsen.message-post');
+
+    Route::get('/loodsen/post/{id}', [LoodsenController::class, 'viewPost'])->name('loodsen.post');
+    Route::post('/loodsen/post/{id}', [LoodsenController::class, 'postComment'])->name('loodsen.comment-post');
+    Route::post('/loodsen/post/reaction/{id}/{commentId}', [LoodsenController::class, 'postReaction'])->name('loodsen.reaction-post');
+
+    Route::get('/loodsen/post/edit/{id}', [LoodsenController::class, 'editPost'])->name('loodsen.post.edit');
+    Route::post('/loodsen/post/edit/{id}', [LoodsenController::class, 'storePost'])->name('loodsen.post.store');
+
+    Route::get('/loodsen/post/delete/{id}', [LoodsenController::class, 'deletePost'])->name('loodsen.post.delete');
+    Route::get('/loodsen/comment/delete/{id}/{postId}', [LoodsenController::class, 'deleteComment'])->name('loodsen.comment.delete');
+
+
     Route::get('/loodsen/leiding', [LoodsenController::class, 'leiding'])->name('loodsen.leiding');
 
     Route::get('/loodsen/flunkyball', [LoodsenController::class, 'flunkyball'])->name('loodsen.flunkyball');
@@ -190,6 +245,21 @@ Route::middleware(['checkRole:Administratie,Loodsen Stamoudste'])->group(functio
 // After loodsen
 Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/afterloodsen', [AfterloodsenController::class, 'view'])->name('afterloodsen');
+
+
+    Route::post('/afterloodsen', [AfterloodsenController::class, 'postMessage'])->name('afterloodsen.message-post');
+
+    Route::get('/afterloodsen/post/{id}', [AfterloodsenController::class, 'viewPost'])->name('afterloodsen.post');
+    Route::post('/afterloodsen/post/{id}', [AfterloodsenController::class, 'postComment'])->name('afterloodsen.comment-post');
+    Route::post('/afterloodsen/post/reaction/{id}/{commentId}', [AfterloodsenController::class, 'postReaction'])->name('afterloodsen.reaction-post');
+
+    Route::get('/afterloodsen/post/edit/{id}', [AfterloodsenController::class, 'editPost'])->name('afterloodsen.post.edit');
+    Route::post('/afterloodsen/post/edit/{id}', [AfterloodsenController::class, 'storePost'])->name('afterloodsen.post.store');
+
+    Route::get('/afterloodsen/post/delete/{id}', [AfterloodsenController::class, 'deletePost'])->name('afterloodsen.post.delete');
+    Route::get('/afterloodsen/comment/delete/{id}/{postId}', [AfterloodsenController::class, 'deleteComment'])->name('afterloodsen.comment.delete');
+
+
     Route::get('/afterloodsen/organisatie', [AfterloodsenController::class, 'leiding'])->name('afterloodsen.leiding');
 });
 

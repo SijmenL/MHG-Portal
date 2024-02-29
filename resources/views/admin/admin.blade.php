@@ -28,6 +28,10 @@
                     <span class="material-symbols-rounded">account_circle</span>
                     <p>Rollen beheer</p>
                 </a>
+                <a class="btn btn-admin quick-action" href="{{ route('admin.forum-management.posts') }}">
+                    <span class="material-symbols-rounded">forum</span>
+                    <p>Prikbord beheer</p>
+                </a>
             </div>
         </div>
 

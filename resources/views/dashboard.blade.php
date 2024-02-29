@@ -41,21 +41,24 @@
                 @endif
 
 
-                {{--                <a class="btn btn-info quick-action" href="">--}}
-                {{--                    <span class="material-symbols-rounded">school</span>--}}
-                {{--                    <p>Lessen</p>--}}
-                {{--                </a>--}}
-
-
-                {{--                <a class="btn btn-info quick-action" href="{{ route('insignes') }}">--}}
-                {{--                    <span class="material-symbols-rounded">award_star</span>--}}
-                {{--                    <p>Insignes</p>--}}
-                {{--                </a>--}}
-
-                {{--                <a class="btn btn-info quick-action" href="">--}}
-                {{--                    <span class="material-symbols-rounded">code</span>--}}
-                {{--                    <p>Website beheer</p>--}}
-                {{--                </a>--}}
+                @if(auth()->user() &&
+                    (auth()->user()->roles->contains('role', 'Dolfijnen Leiding') ||
+                    auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') ||
+                    auth()->user()->roles->contains('role', 'Loodsen Stamoudste') ||
+                    auth()->user()->roles->contains('role', 'Afterloodsen Organisator') ||
+                    auth()->user()->roles->contains('role', 'Vrijwilliger') ||
+                    auth()->user()->roles->contains('role', 'Administratie') ||
+                    auth()->user()->roles->contains('role', 'Bestuur') ||
+                    auth()->user()->roles->contains('role', 'Ouderraad') ||
+                    auth()->user()->children()->whereHas('roles', function ($query) {
+                        $query->where('role', 'Dolfijn');
+                    })->exists())
+                    )
+                    <a class="btn btn-info quick-action" href="{{ route('leiding') }}">
+                        <span class="material-symbols-rounded">supervisor_account</span>
+                        <p>Leiding & Organisatie</p>
+                    </a>
+                @endif
 
 
                 @if(auth()->user() &&
