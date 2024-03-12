@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ForumController extends Controller
 {
-    public function upload(Request $request)
+    public function uploadImage(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp',
@@ -40,6 +40,38 @@ class ForumController extends Controller
 
         // If no image is uploaded or validation fails, return an error response
         return response()->json(['error' => 'Invalid image uploaded'], 400);
+    }
+
+    public function uploadPdf(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'pdf' => 'required|mimes:pdf',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 400);
+        }
+
+        if ($request->hasFile('pdf')) {
+            $image = $request->file('pdf');
+
+            // Define storage path where you want to store the uploaded images
+            $storagePath = 'files/forum-documents/';
+
+            $newImageName = time() . '-' . $image->getClientOriginalName();
+
+            // Store the uploaded image in the storage path
+            $image->move(public_path($storagePath), $newImageName);
+
+            // Generate the full URL of the uploaded image
+            $pdfUrl = asset($storagePath . $newImageName);
+
+            // Return the URL of the uploaded image
+            return response()->json(['pdfUrl' => $pdfUrl]);
+        }
+
+        // If no image is uploaded or validation fails, return an error response
+        return response()->json(['error' => 'Invalid pdf uploaded'], 400);
     }
 
     public function toggleLike($postId, $postType)

@@ -473,11 +473,11 @@ class AdminController extends Controller
 
             } else {
                 $posts = Post::where('content', 'like', '%' . $search . '%')
-                    ->orderBy('created_at', 'desc')->paginate(25);
+                    ->orderBy('created_at', 'desc')->paginate(5);
 
             }
         } else {
-            $posts = Post::orderBy('created_at', 'desc')->paginate(25);
+            $posts = Post::orderBy('created_at', 'desc')->paginate(5);
         }
 
         return view('admin.forum_management.posts', ['search_user' => $search_user, 'user' => $user, 'search' => $search, 'roles' => $roles, 'posts' => $posts]);

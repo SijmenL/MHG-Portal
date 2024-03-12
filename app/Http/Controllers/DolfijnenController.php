@@ -21,7 +21,7 @@ class DolfijnenController extends Controller
 
         $posts = Post::where('location', 0)
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
-            ->paginate(25);
+            ->paginate(5);
 
 
         return view('speltakken.dolfijnen.home', ['user' => $user, 'posts' => $posts]);

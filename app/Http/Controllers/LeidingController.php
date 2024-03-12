@@ -20,7 +20,7 @@ class LeidingController extends Controller
 
         $posts = Post::where('location', 4)
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
-            ->paginate(25);
+            ->paginate(5);
 
 
         return view('leiding.home', ['user' => $user, 'posts' => $posts, 'roles' => $roles]);

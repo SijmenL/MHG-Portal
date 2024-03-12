@@ -19,7 +19,7 @@ class AfterloodsenController extends Controller
         $user = Auth::user();
         $posts = Post::where('location', 3)
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
-            ->paginate(25);
+            ->paginate(5);
 
 
         return view('speltakken.afterloodsen.home', ['user' => $user, 'posts' => $posts]);
