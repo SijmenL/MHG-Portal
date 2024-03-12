@@ -273,7 +273,8 @@ Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur'])->gro
 });
 
 // Forum
-Route::post('/upload-image', [ForumController::class, 'upload'])->name('forum.image');
+Route::post('/upload-image', [ForumController::class, 'uploadImage'])->name('forum.image');
+Route::post('/upload-pdf', [ForumController::class, 'uploadPdf'])->name('forum.pdf');
 Route::post('/posts/{postId}/{likeType}/toggle-like', [ForumController::class, 'toggleLike'])->name('forum.toggle-like');
 Route::post('/comments/{id}', [ForumController::class, 'updateComment'])->name('forum.comments.update');
 

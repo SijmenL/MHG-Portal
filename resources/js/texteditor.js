@@ -13,6 +13,7 @@ let message = document.getElementById('content');
 let characters = document.getElementById('characters');
 let body = document.getElementById('app')
 let imageUpload = document.getElementById('insertImage');
+let pdfUpload = document.getElementById('insertPdf');
 let videoUpload = document.getElementById('insertYouTube');
 let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 let addComments = document.querySelectorAll('.add-comment');
@@ -127,6 +128,12 @@ const initializer = () => {
         if (imageUpload) {
             imageUpload.addEventListener('click', () => {
                 addImage()
+            })
+        }
+
+        if (pdfUpload) {
+            pdfUpload.addEventListener('click', () => {
+                addPdf()
             })
         }
 
@@ -291,6 +298,8 @@ function addImage() {
         // Add CSRF token to FormData
         formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
+        imageUpload.innerHTML = '<span class="save-button material-symbols-rounded rotating">progress_activity</span>';
+
         // Send AJAX request to upload image
         let xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload-image', true);
@@ -318,6 +327,7 @@ function addImage() {
 
 function invalidImage() {
     imageUpload.classList.add('invalid')
+    imageUpload.innerHTML = '<span class="material-symbols-rounded">image</span>';
 
     setTimeout(function () {
         imageUpload.classList.remove('invalid');
@@ -327,12 +337,77 @@ function invalidImage() {
 
 function insertImageIntoEditor(imageUrl) {
     console.log(imageUrl)
+    imageUpload.innerHTML = '<span class="material-symbols-rounded">image</span>';
     let image = document.createElement('img')
     let url = JSON.parse(imageUrl);
     image.src = url.imageUrl
     image.alt = 'Afbeelding'
     image.classList.add('forum-image')
     textInput.appendChild(image)
+    editText()
+}
+
+function addPdf() {
+    // Open file upload dialog
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'pdf';
+    input.onchange = function (event) {
+        let file = event.target.files[0];
+
+        // Create FormData object to upload file
+        let formData = new FormData();
+        formData.append('pdf', file);
+
+        // Add CSRF token to FormData
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+        pdfUpload.innerHTML = '<span class="save-button material-symbols-rounded rotating">progress_activity</span>';
+
+        // Send AJAX request to upload image
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload-pdf', true);
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                // Log the response from the server
+                console.log(xhr.responseText);
+                // Image uploaded successfully
+                let pdfUrl = xhr.responseText;
+                insertPdfIntoEditor(pdfUrl);
+            } else {
+                // Handle error
+                invalidPdf();
+                console.error('Pdf upload failed');
+            }
+        };
+        xhr.onerror = () => {
+            // Handle network errors
+            console.error('Network error during image upload');
+        };
+        xhr.send(formData);
+    };
+    input.click();
+}
+
+function invalidPdf() {
+    pdfUpload.classList.add('invalid')
+    pdfUpload.innerHTML = '<span class="material-symbols-rounded">picture_as_pdf</span>';
+
+    setTimeout(function () {
+        pdfUpload.classList.remove('invalid');
+    }, 500);
+}
+
+
+function insertPdfIntoEditor(pdfUrl) {
+    console.log(pdfUrl)
+    pdfUpload.innerHTML = '<span class="material-symbols-rounded">picture_as_pdf</span>';
+    let pdf = document.createElement('a')
+    let url = JSON.parse(pdfUrl);
+    pdf.href = url.pdfUrl
+    pdf.innerText = 'Pdf'
+    pdf.classList.add('forum-image')
+    textInput.appendChild(pdf)
     editText()
 }
 

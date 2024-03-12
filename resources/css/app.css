@@ -502,6 +502,7 @@ pre {
 
 .forum-image {
     width: 100%;
+    min-height: 400px;
 }
 
 .forum-person {

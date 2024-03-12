@@ -20,7 +20,7 @@ class ZeeverkennerController extends Controller
 
         $posts = Post::where('location', 1)
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
-            ->paginate(25);
+            ->paginate(5);
 
 
         return view('speltakken.zeeverkenners.home', ['user' => $user, 'posts' => $posts]);

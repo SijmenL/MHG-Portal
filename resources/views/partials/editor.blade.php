@@ -72,6 +72,10 @@
                 class="option-button d-flex justify-content-center insertImage">
             <span class="material-symbols-rounded">image</span>
         </button>
+        <button type="button" title="pdf bestand" id="insertPdf"
+                class="option-button d-flex justify-content-center insertPdf">
+            <span class="material-symbols-rounded">picture_as_pdf</span>
+        </button>
         <button type="button" title="YouTube video" id="insertYouTube"
                 class="option-button d-flex justify-content-center insertYouTube">
             <span class="material-symbols-rounded">youtube_activity</span>
