@@ -351,7 +351,7 @@ function addPdf() {
     // Open file upload dialog
     let input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'pdf';
+    input.accept = 'application/pdf';
     input.onchange = function (event) {
         let file = event.target.files[0];
 
@@ -405,8 +405,13 @@ function insertPdfIntoEditor(pdfUrl) {
     let pdf = document.createElement('a')
     let url = JSON.parse(pdfUrl);
     pdf.href = url.pdfUrl
-    pdf.innerText = 'Pdf'
-    pdf.classList.add('forum-image')
+
+    let filenameWithNumber = url.pdfUrl.substring(url.pdfUrl.lastIndexOf('/') + 1);
+    let filename = filenameWithNumber.replace(/^\d+-/, '');
+    filename = filename.replace(/-/g, ' ');
+
+    pdf.innerText = `${filename}`
+    pdf.classList.add('forum-pdf')
     textInput.appendChild(pdf)
     editText()
 }

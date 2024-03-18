@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,10 +26,17 @@ class ParentController extends Controller
         $account = User::findOrFail($id);
 
         if (!$account) {
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Kind bestaat niet');
+
             return redirect()->route('dashboard')->with('error', 'Kind bestaat niet.');
         }
 
         if (!$user->children->contains($account)) {
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Geen kinderen');
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 
@@ -55,10 +63,16 @@ class ParentController extends Controller
         $user = User::findOrFail($id);
 
         if (!$user) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Kind bestaat niet');
+
             return redirect()->route('dashboard')->with('error', 'Kind bestaat niet.');
         }
 
         if (!Auth::user()->children->contains($user)) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Kind bestaat niet');
+
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 
@@ -84,6 +98,9 @@ class ParentController extends Controller
         $user->avg = $request->input('avg');
 
         $user->save();
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Edit child', 'Ouder/kind', $id, '');
 
         return redirect()->route('children.edit', ['id' => $id])->with('success', 'Kind succesvol bijgewerkt');
     }

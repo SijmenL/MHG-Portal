@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
@@ -75,6 +76,10 @@ class SettingsController extends Controller
 
         $user->save();
 
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Settings', $user->id, '');
+
+
         return redirect()->route('settings.account.edit')->with('success', 'Account succesvol bijgewerkt');
     }
 
@@ -104,6 +109,10 @@ class SettingsController extends Controller
         User::whereId(auth()->user()->id)->update([
             'password' => Hash::make($request->new_password)
         ]);
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Settings', Auth::id(), '');
+
 
         return back()->with("success", "Wachtwoord succesvol opgeslagen!");
     }
@@ -139,12 +148,16 @@ class SettingsController extends Controller
                 } elseif ($user->id === $parent->id) {
                     $fail('Je kan niet gekoppeld zijn aan jezelf.');
                 } elseif ($user->parents->contains($parent->id)) {
-                    $fail('Er is al een ouderkoppeling met dit account.');
+                    $fail('Er is al een ouder koppeling met dit account.');
                 }
             }],
         ]);
 
         if ($validator->fails()) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Link parent', 'Settings', $parent->id, 'Ouder niet gelinkt');
+
+
             return redirect()->route('settings.link-parent')->withErrors($validator)->withInput();
         }
 
@@ -165,6 +178,10 @@ class SettingsController extends Controller
         $parent = User::findOrFail($id);
 
         $user->parents()->attach($parent);
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $id, 'Bestaand ouder account gekoppeld');
+
 
         return redirect()->route('settings.parent')->with("success", "Ouderkoppeling succesvol!");
     }
@@ -233,6 +250,9 @@ class SettingsController extends Controller
 
             $user->parents()->attach($parent);
 
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->id, 'Nieuw ouder account aangemaakt');
+
             return redirect()->route('settings.parent')->with("success", "Ouder koppeling succesvol!");
 
         }
@@ -272,6 +292,9 @@ class SettingsController extends Controller
 
         $user->parents()->detach($parent->id);
 
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->id, '');
+
         return redirect()->route('settings.remove-parent-link')->with("success", "Ouder ontkoppeling succesvol!");
     }
 
@@ -308,6 +331,9 @@ class SettingsController extends Controller
         $child = User::findOrFail($id);
 
         $user->children()->detach($child->id);
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->id, '');
 
         return redirect()->route('settings.remove-child-link')->with("success", "Kind succesvol ontkoppeld!");
     }

@@ -34,6 +34,11 @@
                     <div class="quick-action-bar">
 
                         @if(auth()->user() && (auth()->user()->roles->contains('role', 'Afterloodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
+                            <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/Eq4prLpiWPVGgaWKDIlOijkBdL25VBPb-Qt2nVM57WmffQ?e=tln7u0">
+                                <span class="material-symbols-rounded">folder_open</span>
+                                <p>Bestanden</p>
+                            </a>
+
                             <a class="btn btn-info quick-action" href="{{ route('afterloodsen.groep') }}">
                                 <span class="material-symbols-rounded">groups_2</span>
                                 <p>Leden</p>

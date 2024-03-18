@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Log;
 use App\Models\Post;
 use App\Models\User;
 use DOMDocument;
@@ -32,47 +33,25 @@ class LeidingController extends Controller
 
     public function postMessage(Request $request)
     {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-
         $request->validate([
             'content' => 'string|max:65535',
         ]);
 
-        $content = $request->input('content');
+        if (ForumController::validatePostData($request->input('content'))) {
+            $post = Post::create([
+                'content' => $request->input('content'),
+                'user_id' => Auth::id(),
+                'location' => 4,
+            ]);
 
-        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
-            throw ValidationException::withMessages(['content' => 'Je post kan niet geplaatst worden vanwege ongeldige inhoud.']);
-        }
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Create post', 'Leiding', $post->id, '');
 
-
-        $dom = new DOMDocument();
-        $dom->loadHTML($content);
-
-
-        $elements = $dom->getElementsByTagName('*');
-        $containsClasses = false;
-
-        foreach ($elements as $element) {
-            $classes = $element->getAttribute('class');
-            if (!empty($classes) && strpos($classes, 'forum-image') === false) {
-                $containsClasses = true;
-                break;
-            }
-        }
-
-        if ($containsClasses) {
+            return redirect()->route('leiding', ['#' . $post->id]);
+        } else {
             throw ValidationException::withMessages(['content' => 'Je post kan niet geplaatst worden.']);
         }
 
-        $post = Post::create([
-            'content' => $content,
-            'user_id' => Auth::id(),
-            'location' => 4,
-        ]);
-
-        return redirect()->route('leiding', ['#' . $post->id]);
     }
 
     public function viewPost($id)
@@ -88,6 +67,9 @@ class LeidingController extends Controller
         }])->findOrFail($id);
 
         if ($post->location !== 4) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View post', 'Leiding', $id, 'Gebruiker had geen toegang tot de post');
+
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
         }
 
@@ -100,39 +82,21 @@ class LeidingController extends Controller
             'content' => 'string|max:65535',
         ]);
 
-        $content = $request->input('content');
+        if (ForumController::validatePostData($request->input('content'))) {
 
-        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
-            throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden vanwege ongeldige inhoud.']);
-        }
+            $comment = Comment::create([
+                'content' => $request->input('content'),
+                'user_id' => Auth::id(),
+                'post_id' => $id,
+            ]);
 
-        $dom = new DOMDocument();
-        $dom->loadHTML($content);
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Leiding', $comment->id, '');
 
-        $elements = $dom->getElementsByTagName('*');
-        $containsClasses = false;
-
-        foreach ($elements as $element) {
-            $classes = $element->getAttribute('class');
-            if (!empty($classes) && strpos($classes, 'forum-image') === false) {
-                $containsClasses = true;
-                break;
-            }
-        }
-
-        if ($containsClasses) {
+            return redirect()->route('leiding.post', [$id, '#comments']);
+        } else {
             throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden.']);
         }
-
-        $comment = Comment::create([
-            'content' => $content,
-            'user_id' => Auth::id(),
-            'post_id' => $id,
-        ]);
-
-
-        return redirect()->route('leiding.post', [$id, '#comments']);
-
     }
 
     public function postReaction(Request $request, $id, $commentId)
@@ -141,41 +105,21 @@ class LeidingController extends Controller
             'content' => 'required|max:65535',
         ]);
 
-        $content = $request->input('content');
+        if (ForumController::validatePostData($request->input('content'))) {
+            $comment = Comment::create([
+                'content' => $request->input('content'),
+                'user_id' => Auth::id(),
+                'post_id' => $id,
+                'comment_id' => $commentId,
+            ]);
 
-        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
-            throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden vanwege ongeldige inhoud.']);
-        }
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Leiding', $comment->id, '');
 
-
-        $dom = new DOMDocument();
-        $dom->loadHTML($content);
-
-
-        $elements = $dom->getElementsByTagName('*');
-        $containsClasses = false;
-
-        foreach ($elements as $element) {
-            $classes = $element->getAttribute('class');
-            if (!empty($classes) && strpos($classes, 'forum-image') === false) {
-                $containsClasses = true;
-                break;
-            }
-        }
-
-        if ($containsClasses) {
+            return redirect()->route('leiding.post', [$id, '#comment-' . $comment->id]);
+        } else {
             throw ValidationException::withMessages(['content' => 'Je reactie kan niet geplaatst worden.']);
         }
-
-        $comment = Comment::create([
-            'content' => $request->input('content'),
-            'user_id' => Auth::id(),
-            'post_id' => $id,
-            'comment_id' => $commentId,
-        ]);
-
-
-        return redirect()->route('leiding.post', [$id, '#comment-' . $comment->id]);
     }
 
     public function editPost($id)
@@ -185,6 +129,8 @@ class LeidingController extends Controller
         $post = Post::findOrFail($id);
 
         if ($post->location !== 4) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Leiding', $id, 'Gebruiker had geen toegang tot de post');
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
         }
 
@@ -197,8 +143,6 @@ class LeidingController extends Controller
 
     public function storePost(Request $request, $id)
     {
-        $user = Auth::user();
-
         $post = Post::findOrFail($id);
 
         if ($post->user_id === Auth::id()) {
@@ -206,36 +150,20 @@ class LeidingController extends Controller
                 'content' => 'string|max:65535',
             ]);
 
-            $content = $request->input('content');
-
-            if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
-                throw ValidationException::withMessages(['content' => 'Je post kan niet bewerkt worden vanwege ongeldige inhoud.']);
-            }
-
-
-            $dom = new DOMDocument();
-            $dom->loadHTML($content);
-
-
-            $elements = $dom->getElementsByTagName('*');
-            $containsClasses = false;
-
-            foreach ($elements as $element) {
-                $classes = $element->getAttribute('class');
-                if (!empty($classes) && strpos($classes, 'forum-image') === false) {
-                    $containsClasses = true;
-                    break;
-                }
-            }
-
-            if ($containsClasses) {
-                throw ValidationException::withMessages(['content' => 'Je post kan niet bewerkt worden.']);
-            } else {
+            if (ForumController::validatePostData($request->input('content'))) {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 2, 'Edit post', 'Leiding', $id, '');
                 $post->update($validatedData);
+            } else {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 0, 'Edit post', 'Leiding', $id, 'Post kon niet bewerkt worden');
+                throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
             }
 
             return redirect()->route('leiding.post', $id);
         } else {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Leiding', $id, 'Gebruiker had geen toegang tot de post');
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
@@ -244,7 +172,7 @@ class LeidingController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie')) {
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -255,10 +183,14 @@ class LeidingController extends Controller
             }
 
             $post->delete();
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Delete post', 'Leiding', $id, '');
 
             return redirect()->route('leiding', ['#posts']);
 
         } else {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Leiding', $id, 'Gebruiker mag post niet verwijderen.');
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
@@ -267,12 +199,16 @@ class LeidingController extends Controller
     {
         $comment = Comment::findOrFail($id);
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie')) {
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')) {
 
             $comment->delete();
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Leiding', $id, '');
 
             return redirect()->route('leiding.post', [$postId, '#comments']);
         } else {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Leiding', $id, 'Gebruiker mag reactie niet verwijderen.');
             return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }

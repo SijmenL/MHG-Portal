@@ -502,7 +502,13 @@ pre {
 
 .forum-image {
     width: 100%;
-    min-height: 400px;
+}
+
+.forum-pdf {
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 15px;
+    background-color: var(--accent-color);
 }
 
 .forum-person {

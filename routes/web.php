@@ -32,6 +32,7 @@ Auth::routes(['register' => false, 'password.request' => false,]);
 Route::get('/', [HomeController::class, 'index'])->name('dashboard');
 Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
+
 Route::get('/changelog', [HomeController::class, 'changelog'])->name('changelog');
 Route::get('/credits', [HomeController::class, 'credits'])->name('credits');
 
@@ -118,6 +119,8 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
 
     Route::get('/administratie/prikbord-beheer/post/delete/{id}', [AdminController::class, 'deletePost'])->name('admin.forum-management.post.delete');
     Route::get('/administratie/prikbord-beheer/comment/delete/{id}/{postId}', [AdminController::class, 'deleteComment'])->name('admin.forum-management.comment.delete');
+
+    Route::get('/administratie/logs', [AdminController::class, 'logs'])->name('admin.logs');
 });
 
 // Leiding

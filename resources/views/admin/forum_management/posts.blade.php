@@ -125,7 +125,7 @@
                     </div>
                 @endforeach
                     <div class="mt-4">
-                        {{ $posts->links() }}
+                        {{ $posts->appends(request()->query())->links() }}
                     </div>
             @else
                 <div class="alert alert-warning d-flex align-items-center mt-3" role="alert">

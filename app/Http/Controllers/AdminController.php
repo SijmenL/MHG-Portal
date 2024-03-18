@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\Log;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
@@ -22,6 +23,33 @@ class AdminController extends Controller
 
 
         return view('admin.admin', ['user' => $user, 'roles' => $roles]);
+    }
+
+    // Logs
+
+    public function logs()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = request('search');
+        $search_user = request('user');
+
+        $logs = Log::where(function ($query) use ($search) {
+            $query->where('display_text', 'like', '%' . $search . '%')
+                ->orWhere('type', 'like', '%' . $search . '%')
+                ->orWhere('location', 'like', '%' . $search . '%');
+        })
+            ->where(function ($query) use ($search_user) {
+                if ($search_user) {
+                    $query->where('user_id', $search_user);
+                }
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(25);
+
+
+        return view('admin.logs.list', ['user' => $user, 'roles' => $roles, 'logs' => $logs, 'search' => $search, 'search_user' => $search_user]);
     }
 
     // Account management
@@ -110,6 +138,9 @@ class AdminController extends Controller
         $account = User::with(['roles' => function ($query) {
             $query->orderBy('role', 'asc');
         }])->find($id);
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Admin', $id, '');
 
 
         return view('admin.account_management.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
@@ -226,6 +257,10 @@ class AdminController extends Controller
         $user->save();
         $user->roles()->sync($request->input('roles'));
 
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Admin', $id, '');
+
+
         return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
     }
 
@@ -241,6 +276,10 @@ class AdminController extends Controller
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Delete account', 'Admin', $id, '');
+
             return redirect()->route('admin.account-management')->with('success', 'Gebruiker verwijderd');
         }
     }
@@ -249,7 +288,6 @@ class AdminController extends Controller
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
-
 
         $all_roles = Role::all();
 
@@ -316,6 +354,9 @@ class AdminController extends Controller
                 $user->roles()->attach($request->roles);
             }
 
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Create account', 'Admin', $user->id, '');
+
             return redirect()->route('admin.create-account', ['user' => $user, 'roles' => $roles])->with('success', 'Gebruiker succesvol aangemaakt');
 
         }
@@ -343,6 +384,10 @@ class AdminController extends Controller
         User::whereId($id)->update([
             'password' => Hash::make($request->new_password)
         ]);
+
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $id, '');
 
         return redirect()->route('admin.account-management.edit', $id)->with('success', 'Wachtwoord succesvol bijgewerkt!');
     }
@@ -408,6 +453,10 @@ class AdminController extends Controller
 
         $role->save();
 
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Edit role', 'Admin', $id, '');
+
         return redirect()->route('admin.role-management')->with('success', 'Rol succesvol bijgewerkt');
     }
 
@@ -420,6 +469,11 @@ class AdminController extends Controller
         }
 
         $role->delete();
+
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Delete role', 'Admin', $id, '');
+
         return redirect()->route('admin.role-management')->with('success', 'Rol verwijderd');
 
     }
@@ -433,7 +487,6 @@ class AdminController extends Controller
         return view('admin.role_management.create_role', ['user' => $user, 'roles' => $roles]);
     }
 
-    // Make account
     public function createRoleStore(Request $request)
     {
         $user = Auth::user();
@@ -451,6 +504,9 @@ class AdminController extends Controller
         ]);
 
         $role->save();
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Create role', 'Admin', $role->id, '');
 
         return redirect()->route('admin.role-management', ['user' => $user, 'roles' => $roles])->with('success', 'Rol succesvol aangemaakt');
 
@@ -538,6 +594,10 @@ class AdminController extends Controller
 
         $post->delete();
 
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Delete post', 'Admin', $id, '');
+
         return redirect()->route('admin.forum-management', ['#posts']);
     }
 
@@ -546,6 +606,10 @@ class AdminController extends Controller
         $comment = Comment::findOrFail($id);
 
         $comment->delete();
+
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Admin', $id, '');
 
         return redirect()->route('admin.forum-management.post', [$postId, '#comments']);
 
