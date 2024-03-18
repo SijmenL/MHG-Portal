@@ -49,10 +49,7 @@
                     auth()->user()->roles->contains('role', 'Vrijwilliger') ||
                     auth()->user()->roles->contains('role', 'Administratie') ||
                     auth()->user()->roles->contains('role', 'Bestuur') ||
-                    auth()->user()->roles->contains('role', 'Ouderraad') ||
-                    auth()->user()->children()->whereHas('roles', function ($query) {
-                        $query->where('role', 'Dolfijn');
-                    })->exists())
+                    auth()->user()->roles->contains('role', 'Ouderraad'))
                     )
                     <a class="btn btn-info quick-action" href="{{ route('leiding') }}">
                         <span class="material-symbols-rounded">supervisor_account</span>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Log;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,9 @@ class CheckRole
 
 
         if (!$user) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Bekijk pagina', $request->route()->getName(), '', 'Gebruiker had geen toegang tot de pagina');
+
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 
@@ -46,6 +50,9 @@ class CheckRole
 
 
         if (!$childHasRole) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Bekijk pagina', $request->route()->getName(), '', 'Gebruiker had geen toegang tot de pagina');
+
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 

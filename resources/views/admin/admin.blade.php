@@ -32,6 +32,11 @@
                     <span class="material-symbols-rounded">forum</span>
                     <p>Prikbord beheer</p>
                 </a>
+
+                <a class="btn btn-admin quick-action" href="{{ route('admin.logs') }}">
+                    <span class="material-symbols-rounded">topic</span>
+                    <p>Logs</p>
+                </a>
             </div>
         </div>
 

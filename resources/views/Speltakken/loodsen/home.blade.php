@@ -34,6 +34,11 @@
                     <div class="quick-action-bar">
 
                         @if(auth()->user() && (auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
+                            <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EvjjPvr_QaJEgdh2VY99mVYB6cSCgrDaJo-bGsTxLJZITg?e=blEqR7">
+                                <span class="material-symbols-rounded">folder_open</span>
+                                <p>Bestanden</p>
+                            </a>
+
                             <a class="btn btn-info quick-action" href="{{ route('loodsen.groep') }}">
                                 <span class="material-symbols-rounded">groups_2</span>
                                 <p>Groep</p>
@@ -47,7 +52,7 @@
                                 <img style="filter: unset" alt="flunkyball" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">
                                 <p>Flunkyball</p>
                             </a>
-                            <a class="btn btn-info quick-action" href="{{ route('loodsen.leiding') }}">
+                            <a class="btn btn-info quick-action" href="">
                                 <img style="filter: unset" alt="loodsenbar" src="{{ asset('files/loodsen/logo-bar.webp') }}">
                                 <p>Loodsenbar</p>
                             </a>

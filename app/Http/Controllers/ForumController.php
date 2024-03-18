@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Like;
+use App\Models\Log;
+use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ForumController extends Controller
 {
@@ -17,6 +20,9 @@ class ForumController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 0, 'Upload image', '', '', 'Afbeelding uploaden mislukt');
+
             return response()->json(['error' => $validator->errors()->first()], 400);
         }
 
@@ -35,10 +41,14 @@ class ForumController extends Controller
             $imageUrl = asset($storagePath . $newPictureName);
 
             // Return the URL of the uploaded image
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Upload image', '', $imageUrl, '');
             return response()->json(['imageUrl' => $imageUrl]);
         }
 
         // If no image is uploaded or validation fails, return an error response
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 0, 'Upload image', '', '', 'Afbeelding uploaden mislukt');
         return response()->json(['error' => 'Invalid image uploaded'], 400);
     }
 
@@ -49,6 +59,9 @@ class ForumController extends Controller
         ]);
 
         if ($validator->fails()) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 0, 'Upload pdf', '', '', 'Pdf uploaden mislukt');
+
             return response()->json(['error' => $validator->errors()->first()], 400);
         }
 
@@ -67,10 +80,14 @@ class ForumController extends Controller
             $pdfUrl = asset($storagePath . $newImageName);
 
             // Return the URL of the uploaded image
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Upload pdf', '', $pdfUrl, '');
             return response()->json(['pdfUrl' => $pdfUrl]);
         }
 
         // If no image is uploaded or validation fails, return an error response
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 0, 'Upload pdf', '', '', 'Pdf uploaden mislukt');
         return response()->json(['error' => 'Invalid pdf uploaded'], 400);
     }
 
@@ -87,6 +104,9 @@ class ForumController extends Controller
 
         if ($like) {
             // If the user has already liked the post, remove the like
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Like', '', $postId, 'Like verwijderd');
+
             $like->delete();
             $isLiked = false;
         } else {
@@ -96,6 +116,10 @@ class ForumController extends Controller
                 'post_id' => $postId,
                 'location' => $postType
             ]);
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Like', '', $postId, 'Like geplaatst');
+
             $isLiked = true;
         }
 
@@ -118,19 +142,65 @@ class ForumController extends Controller
             'content' => 'required|string',
         ]);
 
-        // Find the comment by ID
-        $comment = Comment::findOrFail($id);
+        if (self::validatePostData($request->input('content'))) {
 
-        if ($comment->user_id === Auth::id()) {
-            // Update the comment content
-            $comment->content = $request->input('content');
-            $comment->save();
+            // Find the comment by ID
+            $comment = Comment::findOrFail($id);
 
-            // Return a response
-            return response()->json(['message' => 'Reactie succesvol bijgewerkt.'], 200);
+            if ($comment->user_id === Auth::id()) {
+                // Update the comment content
+                $comment->content = $request->input('content');
+                $comment->save();
+
+                // Return a response
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 2, 'Edit comment', '', $id, '');
+                return response()->json(['message' => 'Reactie succesvol bijgewerkt.'], 200);
+            } else {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 0, 'Edit comment', '', $id, 'Reactie kon niet bewerkt worden');
+                return response()->json(['message' => 'Bewerking mislukt'], 401);
+            }
         } else {
-            return response()->json(['message' => 'Bewerking mislukt'], 401);
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 0, 'Edit comment', '', $id, 'Reactie kon niet bewerkt worden');
+            throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
         }
+    }
+
+    public static function validatePostData($content)
+    {
+
+        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 0, 'Create content', '', '', 'Post of reactie mislukt, bevatte javascript.');
+
+            return false;
+        }
+
+        $dom = new DOMDocument();
+        $dom->loadHTML($content);
+
+        $elements = $dom->getElementsByTagName('*');
+        $containsClasses = false;
+
+        foreach ($elements as $element) {
+            $classes = $element->getAttribute('class');
+            if (!empty($classes) && strpos($classes, 'forum-image') === false && strpos($classes, 'forum-pdf') === false) {
+                $containsClasses = true;
+                break;
+            }
+        }
+
+        if ($containsClasses) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 0, 'Create content', '', '', 'Post of reactie mislukt, bevatte ongeldige css classes.');
+
+            return false;
+
+        }
+        return true;
     }
 
 }
