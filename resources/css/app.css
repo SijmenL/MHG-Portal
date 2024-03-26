@@ -80,6 +80,12 @@ h1, .h1 {
     width: 100%;
 }
 
+.dashboard-notification {
+    top: 0;
+    font-size: 9pt;
+    transform: translateX(-22px) translateY(1px);
+}
+
 .quick-action p {
     margin: 3px;
 }
@@ -625,6 +631,15 @@ pre {
     display: block;
 }
 
+.notification {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    flex-direction: row;
+    border-radius: 1rem;
+    gap: 15px;
+}
+
 @media screen and (min-width: 992px) {
     .mobile-only {
         display: none;
@@ -790,6 +805,11 @@ pre {
         flex-direction: column;
         justify-content: center;
         width: auto;
+    }
+
+    .dashboard-notification {
+        font-size: 13pt;
+        transform: translateX(-34px) translateY(1px);
     }
 
     .quick-action span {
@@ -962,6 +982,11 @@ pre {
         flex-direction: column;
         justify-content: center;
         width: auto;
+    }
+
+    .dashboard-notification {
+        font-size: 11pt;
+        transform: translateX(-25px) translateY(1px);
     }
 
     .popup-body {

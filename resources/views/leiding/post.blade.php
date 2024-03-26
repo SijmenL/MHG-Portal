@@ -190,7 +190,7 @@
 
                                     <form method="POST" class="comment-form" data-post-id="{{ $post->id }}"
                                           data-comment-id="{{ $comment->id }}" style="display: none"
-                                          action="{{ route('afterloodsen.reaction-post', ['id' => $post->id, 'commentId' => $comment->id]) }}">
+                                          action="{{ route('leiding.reaction-post', ['id' => $post->id, 'commentId' => $comment->id]) }}">
                                         @csrf
                                         <div class="d-flex flex-row-responsive gap-2 comment-input">
                                             <div class="text-input w-100" id="text-input" style="min-height: 75px"

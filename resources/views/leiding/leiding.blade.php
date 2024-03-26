@@ -162,8 +162,6 @@
                                     @if($leiding_individual->roles->contains('role', 'Loodsen Penningmeester'))
                                         <h3>Penningmeester</h3>
                                     @endif
-
-                                    <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
                                 </div>
                             <div class="card-footer">
                                 <a href="mailto:{{ $leiding_individual->email }}">{{ $leiding_individual->email }}</a>

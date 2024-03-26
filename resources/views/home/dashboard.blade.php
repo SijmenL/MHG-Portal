@@ -33,6 +33,17 @@
                     <p>Instellingen</p>
                 </a>
 
+                <a class="btn btn-info quick-action" href="{{ route('notifications') }}">
+                    <div style="margin-bottom: -10px; position: relative">
+                        <span class="material-symbols-rounded">notifications</span>
+                        @if($notifications >= 1)
+                        <pre style="position: absolute"
+                             class="badge badge-pill bg-danger dashboard-notification">{{ $notifications }}</pre>
+                        @endif
+                    </div>
+                    <p>Notificaties</p>
+                </a>
+
                 @if(auth()->user()->children()->count() > 0)
                     <a class="btn btn-info quick-action" href="{{ route('children') }}">
                         <span class="material-symbols-rounded">family_restroom</span>
@@ -51,7 +62,7 @@
                     auth()->user()->roles->contains('role', 'Bestuur') ||
                     auth()->user()->roles->contains('role', 'Ouderraad'))
                     )
-                    <a class="btn btn-info quick-action" href="{{ route('leiding') }}">
+                    <a class="btn btn-dark quick-action" href="{{ route('leiding') }}">
                         <span class="material-symbols-rounded">supervisor_account</span>
                         <p>Leiding & Organisatie</p>
                     </a>
@@ -105,8 +116,8 @@
                 @endif
 
                 @if(auth()->user() &&
-                    (auth()->user()->roles->contains('role', 'After Loods') ||
-                    auth()->user()->roles->contains('role', 'After Loodsen Leding') ||
+                    (auth()->user()->roles->contains('role', 'Afterloods') ||
+                    auth()->user()->roles->contains('role', 'Afterloodsen Organisator') ||
                     auth()->user()->roles->contains('role', 'Administratie') ||
                     auth()->user()->roles->contains('role', 'Bestuur') ||
                     auth()->user()->roles->contains('role', 'Ouderraad') ||
@@ -121,18 +132,18 @@
                 @endif
 
 
-                {{--                <a class="btn btn-secondary quick-action" href="">--}}
-                {{--                    <span class="material-symbols-rounded">archive</span>--}}
-                {{--                    <p>Club archief</p>--}}
-                {{--                </a>--}}
-                {{--                <a class="btn btn-secondary quick-action" href="">--}}
-                {{--                    <span class="material-symbols-rounded">news</span>--}}
-                {{--                    <p>Nieuws</p>--}}
-                {{--                </a>--}}
-                {{--                <a class="btn btn-secondary quick-action" href="">--}}
-                {{--                    <span class="material-symbols-rounded">event</span>--}}
-                {{--                    <p>Evenementen</p>--}}
-                {{--                </a>--}}
+                {{--                                <a class="btn btn-secondary quick-action" href="">--}}
+                {{--                                    <span class="material-symbols-rounded">archive</span>--}}
+                {{--                                    <p>Club archief</p>--}}
+                {{--                                </a>--}}
+                {{--                                <a class="btn btn-secondary quick-action" href="">--}}
+                {{--                                    <span class="material-symbols-rounded">news</span>--}}
+                {{--                                    <p>Nieuws</p>--}}
+                {{--                                </a>--}}
+                {{--                                <a class="btn btn-secondary quick-action" href="">--}}
+                {{--                                    <span class="material-symbols-rounded">event</span>--}}
+                {{--                                    <p>Evenementen</p>--}}
+                {{--                                </a>--}}
             </div>
         </div>
         <h1 class="mt-2"></h1>

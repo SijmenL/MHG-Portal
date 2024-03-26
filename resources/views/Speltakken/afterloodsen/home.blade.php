@@ -33,7 +33,7 @@
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
 
-                        @if(auth()->user() && (auth()->user()->roles->contains('role', 'Afterloodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
+                        @if(auth()->user() && (auth()->user()->roles->contains('role', 'Afterloodsen Organisator') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
                             <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/Eq4prLpiWPVGgaWKDIlOijkBdL25VBPb-Qt2nVM57WmffQ?e=tln7u0">
                                 <span class="material-symbols-rounded">folder_open</span>
                                 <p>Bestanden</p>

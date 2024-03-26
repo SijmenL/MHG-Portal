@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Log;
+use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
@@ -157,7 +158,6 @@ class SettingsController extends Controller
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Link parent', 'Settings', $parent->id, 'Ouder niet gelinkt');
 
-
             return redirect()->route('settings.link-parent')->withErrors($validator)->withInput();
         }
 
@@ -182,6 +182,8 @@ class SettingsController extends Controller
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $id, 'Bestaand ouder account gekoppeld');
 
+        $notification = new Notification();
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '');
 
         return redirect()->route('settings.parent')->with("success", "Ouderkoppeling succesvol!");
     }
@@ -253,6 +255,9 @@ class SettingsController extends Controller
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->id, 'Nieuw ouder account aangemaakt');
 
+            $notification = new Notification();
+            $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '');
+
             return redirect()->route('settings.parent')->with("success", "Ouder koppeling succesvol!");
 
         }
@@ -295,6 +300,9 @@ class SettingsController extends Controller
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->id, '');
 
+        $notification = new Notification();
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '');
+
         return redirect()->route('settings.remove-parent-link')->with("success", "Ouder ontkoppeling succesvol!");
     }
 
@@ -334,6 +342,9 @@ class SettingsController extends Controller
 
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->id, '');
+
+        $notification = new Notification();
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '');
 
         return redirect()->route('settings.remove-child-link')->with("success", "Kind succesvol ontkoppeld!");
     }

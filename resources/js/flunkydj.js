@@ -86,6 +86,38 @@ function init() {
     loadingDisplay = document.getElementById('loading');
     gainNode = context.createGain();
 
+    if ('wakeLock' in navigator) {
+        let wakeLock = null;
+
+        // Function to request a wake lock
+        const requestWakeLock = async () => {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Wake lock is active!');
+            } catch (err) {
+                console.error(`Failed to request wake lock: ${err.message}`);
+            }
+        };
+
+        // Request the wake lock when the page is opened
+        requestWakeLock();
+
+        // Release the wake lock when the page is closed or unloaded
+        window.addEventListener('unload', async () => {
+            if (wakeLock !== null) {
+                try {
+                    await wakeLock.release();
+                    console.log('Wake lock released.');
+                } catch (err) {
+                    console.error(`Failed to release wake lock: ${err.message}`);
+                }
+            }
+        });
+    } else {
+        console.warn('Wake Lock API is not supported by this browser.');
+    }
+
+
     let allSources = document.querySelectorAll('a[class^=music-button]');
 
     stopButton = document.getElementById('stop-music');

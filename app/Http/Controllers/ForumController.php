@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Log;
+use App\Models\Notification;
+use App\Models\Post;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,6 +118,42 @@ class ForumController extends Controller
                 'post_id' => $postId,
                 'location' => $postType
             ]);
+
+            $post = null;
+            if ($postType === 0) {
+                $post = Post::findOrFail($postId);
+            } else {
+                $comment = Comment::findOrFail($postId);
+                $post = Post::findOrFail($comment->post_id);
+            }
+            $location = '';
+
+            switch ($post->location) {
+                case 0:
+                    $location = 'dolfijnen';
+                    break;
+                case 1:
+                    $location = 'zeeverkenners';
+                    break;
+                case 2:
+                    $location = 'loodsen';
+                    break;
+                case 3:
+                    $location = 'afterloodsen';
+                    break;
+                case 4:
+                    $location = 'leiding';
+                    break;
+                default:
+                    break;
+            }
+
+            $notification = new Notification();
+            if ($postType === '0') {
+                $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je post geliket!', '/' . $location . '/post/' . $post->id);
+            } else {
+                $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je reactie geliket!', '/' . $location . '/post/' . $post->id);
+            }
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Like', '', $postId, 'Like geplaatst');
