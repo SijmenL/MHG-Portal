@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
+use App\Models\Notification;
 use App\Models\User;
 use DateTime;
 use DateTimeZone;
@@ -20,47 +22,61 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
+
     public function index()
     {
-        // Retrieve the currently authenticated user
         $user = Auth::user();
-
-        // Check if the user is authenticated
-        // Retrieve the user's roles
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
 
-
-// Specify the desired timezone
-        $timezone = new DateTimeZone('Europe/Amsterdam'); // Replace with your desired timezone
-
-// Create a DateTime object with the current date and time in the specified timezone
+        $timezone = new DateTimeZone('Europe/Amsterdam');
         $date = new DateTime('now', $timezone);
 
-// Format the date as a string
         $formattedDate = $date->format('d-m-Y H:i:s');
 
-        return view('dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate]);
+        $notifications = Notification::where('receiver_id', Auth::id())
+            ->where('seen', false)
+            ->count();
+
+        if ($notifications > 100) {
+            $notifications = "99+";
+        }
+
+        return view('home.dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate, 'notifications' => $notifications]);
     }
 
     public function changelog() {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-
-        return view('changelog', ['user' => $user, 'roles' => $roles]);
+        return view('home.changelog', ['user' => $user, 'roles' => $roles]);
     }
 
     public function credits() {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        return view('home.credits', ['user' => $user, 'roles' => $roles]);
+    }
 
-        return view('credits', ['user' => $user, 'roles' => $roles]);
+    public function notifications() {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $notifications = Notification::where('receiver_id', Auth::id())
+            ->orderBy('seen', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(25);
+
+        $notificationsUnseen = Notification::where('receiver_id', Auth::id())
+            ->where('seen', false)
+            ->get();
+
+        foreach ($notificationsUnseen as $notification) {
+            $notification->seen = true;
+            $notification->save();
+        }
+
+        return view('home.notifications', ['user' => $user, 'roles' => $roles, 'notifications' => $notifications, 'notificationsUnseen' => $notificationsUnseen]);
     }
 }

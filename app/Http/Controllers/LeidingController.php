@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Log;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\User;
 use DOMDocument;
@@ -33,6 +34,7 @@ class LeidingController extends Controller
 
     public function postMessage(Request $request)
     {
+        $user = Auth::user();
         $request->validate([
             'content' => 'string|max:65535',
         ]);
@@ -43,6 +45,13 @@ class LeidingController extends Controller
                 'user_id' => Auth::id(),
                 'location' => 4,
             ]);
+
+            $users = User::whereHas('roles', function ($query) {
+                $query->whereIn('role', ['Dolfijnen Leiding', 'Zeeverkenners Leding', 'Loodsen stamoudste', 'Afterloodsen Organisator', 'Vrijwilliger', 'Administratie', 'Ouderraad', 'Bestuur']);
+            })->where('id', '!=', $user->id)->pluck('id');
+
+            $notification = new Notification();
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/leiding/post/' . $post->id);
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create post', 'Leiding', $post->id, '');
@@ -90,6 +99,14 @@ class LeidingController extends Controller
                 'post_id' => $id,
             ]);
 
+            $post = Post::findOrFail($id);
+            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+
+            $notification = new Notification();
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/leiding/post/' . $post->id . '#' . $comment->id);
+
+
+
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Leiding', $comment->id, '');
 
@@ -112,6 +129,15 @@ class LeidingController extends Controller
                 'post_id' => $id,
                 'comment_id' => $commentId,
             ]);
+
+            $post = Post::findOrFail($id);
+            $originalComment = Comment::findOrFail($commentId);
+
+            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+
+            $notification = new Notification();
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/leiding/post/' . $post->id . '#comment-' . $comment->id);
+
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Leiding', $comment->id, '');

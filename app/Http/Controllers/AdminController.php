@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Log;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
@@ -166,6 +167,9 @@ class AdminController extends Controller
         $child_ids = $account->children()->pluck('users.id')->implode(', ');
 
         $parent_ids = $account->parents()->pluck('users.id')->implode(', ');
+
+        $notification = new Notification();
+        $notification->sendNotification(null, [$id], 'Je account gegevens zijn aangepast.', '');
 
         return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles, 'all_users' => $all_users, 'child_ids' => $child_ids, 'parent_ids' => $parent_ids]);
     }
@@ -385,6 +389,8 @@ class AdminController extends Controller
             'password' => Hash::make($request->new_password)
         ]);
 
+        $notification = new Notification();
+        $notification->sendNotification(null, [$id], 'Je wachtwoord is aangepast.', '');
 
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $id, '');

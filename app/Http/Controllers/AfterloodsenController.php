@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Log;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
@@ -32,6 +33,7 @@ class AfterloodsenController extends Controller
 
     public function postMessage(Request $request)
     {
+        $user = Auth::user();
         $request->validate([
             'content' => 'string|max:65535',
         ]);
@@ -42,6 +44,14 @@ class AfterloodsenController extends Controller
                 'user_id' => Auth::id(),
                 'location' => 3,
             ]);
+
+            $users = User::whereHas('roles', function ($query) {
+                $query->whereIn('role', ['Afterloods', 'Afterloodsen Organisator']);
+            })->where('id', '!=', $user->id)->pluck('id');
+
+            $notification = new Notification();
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/afterloodsen/post/' . $post->id);
+
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create post', 'Afterloodsen', $post->id, '');
@@ -89,6 +99,13 @@ class AfterloodsenController extends Controller
                 'post_id' => $id,
             ]);
 
+            $post = Post::findOrFail($id);
+            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+
+            $notification = new Notification();
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/afterloodsen/post/' . $post->id . '#' . $comment->id);
+
+
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Afterloodsen', $comment->id, '');
 
@@ -111,6 +128,15 @@ class AfterloodsenController extends Controller
                 'post_id' => $id,
                 'comment_id' => $commentId,
             ]);
+
+            $post = Post::findOrFail($id);
+            $originalComment = Comment::findOrFail($commentId);
+
+            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+
+            $notification = new Notification();
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/afterloodsen/post/' . $post->id . '#comment-' . $comment->id);
+
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Afterloodsen', $comment->id, '');

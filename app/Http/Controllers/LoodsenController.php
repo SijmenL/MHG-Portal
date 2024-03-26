@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\FlunkyDJMusic;
 use App\Models\Log;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
@@ -34,6 +35,7 @@ class LoodsenController extends Controller
 
     public function postMessage(Request $request)
     {
+        $user = Auth::user();
         $request->validate([
             'content' => 'string|max:65535',
         ]);
@@ -44,6 +46,14 @@ class LoodsenController extends Controller
                 'user_id' => Auth::id(),
                 'location' => 2,
             ]);
+
+            $users = User::whereHas('roles', function ($query) {
+                $query->whereIn('role', ['Loods', 'Loodsen Stamoudste']);
+            })->where('id', '!=', $user->id)->pluck('id');
+
+            $notification = new Notification();
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/loodsen/post/' . $post->id);
+
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create post', 'Loodsen', $post->id, '');
@@ -91,6 +101,13 @@ class LoodsenController extends Controller
                 'post_id' => $id,
             ]);
 
+            $post = Post::findOrFail($id);
+            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+
+            $notification = new Notification();
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/loodsen/post/' . $post->id . '#' . $comment->id);
+
+
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Loodsen', $comment->id, '');
 
@@ -113,6 +130,15 @@ class LoodsenController extends Controller
                 'post_id' => $id,
                 'comment_id' => $commentId,
             ]);
+
+            $post = Post::findOrFail($id);
+            $originalComment = Comment::findOrFail($commentId);
+
+            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+
+            $notification = new Notification();
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/loodsen/post/' . $post->id . '#comment-' . $comment->id);
+
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Loodsen', $comment->id, '');
@@ -324,9 +350,6 @@ class LoodsenController extends Controller
         $user = Auth::user();
 
         $music = FlunkyDJMusic::all();
-
-        $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Play Flunkyball', 'Loodsen', '', 'FlunkyDJ geopend');
 
         return view('speltakken.loodsen.flunkyball.flunkydj', ['user' => $user, 'music' => $music]);
     }

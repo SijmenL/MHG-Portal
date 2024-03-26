@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Log;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -101,6 +102,9 @@ class ParentController extends Controller
 
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Edit child', 'Ouder/kind', $id, '');
+
+        $notification = new Notification();
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je gegevens aangepast.', '');
 
         return redirect()->route('children.edit', ['id' => $id])->with('success', 'Kind succesvol bijgewerkt');
     }

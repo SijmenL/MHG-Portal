@@ -36,7 +36,10 @@ Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 Route::get('/changelog', [HomeController::class, 'changelog'])->name('changelog');
 Route::get('/credits', [HomeController::class, 'credits'])->name('credits');
 
-//Instelling (account veranderen etc.)
+//Notificaties
+Route::get('/notificaties', [HomeController::class, 'notifications'])->name('notifications');
+
+//Instellingen (account veranderen etc.)
 Route::get('/instellingen', [SettingsController::class, 'account'])->name('settings');
 
 Route::get('/instellingen/account/bewerk', [SettingsController::class, 'editAccount'])->name('settings.account.edit');
@@ -246,7 +249,7 @@ Route::middleware(['checkRole:Administratie,Loodsen Stamoudste'])->group(functio
 });
 
 // After loodsen
-Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Leiding,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Organisator,Bestuur,Ouderraad'])->group(function () {
     Route::get('/afterloodsen', [AfterloodsenController::class, 'view'])->name('afterloodsen');
 
 
@@ -266,12 +269,12 @@ Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Leiding,Best
     Route::get('/afterloodsen/organisatie', [AfterloodsenController::class, 'leiding'])->name('afterloodsen.leiding');
 });
 
-Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur,Ouderraad'])->group(function () {
     Route::get('/afterloodsen/leden', [AfterloodsenController::class, 'group'])->name('afterloodsen.groep');
     Route::post('/afterloodsen/leden', [AfterloodsenController::class, 'groupSearch'])->name('afterloodsen.group.search');
 });
 
-Route::middleware(['checkRole:Administratie,Afterloodsen Leiding,Bestuur'])->group(function () {
+Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur'])->group(function () {
     Route::get('/afterloodsen/leden/details/{id}', [AfterloodsenController::class, 'groupDetails'])->name('afterloodsen.groep.details');
 });
 

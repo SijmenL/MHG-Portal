@@ -50,7 +50,8 @@
                 </div>
                 <div class="form-group">
                     <label for="music_file">Audio</label>
-                    <input class="form-control" id="music_file" type="file" name="music_file" accept="audio/*">
+                    <input class="form-control" id="music_file" type="file" name="music_file" accept="audio/mpeg, audio/wav, audio/mp3">
+
                     @error('music_file')
                     <div class="text-danger">{{ $message }}</div>
                     @enderror
