@@ -11,6 +11,24 @@
             </ol>
         </nav>
 
+        <h2>Update 1.0</h2>
+        <p class="fst-italic">26/03/2024</p>
+        <ul>
+            <li class="added">Administratieve logs toegevoegd, voor het vinden van bugs en fouten.</li>
+            <ul>
+                <li class="added">De logs worden aangemaakt bij elke administratieve handeling en bij het bekijken van avg gegevens. Deze logs kunnen gebruikt worden om fouten uit het systeem te halen en om te kijken waar dingen mis kunnen gaan.</li>
+            </ul>
+            <li class="added">Notificaties toegevoegd, notificaties worden verstuurd als:</li>
+            <ul>
+                <li class="added">Iemand een post maakt.</li>
+                <li class="added">Je post of reactie een like krijgt.</li>
+                <li class="added">Je account gelinkt wordt aan een ouder of kind.</li>
+                <li class="added">Je gegevens worden aangepast.</li>
+            </ul>
+            <li class="added">Notificaties worden automatisch na 1 week verwijderd.</li>
+            <li class="added">Notificaties kunnen een snelle link bevatten om bij hetgeen te komen waar de notificatie over gaat.</li>
+        </ul>
+
         <h2>Update 0.6</h2>
         <p class="fst-italic">28/02/2024</p>
         <ul>

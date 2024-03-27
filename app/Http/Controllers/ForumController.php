@@ -95,8 +95,6 @@ class ForumController extends Controller
 
     public function toggleLike($postId, $postType)
     {
-
-        // Get the authenticated user
         $user = Auth::user();
 
         $like = Like::where('user_id', $user->id)
@@ -105,14 +103,12 @@ class ForumController extends Controller
             ->first();
 
         if ($like) {
-            // If the user has already liked the post, remove the like
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Like', '', $postId, 'Like verwijderd');
 
             $like->delete();
             $isLiked = false;
         } else {
-            // If the user hasn't liked the post yet, add the like
             Like::create([
                 'user_id' => $user->id,
                 'post_id' => $postId,
@@ -120,7 +116,7 @@ class ForumController extends Controller
             ]);
 
             $post = null;
-            if ($postType === 0) {
+            if ($postType === '0') {
                 $post = Post::findOrFail($postId);
             } else {
                 $comment = Comment::findOrFail($postId);
@@ -148,11 +144,13 @@ class ForumController extends Controller
                     break;
             }
 
-            $notification = new Notification();
-            if ($postType === '0') {
-                $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je post geliket!', '/' . $location . '/post/' . $post->id);
-            } else {
-                $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je reactie geliket!', '/' . $location . '/post/' . $post->id);
+            if ($post->user_id !== Auth::id()) {
+                $notification = new Notification();
+                if ($postType === '0') {
+                    $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je post geliket!', '/' . $location . '/post/' . $post->id, $location);
+                } else {
+                    $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je reactie geliket!', '/' . $location . '/post/' . $post->id, $location);
+                }
             }
 
             $log = new Log();

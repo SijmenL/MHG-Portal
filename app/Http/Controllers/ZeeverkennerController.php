@@ -51,7 +51,7 @@ class ZeeverkennerController extends Controller
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/zeeverkenners/post/' . $post->id);
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/zeeverkenners/post/' . $post->id, 'zeeverkenners');
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create post', 'Zeeverkenners', $post->id, '');
@@ -100,10 +100,10 @@ class ZeeverkennerController extends Controller
             ]);
 
             $post = Post::findOrFail($id);
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/zeeverkenners/post/' . $post->id . '#' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/zeeverkenners/post/' . $post->id . '#' . $comment->id, 'zeeverkenners');
 
 
             $log = new Log();
@@ -132,10 +132,10 @@ class ZeeverkennerController extends Controller
             $post = Post::findOrFail($id);
             $originalComment = Comment::findOrFail($commentId);
 
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/zeeverkenners/post/' . $post->id . '#comment-' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/zeeverkenners/post/' . $post->id . '#comment-' . $comment->id, 'zeeverkenners');
 
 
             $log = new Log();
