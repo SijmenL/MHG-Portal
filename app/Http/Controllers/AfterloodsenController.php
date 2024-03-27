@@ -50,7 +50,7 @@ class AfterloodsenController extends Controller
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/afterloodsen/post/' . $post->id);
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/afterloodsen/post/' . $post->id,'afterloodsen');
 
 
             $log = new Log();
@@ -100,10 +100,10 @@ class AfterloodsenController extends Controller
             ]);
 
             $post = Post::findOrFail($id);
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/afterloodsen/post/' . $post->id . '#' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/afterloodsen/post/' . $post->id . '#' . $comment->id, 'afterloodsen');
 
 
             $log = new Log();
@@ -132,10 +132,10 @@ class AfterloodsenController extends Controller
             $post = Post::findOrFail($id);
             $originalComment = Comment::findOrFail($commentId);
 
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/afterloodsen/post/' . $post->id . '#comment-' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/afterloodsen/post/' . $post->id . '#comment-' . $comment->id, 'afterloodsen');
 
 
             $log = new Log();

@@ -183,7 +183,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $id, 'Bestaand ouder account gekoppeld');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '', '');
 
         return redirect()->route('settings.parent')->with("success", "Ouderkoppeling succesvol!");
     }
@@ -256,7 +256,7 @@ class SettingsController extends Controller
             $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->id, 'Nieuw ouder account aangemaakt');
 
             $notification = new Notification();
-            $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '');
+            $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '', '');
 
             return redirect()->route('settings.parent')->with("success", "Ouder koppeling succesvol!");
 
@@ -301,7 +301,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->id, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '', '');
 
         return redirect()->route('settings.remove-parent-link')->with("success", "Ouder ontkoppeling succesvol!");
     }
@@ -344,7 +344,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->id, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '', '');
 
         return redirect()->route('settings.remove-child-link')->with("success", "Kind succesvol ontkoppeld!");
     }

@@ -52,7 +52,7 @@ class DolfijnenController extends Controller
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/dolfijnen/post/' . $post->id);
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/dolfijnen/post/' . $post->id, 'dolfijnen');
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create post', 'Dolfijnen', $post->id, '');
@@ -101,10 +101,10 @@ class DolfijnenController extends Controller
             ]);
 
             $post = Post::findOrFail($id);
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/dolfijnen/post/' . $post->id . '#' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/dolfijnen/post/' . $post->id . '#' . $comment->id, 'dolfijnen');
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Dolfijnen', $comment->id, '');
@@ -133,10 +133,10 @@ class DolfijnenController extends Controller
             $post = Post::findOrFail($id);
             $originalComment = Comment::findOrFail($commentId);
 
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/dolfijnen/post/' . $post->id . '#comment-' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/dolfijnen/post/' . $post->id . '#comment-' . $comment->id, 'dolfijnen');
 
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Create comment', 'Dolfijnen', $comment->id, '');

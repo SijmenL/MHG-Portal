@@ -357,6 +357,8 @@
                    data-link="{{ route('admin.account-management.delete', $account->id) }}">Verwijderen</a>
             </div>
 
+            <p class="mt-2">Wanneer je op 'Opslaan' drukt, krijgt de gebruiker hier een notificatie van.</p>
+
             @else
                 <div class="alert alert-warning d-flex align-items-center" role="alert">
                     <span class="material-symbols-rounded me-2">person_off</span>Geen account gevonden...

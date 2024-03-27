@@ -25,13 +25,14 @@ class Notification extends Model
         return $this->belongsTo(User::class, 'sender_id');
     }
 
-    public function sendNotification($senderId, $recieverIds, $displayText, $link) {
+    public function sendNotification($senderId, $recieverIds, $displayText, $link, $location) {
         foreach ($recieverIds as $recieverId) {
             $notification = new Notification();
             $notification->sender_id = $senderId;
             $notification->receiver_id = $recieverId;
             $notification->display_text = $displayText;
             $notification->link = $link;
+            $notification->location = $location;
             $notification->seen = false;
             $notification->save();
         }

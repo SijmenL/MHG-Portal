@@ -412,6 +412,7 @@ function insertPdfIntoEditor(pdfUrl) {
 
     pdf.innerText = `${filename}`
     pdf.classList.add('forum-pdf')
+    pdf.target = '_blank';
     textInput.appendChild(pdf)
     editText()
 }

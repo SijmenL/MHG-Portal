@@ -22,7 +22,7 @@ class LoodsenController extends Controller
         $user = Auth::user();
 
         $posts = Post::where('location', 2)
-            ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
+            ->orderBy('created_at', 'desc')
             ->paginate(5);
 
 
@@ -52,7 +52,7 @@ class LoodsenController extends Controller
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/loodsen/post/' . $post->id);
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/loodsen/post/' . $post->id, 'loodsen');
 
 
             $log = new Log();
@@ -102,10 +102,10 @@ class LoodsenController extends Controller
             ]);
 
             $post = Post::findOrFail($id);
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/loodsen/post/' . $post->id . '#' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/loodsen/post/' . $post->id . '#' . $comment->id, 'loodsen');
 
 
             $log = new Log();
@@ -134,10 +134,10 @@ class LoodsenController extends Controller
             $post = Post::findOrFail($id);
             $originalComment = Comment::findOrFail($commentId);
 
-            $displayText = trim(substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
+            $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/loodsen/post/' . $post->id . '#comment-' . $comment->id);
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/loodsen/post/' . $post->id . '#comment-' . $comment->id, 'loodsen');
 
 
             $log = new Log();

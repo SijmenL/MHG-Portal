@@ -510,11 +510,18 @@ pre {
     width: 100%;
 }
 
+.comment-content iframe {
+    aspect-ratio: 16/9 !important;
+}
+
 .forum-pdf {
     text-decoration: none;
     padding: 10px;
     border-radius: 15px;
     background-color: var(--accent-color);
+    line-break: anywhere;
+    text-align: center;
+    display: block;
 }
 
 .forum-person {
@@ -640,9 +647,45 @@ pre {
     gap: 15px;
 }
 
+.notification-icon {
+    width: 40px;
+    font-size: 40px;
+    transform: translateY(-10px);
+}
+
+.notification-icon span {
+    transform: translateY(10px);
+}
+
+.notification-profile-picture {
+    position: absolute;
+    transform: translateY(10px) translateX(5px);
+}
+
+.comment-content {
+    word-wrap: break-word;
+    max-width: 95%;
+}
+
 @media screen and (min-width: 992px) {
     .mobile-only {
         display: none;
+    }
+
+    .notification-icon {
+        width: 50px;
+        font-size: 50px;
+        transform: translateY(10px);
+    }
+
+    .notification-profile-picture {
+        position: absolute;
+        transform: translateY(5px) translateX(12px);
+    }
+
+    .notification-profile-picture img {
+        width: 30px !important;
+        height: 30px !important;
     }
 
     .message-arrow {
@@ -862,6 +905,22 @@ pre {
         margin-top: unset;
         left: unset;
         background-color: white;
+    }
+
+    .notification-icon {
+        width: 45px;
+        font-size: 45px;
+        transform: translateY(5px);
+    }
+
+    .notification-profile-picture {
+        position: absolute;
+        transform: translateY(3px) translateX(10px);
+    }
+
+    .notification-profile-picture img {
+        width: 25px !important;
+        height: 25px !important;
     }
 
     .mobile-only {

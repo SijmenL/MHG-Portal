@@ -169,7 +169,7 @@ class AdminController extends Controller
         $parent_ids = $account->parents()->pluck('users.id')->implode(', ');
 
         $notification = new Notification();
-        $notification->sendNotification(null, [$id], 'Je account gegevens zijn aangepast.', '');
+        $notification->sendNotification(null, [$id], 'Je account gegevens zijn aangepast.', '', '');
 
         return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles, 'all_users' => $all_users, 'child_ids' => $child_ids, 'parent_ids' => $parent_ids]);
     }
@@ -390,7 +390,7 @@ class AdminController extends Controller
         ]);
 
         $notification = new Notification();
-        $notification->sendNotification(null, [$id], 'Je wachtwoord is aangepast.', '');
+        $notification->sendNotification(null, [$id], 'Je wachtwoord is aangepast.', '', '');
 
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $id, '');

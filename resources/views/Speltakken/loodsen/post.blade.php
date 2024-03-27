@@ -1,5 +1,8 @@
 @extends('layouts.loodsen')
 
+@include('partials.editor')
+
+
 @php
     use Carbon\Carbon;
     Carbon::setLocale('nl');
@@ -104,7 +107,8 @@
                 <div class="container">
                     <form method="POST" action="{{ route('loodsen.comment-post', $post->id) }}">
                         @csrf
-                        <div class="d-flex flex-row-responsive gap-2 comment-input">
+                        @yield('editor')
+                        <div class="d-flex flex-row gap-2 align-items-end comment-input">
                             <div class="text-input w-100" id="text-input" style="min-height: 75px"
                                  contenteditable="true">{!! old('content') !!}</div>
                             <div>
@@ -192,7 +196,7 @@
                                           data-comment-id="{{ $comment->id }}" style="display: none"
                                           action="{{ route('loodsen.reaction-post', ['id' => $post->id, 'commentId' => $comment->id]) }}">
                                         @csrf
-                                        <div class="d-flex flex-row-responsive gap-2 comment-input">
+                                        <div class="d-flex flex-row gap-2 align-items-end comment-input">
                                             <div class="text-input w-100" id="text-input" style="min-height: 75px"
                                                  contenteditable="true"></div>
                                             <button type="submit" class="btn d-flex align-items-center submit-button">
