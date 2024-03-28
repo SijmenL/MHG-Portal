@@ -284,6 +284,7 @@ Route::post('/upload-pdf', [ForumController::class, 'uploadPdf'])->name('forum.p
 Route::post('/posts/{postId}/{likeType}/toggle-like', [ForumController::class, 'toggleLike'])->name('forum.toggle-like');
 Route::post('/comments/{id}', [ForumController::class, 'updateComment'])->name('forum.comments.update');
 
+Route::post('/user-search', [ForumController::class, 'searchUser'])->name('search-user');
 
 
 
