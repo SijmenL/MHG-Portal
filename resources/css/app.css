@@ -441,17 +441,6 @@ pre {
     display: none;
 }
 
-#loading {
-    width: 100px;
-    height: 100px;
-    border-radius: 100%;
-    border-top: var(--title-color) solid 10px;
-    border-right: var(--secondary-color) solid 10px;
-    border-left: var(--secondary-color) solid 10px;
-    border-bottom: var(--secondary-color) solid 10px;
-    animation: infinite rotateLoading 0.5s ease-in-out;
-}
-
 @keyframes rotateLoading {
     0% {
         transform: rotate(0deg);
@@ -665,6 +654,59 @@ pre {
 .comment-content {
     word-wrap: break-word;
     max-width: 95%;
+}
+
+
+.user-select-window-popup {
+    width: calc(100% - 15px);
+    background-color: white;
+    border-radius: 15px;
+    height: 300px;
+    margin-top: 5px;
+    padding: 15px;
+
+    z-index: 99;
+
+    position: absolute;
+
+    -webkit-box-shadow: 0px 3px 20px -10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 3px 20px -10px rgba(0,0,0,0.75);
+    box-shadow: 0px 3px 20px -10px rgba(0,0,0,0.75);
+}
+
+.user-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+    justify-content: center;
+    overflow: scroll;
+    max-height: 100%;
+}
+
+.user-list-item {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 4px;
+    background-color: var(--alternarive-white);
+    border-radius: 0.4rem;
+    padding: 5px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-weight: normal;
+    transition: 0.1s;
+}
+
+.user-list-item-more {
+    cursor: initial !important;
+    width: 75px;
+}
+
+.user-selected {
+    background-color: var(--primary-color);
+    color: white;
 }
 
 @media screen and (min-width: 992px) {

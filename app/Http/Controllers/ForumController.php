@@ -7,6 +7,7 @@ use App\Models\Like;
 use App\Models\Log;
 use App\Models\Notification;
 use App\Models\Post;
+use App\Models\User;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -203,6 +204,92 @@ class ForumController extends Controller
             throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
         }
     }
+
+    public function searchUser(Request $request)
+    {
+        $search = '';
+
+        if ($request->input('search')) {
+            $search = $request->input('search');
+        }
+
+        $ids = explode(',', $request->input('selected'));
+
+        $selectedUsers = User::where(function ($query) use ($ids, $search) {
+            $query->whereIn('id', $ids)
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                });
+        })
+            ->get();
+
+        $remainingUsers = User::where(function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('last_name', 'like', '%' . $search . '%')
+                ->orWhere('email', 'like', '%' . $search . '%')
+                ->orWhere('sex', 'like', '%' . $search . '%')
+                ->orWhere('infix', 'like', '%' . $search . '%')
+                ->orWhere('birth_date', 'like', '%' . $search . '%')
+                ->orWhere('street', 'like', '%' . $search . '%')
+                ->orWhere('postal_code', 'like', '%' . $search . '%')
+                ->orWhere('city', 'like', '%' . $search . '%')
+                ->orWhere('phone', 'like', '%' . $search . '%')
+                ->orWhere('id', 'like', '%' . $search . '%')
+                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+        })
+            ->whereNotIn('id', $ids)
+            ->orderBy('created_at', 'asc')
+            ->take(9 - count($selectedUsers))
+            ->get();
+
+        $users = $selectedUsers->merge($remainingUsers);
+
+        $totalUsersCount = User::where(function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('last_name', 'like', '%' . $search . '%')
+                ->orWhere('email', 'like', '%' . $search . '%')
+                ->orWhere('sex', 'like', '%' . $search . '%')
+                ->orWhere('infix', 'like', '%' . $search . '%')
+                ->orWhere('birth_date', 'like', '%' . $search . '%')
+                ->orWhere('street', 'like', '%' . $search . '%')
+                ->orWhere('postal_code', 'like', '%' . $search . '%')
+                ->orWhere('city', 'like', '%' . $search . '%')
+                ->orWhere('phone', 'like', '%' . $search . '%')
+                ->orWhere('id', 'like', '%' . $search . '%')
+                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+        })
+            ->whereIn('id', $ids)
+            ->count();
+
+        $remainingUsersCount = max(0, $totalUsersCount - $users->count());
+
+        foreach ($users as $user) {
+            if ($user->profile_picture) {
+                $user->profile_picture_url = asset('profile_pictures/' . $user->profile_picture);
+            } else {
+                $user->profile_picture_url = asset('img/no_profile_picture.webp');
+            }
+        }
+
+        $usersWithRemainingCount = [
+            'users' => $users,
+            'remainingUsersCount' => $remainingUsersCount
+        ];
+
+        return response()->json($usersWithRemainingCount);
+    }
+
 
     public static function validatePostData($content)
     {
