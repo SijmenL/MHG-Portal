@@ -224,6 +224,10 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
     Route::get('/loodsen/flunkyball', [LoodsenController::class, 'flunkyball'])->name('loodsen.flunkyball');
     Route::get('/loodsen/flunkyball/flunkydj', [LoodsenController::class, 'flunkydj'])->name('loodsen.flunkyball.flunkydj');
     Route::get('/loodsen/flunkyball/regels', [LoodsenController::class, 'rules'])->name('loodsen.flunkyball.rules');
+    
+    
+    Route::get('/loodsen/loodsenbar', [LoodsenController::class, 'viewLoodsenbarHome'])->name('loodsen.loodsenbar');
+
 });
 
 Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {

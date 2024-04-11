@@ -52,7 +52,7 @@
                                 <img style="filter: unset" alt="flunkyball" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">
                                 <p>Flunkyball</p>
                             </a>
-                            <a class="btn btn-info quick-action" href="">
+                            <a class="btn btn-info quick-action" href="{{ route('loodsen.loodsenbar') }}">
                                 <img style="filter: unset" alt="loodsenbar" src="{{ asset('files/loodsen/logo-bar.webp') }}">
                                 <p>Loodsenbar</p>
                             </a>

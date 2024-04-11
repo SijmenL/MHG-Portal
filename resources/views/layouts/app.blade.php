@@ -66,7 +66,7 @@
                             <li class="nav-item dropdown" id="menu-dropdown">
                                 <a id="navbarDropdown" class="dropdown-toggle" href="#" role="button"
                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    @if(Auth::user()->profile_picture)
+                                   @if(isset(Auth::user()->profile_picture) && file_exists(public_path('profile_pictures/' . Auth::user()->profile_picture)))
                                         <img alt="profielfoto" class="profle-picture"
                                              src="{{ asset('/profile_pictures/' . Auth::user()->profile_picture) }}">
                                     @else
