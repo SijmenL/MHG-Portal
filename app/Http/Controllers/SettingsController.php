@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -49,7 +50,7 @@ class SettingsController extends Controller
             'city' => 'string',
             'phone' => 'string',
             'avg' => 'bool',
-            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp|max:6000',
         ]);
 
         $user = Auth::user();
@@ -78,7 +79,7 @@ class SettingsController extends Controller
         $user->save();
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Settings', $user->id, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Settings', '', '');
 
 
         return redirect()->route('settings.account.edit')->with('success', 'Account succesvol bijgewerkt');
@@ -112,7 +113,7 @@ class SettingsController extends Controller
         ]);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Settings', Auth::id(), '');
+        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Settings', '', '');
 
 
         return back()->with("success", "Wachtwoord succesvol opgeslagen!");
@@ -156,7 +157,7 @@ class SettingsController extends Controller
 
         if ($validator->fails()) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Link parent', 'Settings', $parent->id, 'Ouder niet gelinkt');
+            $log->createLog(auth()->user()->id, 1, 'Link parent', 'settings', '', 'Ouder niet gelinkt');
 
             return redirect()->route('settings.link-parent')->withErrors($validator)->withInput();
         }
@@ -175,12 +176,20 @@ class SettingsController extends Controller
     public function confirmParent($id)
     {
         $user = Auth::user();
+
+        try {
         $parent = User::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Link parent', 'settings', 'Account id: ' . $id, 'Ouder bestaat niet');
+
+            return redirect()->route('settings')->with('error', 'We kunnen deze ouder niet vinden.');
+        }
 
         $user->parents()->attach($parent);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $id, 'Bestaand ouder account gekoppeld');
+        $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name.' '.$parent->infix.' '.$parent->last_name, 'Bestaand ouder account gekoppeld');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '', '');
@@ -218,7 +227,7 @@ class SettingsController extends Controller
             'city' => 'string',
             'phone' => 'string',
             'avg' => 'bool',
-            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp|max:6000',
         ]);
 
         if (isset($request->profile_picture)) {
@@ -253,7 +262,7 @@ class SettingsController extends Controller
             $user->parents()->attach($parent);
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->id, 'Nieuw ouder account aangemaakt');
+            $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name.' '.$parent->infix.' '.$parent->last_name, 'Nieuw ouder account aangemaakt');
 
             $notification = new Notification();
             $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '', '');
@@ -277,7 +286,14 @@ class SettingsController extends Controller
 
     public function removeParentLinkId($id)
     {
-        $parent = User::findOrFail($id);
+        try {
+            $parent = User::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Link parent', 'settings', 'Account id: ' . $id, 'Ouder bestaat niet');
+
+            return redirect()->route('settings')->with('error', 'We kunnen deze ouder niet vinden.');
+        }
 
         return redirect()->route('settings.remove-parent-link', ['id' => $parent->id])->with([
             'continue' => [
@@ -293,12 +309,19 @@ class SettingsController extends Controller
     {
         $user = Auth::user();
 
-        $parent = User::findOrFail($id);
+        try {
+            $parent = User::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Link parent', 'settings', 'Account id: ' . $id, 'Ouder bestaat niet');
+
+            return redirect()->route('settings')->with('error', 'We kunnen deze ouder niet vinden.');
+        }
 
         $user->parents()->detach($parent->id);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->id, '');
+        $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->name.' '.$parent->infix.' '.$parent->last_name, '');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '', '');
@@ -320,7 +343,14 @@ class SettingsController extends Controller
 
     public function removeChildLinkId($id)
     {
+        try {
         $child = User::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Link child', 'settings', 'Account id: ' . $id, 'Kind bestaat niet');
+
+            return redirect()->route('settings')->with('error', 'We kunnen dit kind niet vinden.');
+        }
 
         return redirect()->route('settings.remove-child-link', ['id' => $child->id])->with([
             'continue' => [
@@ -336,12 +366,19 @@ class SettingsController extends Controller
     {
         $user = Auth::user();
 
+        try {
         $child = User::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Link child', 'settings', 'Account id: ' . $id, 'Kind bestaat niet');
+
+            return redirect()->route('settings')->with('error', 'We kunnen dit kind niet vinden.');
+        }
 
         $user->children()->detach($child->id);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->id, '');
+        $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->name.' '.$child->infix.' '.$child->last_name, '');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '', '');

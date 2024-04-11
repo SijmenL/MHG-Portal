@@ -32,7 +32,6 @@ Auth::routes(['register' => false, 'password.request' => false,]);
 Route::get('/', [HomeController::class, 'index'])->name('dashboard');
 Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
-
 Route::get('/changelog', [HomeController::class, 'changelog'])->name('changelog');
 Route::get('/credits', [HomeController::class, 'credits'])->name('credits');
 
@@ -79,7 +78,7 @@ Route::middleware(['hasChildren'])->group(function () {
 });
 
 //Admin
-Route::middleware(['checkRole:Administratie'])->group(function () {
+Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
 
     // Account management
@@ -127,7 +126,7 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
 });
 
 // Leiding
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider'])->group(function () {
     Route::get('/leiding', [LeidingController::class, 'view'])->name('leiding');
 
 

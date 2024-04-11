@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
 use DOMDocument;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -47,14 +48,15 @@ class ZeeverkennerController extends Controller
             ]);
 
             $users = User::whereHas('roles', function ($query) {
-                $query->whereIn('role', ['Zeeverkenner', 'Zeeverkenners leiding']);
+                $query->whereIn('role', ['Loods', 'zeeverkenners Stamoudste']);
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
             $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/zeeverkenners/post/' . $post->id, 'zeeverkenners');
 
+
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create post', 'Zeeverkenners', $post->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create post', 'zeeverkenners', 'Post id: ' . $post->id, '');
 
             return redirect()->route('zeeverkenners', ['#' . $post->id]);
         } else {
@@ -67,19 +69,26 @@ class ZeeverkennerController extends Controller
     {
         $user = Auth::user();
 
-        $post = Post::with(['comments' => function ($query) {
-            $query->withCount('likes') // Count the number of likes for each comment
-            ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
-            ->with(['comments' => function ($query) {
-                $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
-            }]);
-        }])->findOrFail($id);
+        try {
+            $post = Post::with(['comments' => function ($query) {
+                $query->withCount('likes')
+                    ->orderByDesc('likes_count')
+                    ->with(['comments' => function ($query) {
+                        $query->orderBy('created_at', 'asc');
+                    }]);
+            }])->findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View post', 'zeeverkenners', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('zeeverkenners')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->location !== 1) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View post', 'Zeeverkenners', $id, 'Gebruiker had geen toegang tot de post');
+            $log->createLog(auth()->user()->id, 1, 'View post', 'zeeverkenners', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
 
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+            return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         return view('speltakken.zeeverkenners.post', ['user' => $user, 'post' => $post]);
@@ -93,13 +102,21 @@ class ZeeverkennerController extends Controller
 
         if (ForumController::validatePostData($request->input('content'))) {
 
+            try {
+                $post = Post::findOrFail($id);
+            } catch (ModelNotFoundException $exception) {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 1, 'Post comment', 'zeeverkenners', 'Comment id: ' . $id, 'Post bestaat niet');
+
+                return redirect()->route('zeeverkenners')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+            }
+
             $comment = Comment::create([
                 'content' => $request->input('content'),
                 'user_id' => Auth::id(),
                 'post_id' => $id,
             ]);
 
-            $post = Post::findOrFail($id);
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
@@ -107,7 +124,7 @@ class ZeeverkennerController extends Controller
 
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Zeeverkenners', $comment->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'zeeverkenners', 'Comment id: ' . $comment->id, '');
 
             return redirect()->route('zeeverkenners.post', [$id, '#comments']);
         } else {
@@ -117,6 +134,15 @@ class ZeeverkennerController extends Controller
 
     public function postReaction(Request $request, $id, $commentId)
     {
+        try {
+            $post = Post::findOrFail($id);
+            $originalComment = Comment::findOrFail($commentId);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Post comment', 'zeeverkenners', 'Comment id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('zeeverkenners')->with('error', 'We hebben deze post of reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
         $validator = Validator::make($request->all(), [
             'content' => 'required|max:65535',
         ]);
@@ -129,8 +155,6 @@ class ZeeverkennerController extends Controller
                 'comment_id' => $commentId,
             ]);
 
-            $post = Post::findOrFail($id);
-            $originalComment = Comment::findOrFail($commentId);
 
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
@@ -139,7 +163,7 @@ class ZeeverkennerController extends Controller
 
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Zeeverkenners', $comment->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'zeeverkenners', 'Comment id: ' . $comment->id, '');
 
             return redirect()->route('zeeverkenners.post', [$id, '#comment-' . $comment->id]);
         } else {
@@ -151,24 +175,38 @@ class ZeeverkennerController extends Controller
     {
         $user = Auth::user();
 
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'zeeverkenners', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('zeeverkenners')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->location !== 1) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Zeeverkenners', $id, 'Gebruiker had geen toegang tot de post');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'zeeverkenners', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
+            return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         if ($post->user_id === Auth::id()) {
             return view('speltakken.zeeverkenners.post_edit', ['user' => $user, 'post' => $post]);
         } else {
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+            return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
 
     public function storePost(Request $request, $id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'zeeverkenners', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('zeeverkenners')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->user_id === Auth::id()) {
             $validatedData = $request->validate([
@@ -177,27 +215,34 @@ class ZeeverkennerController extends Controller
 
             if (ForumController::validatePostData($request->input('content'))) {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 2, 'Edit post', 'Zeeverkenners', $id, '');
+                $log->createLog(auth()->user()->id, 2, 'Edit post', 'zeeverkenners', 'Post id: ' . $id, '');
                 $post->update($validatedData);
             } else {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 0, 'Edit post', 'Zeeverkenners', $id, 'Post kon niet bewerkt worden');
+                $log->createLog(auth()->user()->id, 0, 'Edit post', 'zeeverkenners', 'Post id: ' . $id, 'Post kon niet bewerkt worden');
                 throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
             }
 
             return redirect()->route('zeeverkenners.post', $id);
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Zeeverkenners', $id, 'Gebruiker had geen toegang tot de post');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'zeeverkenners', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
+            return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
 
     public function deletePost($id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'zeeverkenners', 'Post id: ' . $id, 'Post bestaat niet');
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+            return redirect()->route('zeeverkenners')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
+
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'zeeverkenners zeeverkenners') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -209,32 +254,39 @@ class ZeeverkennerController extends Controller
 
             $post->delete();
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete post', 'Zeeverkenners', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete post', 'zeeverkenners', 'Post id: ' . $id, '');
 
             return redirect()->route('zeeverkenners', ['#posts']);
 
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Zeeverkenners', $id, 'Gebruiker mag post niet verwijderen.');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'zeeverkenners', 'Post id: ' . $id, 'Gebruiker mag post niet verwijderen.');
+            return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
 
     public function deleteComment($id, $postId)
     {
-        $comment = Comment::findOrFail($id);
+        try {
+            $comment = Comment::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'zeeverkenners', 'Comment id: ' . $id, 'Reactie bestaat niet');
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+            return redirect()->route('zeeverkenners')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
+
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'zeeverkenners zeeverkenners') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Zeeverkenners', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'zeeverkenners', 'Comment id: ' . $id, '');
 
             return redirect()->route('zeeverkenners.post', [$postId, '#comments']);
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Zeeverkenners', $id, 'Gebruiker mag reactie niet verwijderen.');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'zeeverkenners', 'Comment id: ' . $id, 'Gebruiker mag reactie niet verwijderen.');
+            return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
 
@@ -326,7 +378,7 @@ class ZeeverkennerController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-
+        try {
         $account = User::with(['roles' => function ($query) {
             $query->orderBy('role', 'asc');
         }])
@@ -334,9 +386,19 @@ class ZeeverkennerController extends Controller
                 $query->where('role', 'Zeeverkenner');
             })
             ->find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('zeeverkenners')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('zeeverkenners')->with('error', 'Dit account bestaat niet.');
+        }
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'View account', 'Zeeverkenners', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Zeeverkenners', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
 
         return view('speltakken.zeeverkenners.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);

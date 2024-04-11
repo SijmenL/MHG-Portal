@@ -21,7 +21,8 @@
             <h2>Snelle Acties</h2>
             <div class="quick-action-bar">
 
-                @if(auth()->user() && auth()->user()->roles->contains('role', 'Administratie'))
+                @if(auth()->user()->roles->contains('role', 'Administratie') ||
+                    auth()->user()->roles->contains('role', 'Secretaris'))
                     <a class="btn btn-admin quick-action" href="{{ route('admin') }}">
                         <span class="material-symbols-rounded">admin_panel_settings</span>
                         <p>Administratie</p>
@@ -60,6 +61,7 @@
                     auth()->user()->roles->contains('role', 'Vrijwilliger') ||
                     auth()->user()->roles->contains('role', 'Administratie') ||
                     auth()->user()->roles->contains('role', 'Bestuur') ||
+                    auth()->user()->roles->contains('role', 'Praktijkbegeleider') ||
                     auth()->user()->roles->contains('role', 'Ouderraad'))
                     )
                     <a class="btn btn-dark quick-action" href="{{ route('leiding') }}">

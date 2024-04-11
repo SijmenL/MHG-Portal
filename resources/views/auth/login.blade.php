@@ -60,11 +60,14 @@
                         </div>
                     </div>
 
-                    <div class="row mb-0">
-                        <div class="col-md-8 offset-md-4">
-                            <button type="submit" class="btn btn-outline-primary">
+                    <div class="mb-0">
+                        <div class="d-flex flex-row-responsive gap-2 justify-content-center">
+                            <button type="submit" class="btn btn-primary text-white">
                                 {{ __('Inloggen') }}
                             </button>
+                            <a href="https://waterscoutingmhg.nl/" class="btn btn-outline-dark">
+                               Annuleren
+                            </a>
                         </div>
                     </div>
                 </form>

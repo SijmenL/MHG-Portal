@@ -8,7 +8,7 @@
     </div>
 
     <div class="container col-md-11">
-        <h1>Oeps, er lijkt iets mis te zijn gegaan!</h1>
+        <h1>Oeps, er lijkt iets compleet mis te zijn gegaan!</h1>
         <p>Probeer het later nog een keer of <a href="mailto:administratie@waterscoutingmhg.nl">neem contact met team Admin</a> op!</p>
 
 

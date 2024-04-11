@@ -18,7 +18,7 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"/>
     <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/sass/app.scss', 'resources/css/app.css', 'resources/js/app.js', 'resources/js/bootstrap.js'])
 </head>
 <body>
 <div id="app">
@@ -66,7 +66,7 @@
                             <li class="nav-item dropdown" id="menu-dropdown">
                                 <a id="navbarDropdown" class="dropdown-toggle" href="#" role="button"
                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    @if(Auth::user()->profile_picture)
+                                    @if(Auth::user() && Auth::user()->profile_picture)
                                         <img alt="profielfoto" class="profle-picture"
                                              src="{{ asset('/profile_pictures/' . Auth::user()->profile_picture) }}">
                                     @else

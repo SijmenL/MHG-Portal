@@ -100,7 +100,6 @@ h1, .h1 {
 }
 
 
-
 .navbar-toggler {
     border: none !important;
     width: 50px;
@@ -133,11 +132,11 @@ h1, .h1 {
 }
 
 pre {
-    white-space: pre-wrap;       /* Since CSS 2.1 */
-    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-    white-space: -pre-wrap;      /* Opera 4-6 */
-    white-space: -o-pre-wrap;    /* Opera 7 */
-    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    white-space: pre-wrap; /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
 .rolls {
@@ -375,8 +374,8 @@ pre {
 
 .login {
     flex-direction: column;
-    min-height: 75vh;
-    width: 75vw;
+    min-height: 80vh;
+    width: 90vw;
 }
 
 .login-logo {
@@ -428,8 +427,7 @@ pre {
     min-height: 400px;
     flex-wrap: nowrap;
     width: 100%;
-    padding: 10px;
-    ;
+    padding: 10px;;
 }
 
 .flunky-background {
@@ -536,7 +534,6 @@ pre {
     padding: 5px;
     transform: translateY(20px);
 }
-
 
 
 .align {
@@ -660,18 +657,18 @@ pre {
 .user-select-window-popup {
     width: calc(100% - 15px);
     background-color: white;
-    border-radius: 15px;
+    border-radius: 15px !important;
     height: 300px;
     margin-top: 5px;
     padding: 15px;
-
+    overflow: hidden;
     z-index: 99;
 
     position: absolute;
 
-    -webkit-box-shadow: 0px 3px 20px -10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 3px 20px -10px rgba(0,0,0,0.75);
-    box-shadow: 0px 3px 20px -10px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
+    box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
 }
 
 .user-list {
@@ -680,9 +677,10 @@ pre {
     flex-wrap: wrap;
     gap: 10px;
     padding: 12px;
+    margin-top: 5px;
     justify-content: center;
     overflow: scroll;
-    max-height: 100%;
+    max-height: calc(300px - 40%);
 }
 
 .user-list-item {
@@ -709,9 +707,53 @@ pre {
     color: white;
 }
 
+.col-form-label, th {
+    font-size: 9pt;
+}
+
+th .form-control, .form-select {
+    font-size: 9pt;
+    max-height: 100%;
+    width: 90%;
+}
+
+#button-container p {
+    font-size: 9pt;
+    text-align: start;
+}
+
+.card-footer {
+    min-height: 63px;
+}
+
+.role-badge {
+    height: 40px;
+}
+
+.card-body-leiding {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
 @media screen and (min-width: 992px) {
     .mobile-only {
         display: none;
+    }
+
+    .col-form-label, th {
+        font-size: inherit;
+    }
+
+    th .form-control, .form-select {
+        font-size: inherit;
+        max-height: inherit;
+        width: 100%;
+    }
+
+    #button-container p {
+        font-size: inherit;
+        text-align: center;
     }
 
     .notification-icon {
@@ -795,6 +837,8 @@ pre {
 
     .login {
         flex-direction: row;
+        height: 80vh;
+        width: 70vw;
     }
 
     .forum-image {
@@ -825,7 +869,7 @@ pre {
 
     .login-image {
         width: 100%;
-        height: 75vh;
+        height: 100%;
         max-width: 500px;
         flex-direction: column-reverse;
         justify-content: end;
@@ -947,6 +991,16 @@ pre {
         margin-top: unset;
         left: unset;
         background-color: white;
+    }
+
+    th .form-control, .form-select {
+        font-size: inherit;
+        max-height: inherit;
+        width: 100%;
+    }
+
+    .login {
+        width: 80vw;
     }
 
     .notification-icon {

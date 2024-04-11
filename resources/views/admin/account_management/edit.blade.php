@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@vite('/resources/js/search-user.js')
+@vite('resources/js/search-user.js')
 
 @section('content')
     <div class="container col-md-11">
@@ -35,8 +35,8 @@
             <form method="POST" action="{{ route('admin.account-management.store', $account) }}"
                   enctype="multipart/form-data">
                 @csrf
-                <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
-                    <table class="table table-striped">
+                <div class="no-scrolbar overflow-hidden" style="max-width: 100%">
+                    <table class="table table-striped" style="max-width: 100%">
                         <tbody>
                         <tr>
                             <th><label for="name" class="col-md-4 col-form-label ">Voornaam</label></th>
@@ -148,7 +148,7 @@
                                     <div class="input-group">
                                         <label class="input-group-text" id="basic-addon1">
                                             <span class="material-symbols-rounded">search</span></label>
-                                        <input type="text" class="user-select-search form-control"
+                                        <input type="text" data-type="multiple" class="user-select-search form-control"
                                                placeholder="Zoeken op naam, email, adres etc."
                                                aria-label="Zoeken" aria-describedby="basic-addon1">
                                     </div>
@@ -177,7 +177,7 @@
                                     <div class="input-group">
                                         <label class="input-group-text" id="basic-addon1">
                                             <span class="material-symbols-rounded">search</span></label>
-                                        <input type="text" class="user-select-search form-control"
+                                        <input type="text" data-type="multiple" class="user-select-search form-control"
                                                placeholder="Zoeken op naam, email, adres etc."
                                                aria-label="Zoeken" aria-describedby="basic-addon1">
                                     </div>

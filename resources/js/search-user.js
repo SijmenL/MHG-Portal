@@ -6,6 +6,8 @@ let userSelectWindowPopup;
 let userList;
 let userSelectResult;
 let body;
+let displayListItems = [];
+let forum;
 
 function init() {
     userSelectWindows = document.querySelectorAll('.user-select-window');
@@ -13,6 +15,7 @@ function init() {
     userSelectWindowPopup = document.querySelectorAll('.user-select-window-popup');
     userSelectResult = document.querySelectorAll('.user-select-result');
     userList = document.querySelectorAll('.user-list');
+    forum = document.querySelectorAll('.user-select-forum-submit')
 
     body = document.getElementById('app');
 
@@ -28,6 +31,8 @@ function init() {
             }
         });
     });
+
+    console.log(userSelectWindows)
 
     userSelectWindows.forEach(function (select, index) {
 
@@ -82,6 +87,8 @@ function searchUsers(searchTerm, index) {
             data.users.forEach(user => {
                 let listItem = document.createElement('div');
 
+                displayListItems.push(listItem);
+
                 listItem.classList.add('user-list-item')
                 listItem.dataset.userId = user.id;
 
@@ -94,7 +101,12 @@ function searchUsers(searchTerm, index) {
 
                 listItem.textContent = `${user.name}${user.infix ? ' ' + user.infix : ''} ${user.last_name}`;
                 listItem.addEventListener('click', () => {
-                    toggleUserId(index, user.id, listItem);
+                    if (userSelectSearch[index].dataset.type === 'multiple') {
+                        toggleUserId(index, user.id, listItem);
+                    }
+                    if (userSelectSearch[index].dataset.type === 'single') {
+                        setUserId(index, user.id, listItem);
+                    }
                 });
 
                 // Append listItem to the userList
@@ -148,6 +160,21 @@ function toggleUserId(index, userId, listItem) {
     }
 
     userSelectWindows[index].value = userList.join(', ');
+}
+
+function setUserId(index, userId, listItem) {
+    if (userSelectWindows[index].value !== userId.toString()) {
+        displayListItems.forEach(item => {
+            item.classList.remove('user-selected')
+        })
+        listItem.classList.add('user-selected')
+        userSelectWindows[index].value = userId;
+        forum[0].submit()
+    } else {
+        listItem.classList.remove('user-selected')
+        userSelectWindows[index].value = '';
+        forum[0].submit()
+    }
 }
 
 

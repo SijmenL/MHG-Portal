@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
 use DOMDocument;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -56,7 +57,7 @@ class LoodsenController extends Controller
 
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create post', 'Loodsen', $post->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create post', 'Loodsen', 'Post id: ' . $post->id, '');
 
             return redirect()->route('loodsen', ['#' . $post->id]);
         } else {
@@ -69,19 +70,26 @@ class LoodsenController extends Controller
     {
         $user = Auth::user();
 
-        $post = Post::with(['comments' => function ($query) {
-            $query->withCount('likes') // Count the number of likes for each comment
-            ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
-            ->with(['comments' => function ($query) {
-                $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
-            }]);
-        }])->findOrFail($id);
+        try {
+            $post = Post::with(['comments' => function ($query) {
+                $query->withCount('likes')
+                    ->orderByDesc('likes_count')
+                    ->with(['comments' => function ($query) {
+                        $query->orderBy('created_at', 'asc');
+                    }]);
+            }])->findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View post', 'Loodsen', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->location !== 2) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View post', 'Loodsen', $id, 'Gebruiker had geen toegang tot de post');
+            $log->createLog(auth()->user()->id, 1, 'View post', 'Loodsen', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
 
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+            return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         return view('speltakken.loodsen.post', ['user' => $user, 'post' => $post]);
@@ -95,13 +103,21 @@ class LoodsenController extends Controller
 
         if (ForumController::validatePostData($request->input('content'))) {
 
+            try {
+                $post = Post::findOrFail($id);
+            } catch (ModelNotFoundException $exception) {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 1, 'Post comment', 'Loodsen', 'Comment id: ' . $id, 'Post bestaat niet');
+
+                return redirect()->route('loodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+            }
+
             $comment = Comment::create([
                 'content' => $request->input('content'),
                 'user_id' => Auth::id(),
                 'post_id' => $id,
             ]);
 
-            $post = Post::findOrFail($id);
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
@@ -109,7 +125,7 @@ class LoodsenController extends Controller
 
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Loodsen', $comment->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Loodsen', 'Comment id: ' . $comment->id, '');
 
             return redirect()->route('loodsen.post', [$id, '#comments']);
         } else {
@@ -119,6 +135,15 @@ class LoodsenController extends Controller
 
     public function postReaction(Request $request, $id, $commentId)
     {
+        try {
+            $post = Post::findOrFail($id);
+            $originalComment = Comment::findOrFail($commentId);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Post comment', 'Loodsen', 'Comment id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'We hebben deze post of reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
         $validator = Validator::make($request->all(), [
             'content' => 'required|max:65535',
         ]);
@@ -131,8 +156,6 @@ class LoodsenController extends Controller
                 'comment_id' => $commentId,
             ]);
 
-            $post = Post::findOrFail($id);
-            $originalComment = Comment::findOrFail($commentId);
 
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
@@ -141,7 +164,7 @@ class LoodsenController extends Controller
 
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Loodsen', $comment->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Loodsen', 'Comment id: ' . $comment->id, '');
 
             return redirect()->route('loodsen.post', [$id, '#comment-' . $comment->id]);
         } else {
@@ -153,24 +176,38 @@ class LoodsenController extends Controller
     {
         $user = Auth::user();
 
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Loodsen', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->location !== 2) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Loodsen', $id, 'Gebruiker had geen toegang tot de post');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Loodsen', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
+            return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         if ($post->user_id === Auth::id()) {
             return view('speltakken.loodsen.post_edit', ['user' => $user, 'post' => $post]);
         } else {
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+            return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
 
     public function storePost(Request $request, $id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Loodsen', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->user_id === Auth::id()) {
             $validatedData = $request->validate([
@@ -179,25 +216,32 @@ class LoodsenController extends Controller
 
             if (ForumController::validatePostData($request->input('content'))) {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 2, 'Edit post', 'Loodsen', $id, '');
+                $log->createLog(auth()->user()->id, 2, 'Edit post', 'Loodsen', 'Post id: ' . $id, '');
                 $post->update($validatedData);
             } else {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 0, 'Edit post', 'Loodsen', $id, 'Post kon niet bewerkt worden');
+                $log->createLog(auth()->user()->id, 0, 'Edit post', 'Loodsen', 'Post id: ' . $id, 'Post kon niet bewerkt worden');
                 throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
             }
 
             return redirect()->route('loodsen.post', $id);
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Loodsen', $id, 'Gebruiker had geen toegang tot de post');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Loodsen', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
+            return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
 
     public function deletePost($id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Loodsen', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
@@ -211,32 +255,39 @@ class LoodsenController extends Controller
 
             $post->delete();
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete post', 'Loodsen', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete post', 'Loodsen', 'Post id: ' . $id, '');
 
             return redirect()->route('loodsen', ['#posts']);
 
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Loodsen', $id, 'Gebruiker mag post niet verwijderen.');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Loodsen', 'Post id: ' . $id, 'Gebruiker mag post niet verwijderen.');
+            return redirect()->route('loodsen')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
 
     public function deleteComment($id, $postId)
     {
-        $comment = Comment::findOrFail($id);
+        try {
+            $comment = Comment::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'Loodsen', 'Comment id: ' . $id, 'Reactie bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Loodsen', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Loodsen', 'Comment id: ' . $id, '');
 
             return redirect()->route('loodsen.post', [$postId, '#comments']);
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Loodsen', $id, 'Gebruiker mag reactie niet verwijderen.');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'Loodsen', 'Comment id: ' . $id, 'Gebruiker mag reactie niet verwijderen.');
+            return redirect()->route('loodsen')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
 
@@ -322,17 +373,27 @@ class LoodsenController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-
-        $account = User::with(['roles' => function ($query) {
-            $query->orderBy('role', 'asc');
-        }])
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Loods');
-            })
-            ->find($id);
+        try {
+            $account = User::with(['roles' => function ($query) {
+                $query->orderBy('role', 'asc');
+            }])
+                ->whereHas('roles', function ($query) {
+                    $query->where('role', 'Loods');
+                })
+                ->find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('loodsen')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('loodsen')->with('error', 'Dit account bestaat niet.');
+        }
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'View account', 'Loodsen', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Loodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
 
         return view('speltakken.loodsen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
@@ -403,7 +464,7 @@ class LoodsenController extends Controller
 
             return redirect()->route('loodsen.flunkyball.flunkydj')->with("success", "Nummer toegevoegd!");
         } else {
-            return redirect()->route('loodsen.flunkyball.admin')->with("success", "Er is iets mis gegaan, bestanden zijn niet verplaatst.");
+            return redirect()->route('loodsen.flunkyball.admin')->with("error", "Er is iets mis gegaan, bestanden zijn niet verplaatst.");
         }
     }
 
@@ -411,13 +472,41 @@ class LoodsenController extends Controller
     {
         $user = Auth::user();
 
-        $music = FlunkyDJMusic::find($id);
+        try {
+            $music = FlunkyDJMusic::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Save music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
+        }
+        if ($music === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Save music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
+        }
 
         return view('speltakken.loodsen.flunkyball.edit_music', ['user' => $user, 'music' => $music]);
     }
 
     public function saveMusic(Request $request, $id)
     {
+        try {
+            $music = FlunkyDJMusic::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Save music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
+        }
+        if ($music === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Save music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
+
+            return redirect()->route('dashboard')->with('error', 'Deze muziek bestaat niet.');
+        }
+
         $request->validate([
             'display_title' => 'required|string',
             'music_title' => 'required|string',
@@ -428,7 +517,6 @@ class LoodsenController extends Controller
             'play_type' => 'required|integer',
         ]);
 
-        $music = FlunkyDJMusic::find($id);
 
         if (isset($request->image)) {
             $newPictureName = time() . '-' . $request->music_title . '.' . $request->image->extension();
@@ -460,10 +548,20 @@ class LoodsenController extends Controller
 
     public function deleteMusic($id)
     {
-        $music = FlunkyDJMusic::find($id);
+        try {
+            $music = FlunkyDJMusic::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
+        }
 
         if ($music === null) {
-            return redirect()->route('loodsen.flunkyball.music')->with('error', 'Geen muziek gevonden om te verwijderen');
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
+
+            return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
         }
 
         $music->delete();

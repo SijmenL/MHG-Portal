@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TestMail;
 use App\Models\Comment;
 use App\Models\Log;
 use App\Models\Notification;
@@ -9,9 +10,11 @@ use App\Models\Post;
 use App\Models\Role;
 use App\Models\User;
 use DOMDocument;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -39,6 +42,8 @@ class AdminController extends Controller
         $logs = Log::where(function ($query) use ($search) {
             $query->where('display_text', 'like', '%' . $search . '%')
                 ->orWhere('type', 'like', '%' . $search . '%')
+                ->orWhere('reference', 'like', '%' . $search . '%')
+                ->orWhere('created_at', 'like', '%' . $search . '%')
                 ->orWhere('location', 'like', '%' . $search . '%');
         })
             ->where(function ($query) use ($search_user) {
@@ -135,14 +140,23 @@ class AdminController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-
+        try {
         $account = User::with(['roles' => function ($query) {
             $query->orderBy('role', 'asc');
         }])->find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'View account', 'Admin', $id, '');
-
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
         return view('admin.account_management.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
@@ -156,7 +170,18 @@ class AdminController extends Controller
 
         $all_roles = Role::all();
 
+        try {
         $account = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
 
         if ($account !== null) {
             $selectedRoles = $account->roles->pluck('id')->toArray();
@@ -168,8 +193,8 @@ class AdminController extends Controller
 
         $parent_ids = $account->parents()->pluck('users.id')->implode(', ');
 
-        $notification = new Notification();
-        $notification->sendNotification(null, [$id], 'Je account gegevens zijn aangepast.', '', '');
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'View account edit', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
         return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles, 'all_users' => $all_users, 'child_ids' => $child_ids, 'parent_ids' => $parent_ids]);
     }
@@ -190,13 +215,24 @@ class AdminController extends Controller
             'phone' => 'nullable|string',
             'avg' => 'nullable|bool',
             'member_date' => 'nullable|date',
-            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp|max:6000',
             'dolfijnen_name' => 'nullable|string',
             'children' => 'nullable|string',
             'parents' => 'nullable|string',
         ]);
 
+        try {
         $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
 
         if (!$user) {
             return redirect()->back()->with('error', 'Gebruiker niet gevonden');
@@ -262,8 +298,10 @@ class AdminController extends Controller
         $user->roles()->sync($request->input('roles'));
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Admin', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Admin', $user->name.' '.$user->infix.' '.$user->last_name, '');
 
+        $notification = new Notification();
+        $notification->sendNotification(null, [$id], 'Je account gegevens zijn aangepast.', '', '');
 
         return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
     }
@@ -271,7 +309,18 @@ class AdminController extends Controller
 
     public function deleteAccount($id)
     {
-        $user = User::find($id);
+        try {
+            $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
 
         if ($user === null) {
             return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om te verwijderen');
@@ -282,7 +331,7 @@ class AdminController extends Controller
             $user->delete();
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete account', 'Admin', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete account', 'Admin', $user->name.' '.$user->infix.' '.$user->last_name, '');
 
             return redirect()->route('admin.account-management')->with('success', 'Gebruiker verwijderd');
         }
@@ -319,7 +368,7 @@ class AdminController extends Controller
             'phone' => 'nullable|string',
             'avg' => 'nullable|bool',
             'member_date' => 'nullable|date',
-            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp|max:6000',
             'dolfijnen_name' => 'nullable|string',
         ]);
 
@@ -333,7 +382,7 @@ class AdminController extends Controller
         if (User::where('email', $request->email)->exists()) {
             return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik.']);
         } else {
-            $user = User::create([
+            $account = User::create([
                 'email' => $request->input('email'),
                 'password' => Hash::make($request->input('password')),
                 'sex' => $request->input('sex'),
@@ -350,16 +399,16 @@ class AdminController extends Controller
             ]);
 
             if (isset($request->profile_picture)) {
-                $user->profile_picture = $newPictureName;
-                $user->save();
+                $account->profile_picture = $newPictureName;
+                $account->save();
             }
 
             if (!empty($request->roles)) {
-                $user->roles()->attach($request->roles);
+                $account->roles()->attach($request->roles);
             }
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create account', 'Admin', $user->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create account', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
             return redirect()->route('admin.create-account', ['user' => $user, 'roles' => $roles])->with('success', 'Gebruiker succesvol aangemaakt');
 
@@ -373,27 +422,51 @@ class AdminController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        try {
         $account = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Change user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Change user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
 
         return view('admin.account_management.change_password', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
 
     public function editAccountPasswordStore(Request $request, $id)
     {
+        try {
+            $account = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+
         $request->validate([
             'new_password' => 'required|confirmed|min:8',
         ]);
-
 
         User::whereId($id)->update([
             'password' => Hash::make($request->new_password)
         ]);
 
+
         $notification = new Notification();
         $notification->sendNotification(null, [$id], 'Je wachtwoord is aangepast.', '', '');
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
         return redirect()->route('admin.account-management.edit', $id)->with('success', 'Wachtwoord succesvol bijgewerkt!');
     }
@@ -435,8 +508,18 @@ class AdminController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-
+        try {
         $role = Role::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
+        }
+        if ($role === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
+        }
 
         return view('admin.role_management.edit', ['user' => $user, 'roles' => $roles, 'role' => $role]);
     }
@@ -448,7 +531,18 @@ class AdminController extends Controller
             'description' => 'string',
         ]);
 
+        try {
         $role = Role::find($id);;
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
+        }
+        if ($role === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
+        }
 
         if (!$role) {
             return redirect()->back()->with('error', 'Rol niet gevonden');
@@ -461,14 +555,25 @@ class AdminController extends Controller
 
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit role', 'Admin', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit role', 'Admin', $role->role, '');
 
         return redirect()->route('admin.role-management')->with('success', 'Rol succesvol bijgewerkt');
     }
 
     public function deleteRole($id)
     {
+        try {
         $role = Role::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
+        }
+        if ($role === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
+        }
 
         if ($role === null) {
             return redirect()->route('admin.role-management')->with('error', 'Geen rol gevonden om te verwijderen');
@@ -478,7 +583,7 @@ class AdminController extends Controller
 
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Delete role', 'Admin', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Delete role', 'Admin', $role->roles, '');
 
         return redirect()->route('admin.role-management')->with('success', 'Rol verwijderd');
 
@@ -512,7 +617,7 @@ class AdminController extends Controller
         $role->save();
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Create role', 'Admin', $role->id, '');
+        $log->createLog(auth()->user()->id, 2, 'Create role', 'Admin', $role->role, '');
 
         return redirect()->route('admin.role-management', ['user' => $user, 'roles' => $roles])->with('success', 'Rol succesvol aangemaakt');
 
@@ -575,6 +680,7 @@ class AdminController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        try {
         $post = Post::with(['comments' => function ($query) {
             $query->withCount('likes') // Count the number of likes for each comment
             ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
@@ -582,13 +688,27 @@ class AdminController extends Controller
                 $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
             }]);
         }])->findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View post', 'admin', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('admin.forum-management.posts')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
+
 
         return view('admin.forum_management.post', ['user' => $user, 'roles' => $roles, 'post' => $post]);
     }
 
     public function deletePost($id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'admin', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('admin.forum-management.posts')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         foreach ($post->comments as $comment) {
             $comment->delete();
@@ -602,20 +722,27 @@ class AdminController extends Controller
 
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Delete post', 'Admin', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Delete post', 'Admin', 'Post id: '.$id, '');
 
         return redirect()->route('admin.forum-management', ['#posts']);
     }
 
     public function deleteComment($id, $postId)
     {
+        try {
         $comment = Comment::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'admin', 'Comment id: ' . $id, 'Comment bestaat niet');
+
+            return redirect()->route('admin.forum-management.posts')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         $comment->delete();
 
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Admin', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Admin', 'Comment id: '.$id, '');
 
         return redirect()->route('admin.forum-management.post', [$postId, '#comments']);
 

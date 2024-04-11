@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Log;
 use App\Models\Notification;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,21 +25,20 @@ class ParentController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        try {
         $account = User::findOrFail($id);
-
-        if (!$account) {
-
+        } catch (ModelNotFoundException $exception) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Kind bestaat niet');
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'parent', 'Account id: ' . $id, 'Kind bestaat niet');
 
-            return redirect()->route('dashboard')->with('error', 'Kind bestaat niet.');
+            return redirect()->route('children')->with('error', 'We kunnen dit kind niet vinden.');
         }
 
         if (!$user->children->contains($account)) {
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Geen kinderen');
-            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $account->name.' '.$account->infix.' '.$account->last_name, 'Geen kinderen');
+            return redirect()->route('children')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 
         return view('parent.edit_child', ['user' => $user, 'roles' => $roles, 'account' => $account]);
@@ -58,23 +58,23 @@ class ParentController extends Controller
             'city' => 'string',
             'phone' => 'string',
             'avg' => 'bool',
-            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp|max:6000',
         ]);
 
+        try {
         $user = User::findOrFail($id);
-
-        if (!$user) {
+        } catch (ModelNotFoundException $exception) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Kind bestaat niet');
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'parent', 'Account id: ' . $id, 'Kind bestaat niet');
 
-            return redirect()->route('dashboard')->with('error', 'Kind bestaat niet.');
+            return redirect()->route('children')->with('error', 'We kunnen dit kind niet vinden.');
         }
 
         if (!Auth::user()->children->contains($user)) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $id, 'Kind bestaat niet');
+            $log->createLog(auth()->user()->id, 1, 'Edit child', 'Ouder/kind', $user->name.' '.$user->infix.' '.$user->last_name, 'Kind bestaat niet');
 
-            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
+            return redirect()->route('children')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }
 
         if (isset($request->profile_picture)) {
@@ -101,7 +101,7 @@ class ParentController extends Controller
         $user->save();
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit child', 'Ouder/kind', $id, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit child', 'Ouder/kind', $user->name.' '.$user->infix.' '.$user->last_name, '');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je gegevens aangepast.', '', '');
