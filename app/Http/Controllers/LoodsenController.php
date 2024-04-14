@@ -480,12 +480,4 @@ class LoodsenController extends Controller
         return view('speltakken.loodsen.flunkyball.rules', ['user' => $user, 'all_music' => $all_music]);
     }
 
-
-    // start loodsenbar functions
-
-    public function viewLoodsenbarHome()
-    {
-
-        return view('speltakken.loodsen.loodsenbar.home');
-    }
 }

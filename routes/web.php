@@ -4,6 +4,7 @@ use App\Http\Controllers\AfterloodsenController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LeidingController;
 use App\Http\Controllers\LoodsenController;
+use App\Http\Controllers\LoodsenbarController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DolfijnenController;
@@ -226,7 +227,7 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
     Route::get('/loodsen/flunkyball/regels', [LoodsenController::class, 'rules'])->name('loodsen.flunkyball.rules');
     
     
-    Route::get('/loodsen/loodsenbar', [LoodsenController::class, 'viewLoodsenbarHome'])->name('loodsen.loodsenbar');
+    Route::get('/loodsen/loodsenbar', [LoodsenbarController::class, 'viewHome'])->name('loodsen.loodsenbar');
 
 });
 
