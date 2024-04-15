@@ -43,11 +43,12 @@
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
                         {{-- upload image disabled for now --}}
-                        <div class="form-group">
+                        <div class="form-group d-none">
                             <label for="image">Image</label>
                             <input type="file" class="form-control-file" id="image" name="image" disabled>
                         </div>
-                        <button type="submit" class="btn btn-primary" disabled>Submit</button>
+
+                        <button type="submit" class="btn btn-primary my-4">Submit</button>
                 </div>
             </div>
         </div>

@@ -2,13 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Comment;
-use App\Models\FlunkyDJMusic;
-use App\Models\Log;
-use App\Models\Notification;
-use App\Models\Post;
-use App\Models\Role;
-use App\Models\User;
+use App\Models\Loodsenbar_categories as loodsenbar_categories; 
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,15 +15,17 @@ class LoodsenbarController extends Controller
     public function viewHome()
     {
         $user = Auth::user();
+        $categories = loodsenbar_categories::all();
         
-        return view('speltakken.loodsen.loodsenbar.home');
+        return view('speltakken.loodsen.loodsenbar.home', ['categories' => $categories]);
     }
 
     public function viewMenageProducts()
     {
         $user = Auth::user();
+        $categories = loodsenbar_categories::all();
         
-        return view('speltakken.loodsen.loodsenbar.menageProducts');
+        return view('speltakken.loodsen.loodsenbar.menageProducts', ['categories' => $categories]);
     }
 
 
@@ -50,6 +46,22 @@ class LoodsenbarController extends Controller
 
     public function addCategory(Request $request)
     {
-        dd($request->all());
+        $user = Auth::user();
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $category = new loodsenbar_categories();
+        $category->name = $request->name;
+        $category->description = $request->description;
+        $category->c_user_id = $user->id;
+        $category->u_user_id = $user->id;
+        $category->save();
+
+        return redirect()->route('loodsenbar.menage.products')->with('message', 'Categorie toegevoegd');
     }
 }

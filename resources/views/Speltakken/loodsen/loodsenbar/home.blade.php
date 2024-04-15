@@ -77,14 +77,14 @@
                     <hr>
                     {{-- Categorien --}}
                     <h2 class="text-center">Categories</h2>
-                    @php $array_categories = array('Drinks', 'Snacks', 'Candy', 'Ice cream', 'Fruit', 'Other') @endphp
                     <div class="d-flex align-items-center flex-wrap justify-content-center">
-                        @foreach ($array_categories as $category)
+                        @php if(count($categories) == 0) {print "No categories found";} @endphp
+                        @foreach ($categories as $category)
                         <div class="p-1">
                             <div class="card product-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ $category }}</h5>
-                                    <p class="card-text">{{ $category }} description</p>
+                                    <h5 class="card-title">{{ $category->name }}</h5>
+                                    <p class="card-text">{{ $category->description }} description</p>
                                 </div>
                             </div>
                         </div>
