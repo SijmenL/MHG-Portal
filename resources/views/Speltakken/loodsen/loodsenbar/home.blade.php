@@ -33,11 +33,11 @@
                 <div class="w-100">
                     {{-- Beheerder acties --}}
                     @if(auth()->user() && (auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie')))
-                    <div class="bg-light">
-                        <h2 class="text-center">Acties</h2>
+                    <div class="">
+                        <h2 class="text-center">Admin actions</h2>
                         <div class="quick-action-bar">
-                            <a class="btn btn-info quick-action" >
-                            {{-- <a class="btn btn-info quick-action" href="{{ route('loodsenbar.products') }}"> --}}
+                            {{-- <a class="btn btn-info quick-action" > --}}
+                            <a class="btn btn-info quick-action" href="{{ route('loodsenbar.menage.products') }}">
                                 <span class="material-symbols-rounded">Category</span>
                                 <p>Products</p>
                             </a>

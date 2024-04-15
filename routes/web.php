@@ -231,6 +231,21 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
 
 });
 
+// Loodsenbar admin routes
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste, Loodsen Penningmeester'])->group(function () {
+    // menage
+    Route::get('/loodsen/loodsenbar/menage/products', [LoodsenbarController::class, 'viewMenageProducts'])->name('loodsenbar.menage.products');
+
+
+    // view add
+    Route::get('/loodsen/loodsenbar/view/add/product', [LoodsenbarController::class, 'viewAddProduct'])->name('loodsenbar.view.add.product');
+    Route::get('/loodsen/loodsenbar/view/add/category', [LoodsenbarController::class, 'viewAddCategory'])->name('loodsenbar.view.add.category');
+
+    // add
+    Route::post('/loodsen/loodsenbar/add/product', [LoodsenbarController::class, 'addProduct'])->name('loodsenbar.add.product');
+    Route::post('/loodsen/loodsenbar/add/category', [LoodsenbarController::class, 'addCategory'])->name('loodsenbar.add.category');
+});
+
 Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
     Route::get('/loodsen/groep', [LoodsenController::class, 'group'])->name('loodsen.groep');
     Route::post('/loodsen/groep', [LoodsenController::class, 'groupSearch'])->name('loodsen.group.search');

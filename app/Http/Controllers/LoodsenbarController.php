@@ -25,4 +25,31 @@ class LoodsenbarController extends Controller
         return view('speltakken.loodsen.loodsenbar.home');
     }
 
+    public function viewMenageProducts()
+    {
+        $user = Auth::user();
+        
+        return view('speltakken.loodsen.loodsenbar.menageProducts');
+    }
+
+
+    public function viewAddProduct()
+    {
+        $user = Auth::user();
+        
+        return view('speltakken.loodsen.loodsenbar.addProduct');
+    }
+
+    public function viewAddCategory()
+    {
+        $user = Auth::user();
+        
+        return view('speltakken.loodsen.loodsenbar.addCategory');
+    }
+
+
+    public function addCategory(Request $request)
+    {
+        dd($request->all());
+    }
 }
