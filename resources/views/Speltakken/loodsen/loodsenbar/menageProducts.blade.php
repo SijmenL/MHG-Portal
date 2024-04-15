@@ -99,18 +99,20 @@
                             <div class="col-md-6">
                                 <div class="form-search">
                                     <span class="material-symbols-rounded">search</span>
-                                    <input type="text" class="form-control form-input product-search" placeholder="Search..."  onkeyup="searchProducts()">
+                                    <input type="text" class="form-control form-input product-search" placeholder="Search products..."  onkeyup="searchProducts()">
                                 </div>
                             </div>
                         </div>
                     </div>
                      <div class="d-flex align-items-center flex-wrap justify-content-center">
-                         @for ($x = 1; $x <= 8; $x+=1) 
+                        @php if(count($products) == 0){print "First add products!";} @endphp
+                         @foreach ($products as $product) 
                          <div class="p-1">
                              <div class="card product-edit-card">
                                  <div class="card-body">
-                                     <h5 class="card-title">Product {{ $x }}</h5>
-                                     <p class="card-text">Product {{ $x }} description</p>
+                                     <h5 class="card-title">{{ $product->name }}</h5>
+                                     <p class="card-text">category: {{ $product->category->name }}</p>
+                                     <p class="card-text">{{ $product->description }}</p>
                                      <div class="d-flex justify-content-between">
                                         <span class="material-symbols-rounded text-warning cursor-pointer">edit</span>
                                         <span class="material-symbols-rounded text-danger cursor-pointer">delete</span>
@@ -118,7 +120,7 @@
                                  </div>
                              </div>
                          </div>
-                         @endfor
+                         @endforeach
                      </div>
                      <hr>
                      {{-- test categories --}}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Loodsenbar_categories as loodsenbar_categories; 
+use App\Models\Loodsenbar_products as loodsenbar_products;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,24 +17,27 @@ class LoodsenbarController extends Controller
     {
         $user = Auth::user();
         $categories = loodsenbar_categories::all();
+        $products = loodsenbar_products::all();
         
-        return view('speltakken.loodsen.loodsenbar.home', ['categories' => $categories]);
+        return view('speltakken.loodsen.loodsenbar.home', ['categories' => $categories, 'products' => $products]);
     }
 
     public function viewMenageProducts()
     {
         $user = Auth::user();
         $categories = loodsenbar_categories::all();
+        $products = loodsenbar_products::all();
         
-        return view('speltakken.loodsen.loodsenbar.menageProducts', ['categories' => $categories]);
+        return view('speltakken.loodsen.loodsenbar.menageProducts', ['categories' => $categories, 'products' => $products]);
     }
 
 
     public function viewAddProduct()
     {
         $user = Auth::user();
-        
-        return view('speltakken.loodsen.loodsenbar.addProduct');
+        $categories = loodsenbar_categories::all();
+
+        return view('speltakken.loodsen.loodsenbar.addProduct', ['categories' => $categories]);
     }
 
     public function viewAddCategory()
@@ -63,5 +67,36 @@ class LoodsenbarController extends Controller
         $category->save();
 
         return redirect()->route('loodsenbar.menage.products')->with('message', 'Categorie toegevoegd');
+    }
+
+    public function addProduct(Request $request)
+    {
+        $user = Auth::user();
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'category' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $product = new loodsenbar_products();
+        $product->name = $request->name;
+        $product->price = $request->price;
+        $product->description = $request->description;
+        $product->category_id = $request->category;
+        $product->c_user_id = $user->id;
+        $product->u_user_id = $user->id;
+
+        // $image = $request->file('image');
+        // $imageName = time().'.'.$image->extension();
+        // $image->move(public_path('images'), $imageName);
+        // $product->image_route = $imageName;
+
+        $product->save();
+
+        return redirect()->route('loodsenbar.menage.products')->with('message', 'Product toegevoegd');
     }
 }

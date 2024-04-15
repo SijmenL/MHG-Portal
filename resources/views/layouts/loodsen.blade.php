@@ -78,7 +78,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text no-tablet"
-                                   href="{{ route('loodsen') }}"><img alt="loodsenbar" class="navbar-icon" src="{{ asset('files/loodsen/logo-bar.webp') }}">Loodsenbar</a>
+                                   href="{{ route('loodsen.loodsenbar') }}"><img alt="loodsenbar" class="navbar-icon" src="{{ asset('files/loodsen/logo-bar.webp') }}">Loodsenbar</a>
                             </li>
                         </ul>
                         @guest

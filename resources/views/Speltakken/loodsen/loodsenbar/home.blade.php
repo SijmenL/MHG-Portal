@@ -63,16 +63,18 @@
                     {{-- snel lopende producten --}}
                     <h2 class="text-center">Fast moving products</h2>
                     <div class="d-flex align-items-center flex-wrap justify-content-center">
-                        @for ($x = 1; $x <= 8; $x+=1) 
+                        @php if(count($products) == 0){print "No products found";} @endphp
+                        @foreach ($products as $product) 
                         <div class="p-1">
                             <div class="card product-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Product {{ $x }}</h5>
-                                    <p class="card-text">Product {{ $x }} description</p>
+                                    <h5 class="card-title">{{ $product->name }}</h5>
+                                    <p class="card-text">category: {{ $product->category->name }}</p>
+                                    <p class="card-text">{{ $product->description }}</p>
                                 </div>
                             </div>
                         </div>
-                        @endfor
+                        @endforeach
                     </div>
                     <hr>
                     {{-- Categorien --}}
