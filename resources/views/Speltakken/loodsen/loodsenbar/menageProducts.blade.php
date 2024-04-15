@@ -77,7 +77,6 @@
 
             <div class="d-flex flex-row-responsive justify-content-center align-items-center gap-5">
                 <div class="w-100">
-                    {{-- actions --}}
                     <div class="">
                         <h2 class="text-center">Actions</h2>
                         <div class="quick-action-bar">
@@ -92,7 +91,6 @@
                         </div>
                         <hr>
                     </div>
-                     {{-- test producten --}}
                     <h2 class="text-center">Products</h2>
                     <div class="container mb-3">
                         <div class="row height d-flex justify-content-center align-items-center">

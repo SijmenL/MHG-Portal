@@ -71,6 +71,11 @@
                                 <p>Orders</p>
                             </a>
                             <a class="btn btn-info quick-action" >
+                                {{-- <a class="btn btn-info quick-action" href="{{ route('loodsenbar.orders') }}"> --}}
+                                    <span class="material-symbols-rounded">inventory_2</span>
+                                    <p>Vooraad</p>
+                                </a>
+                            <a class="btn btn-info quick-action" >
                             {{-- <a class="btn btn-info quick-action" href="{{ route('loodsenbar.devices') }}"> --}}
                                 <span class="material-symbols-rounded">smartphone</span>
                                 <p>Devices</p>
@@ -80,6 +85,11 @@
                                 <span class="material-symbols-rounded">Point_Of_Sale</span>
                                 <p>Check-out orders</p>
                             </a>
+                            <a class="btn btn-info quick-action" >
+                            {{-- <a class="btn btn-info quick-action" href="{{ route('loodsenbar.check-out') }}"> --}}
+                                <span class="material-symbols-rounded">settings</span>
+                                <p>Settings</p>
+                            </a>
                         </div>
                     </div>
                     @endif
@@ -87,21 +97,21 @@
                     <div class="counter-btns">
                         <div class="btn-choose-users w-100 mt-4">
                             <button type="button" class="btn btn-warning w-50 me-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                                Choose users
+                                Kies gebruikers
                             </button>
                             <button class="btn btn-success w-50" type="button" href="#">
-                                Only myself
+                                Alleen ik
                             </button>
                             {{-- undo button --}}
                         </div>
                         <button class="btn btn-danger w-100 mt-2" type="button" onclick="resetCount()">
-                            Undo
+                            Anuleer
                         </button>
                     </div>
                     <hr>
                     <div id="loodsenbarHomeItems" class="mb-5">
                         {{-- snel lopende producten --}}
-                        <h2 class="text-center">Fast moving products</h2>
+                        <h2 class="text-center">Vaak besteld</h2>
                         <div class="d-flex align-items-center flex-wrap justify-content-center">
                             @php if(count($products) == 0){print "No products found";} @endphp
                             @foreach ($products as $product) 
@@ -110,7 +120,7 @@
                                     <div class="card product-card">
                                         <div class="card-body">
                                             <h5 class="card-title">{{ $product->name }}</h5>
-                                            <p class="card-text">category: {{ $product->category->name }}</p>
+                                            <p class="card-text">Categorie: {{ $product->category->name }}</p>
                                             <p class="card-text">{{ $product->description }}</p>
                                             <p class="card-text">€ {{ $product->price }}</p>
                                         </div>
@@ -125,7 +135,7 @@
                         </div>
                         <hr>
                         {{-- Categorien --}}
-                        <h2 class="text-center">Categories</h2>
+                        <h2 class="text-center">Categorieën</h2>
                         <div class="d-flex align-items-center flex-wrap justify-content-center">
                             @php if(count($categories) == 0) {print "No categories found";} @endphp
                             @foreach ($categories as $category)
@@ -134,7 +144,7 @@
                                     <div class="card product-card">
                                         <div class="card-body">
                                             <h5 class="card-title">{{ $category->name }}</h5>
-                                            <p class="card-text">{{ $category->description }} description</p>
+                                            <p class="card-text">{{ $category->description }}</p>
                                         </div>
                                     </div>
                                 </div>
