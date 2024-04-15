@@ -115,7 +115,7 @@
                                      <p class="card-text">{{ $product->description }}</p>
                                      <div class="d-flex justify-content-between">
                                         <span class="material-symbols-rounded text-warning cursor-pointer">edit</span>
-                                        <span class="material-symbols-rounded text-danger cursor-pointer">delete</span>
+                                        <a onclick="confirmBox('{{ route('loodsenbar.delete.product', ['id' => $product->id]) }}')" class="material-symbols-rounded text-danger cursor-pointer">delete</a>
                                      </div>
                                  </div>
                              </div>
@@ -136,7 +136,7 @@
                                         <p class="card-text">{{ $category->description }}</p>
                                         <div class="d-flex justify-content-between">
                                             <span class="material-symbols-rounded text-warning cursor-pointer">edit</span>
-                                            <span class="material-symbols-rounded text-danger cursor-pointer">delete</span>
+                                            <a onclick="confirmBox('{{ route('loodsenbar.delete.category', ['id' => $category->id]) }}')" class="material-symbols-rounded text-danger cursor-pointer">delete</a>
                                          </div>
                                     </div>
                                 </div>
@@ -152,18 +152,29 @@
 
 
     <script>
-        function searchProducts()
         {
-            var input, filter, cards, cardContainer, title, i;
-            input = document.getElementsByClassName('product-search')[0];
-            filter = input.value.toUpperCase();
-            cardContainer = document.getElementsByClassName('product-edit-card');
-            for (i = 0; i < cardContainer.length; i++) {
-                title = cardContainer[i].querySelector(".card-title");
-                if (title.innerText.toUpperCase().indexOf(filter) > -1) {
-                    cardContainer[i].style.display = "";
-                } else {
-                    cardContainer[i].style.display = "none";
+            function searchProducts()
+            {
+                var input, filter, cards, cardContainer, title, i;
+                input = document.getElementsByClassName('product-search')[0];
+                filter = input.value.toUpperCase();
+                cardContainer = document.getElementsByClassName('product-edit-card');
+                for (i = 0; i < cardContainer.length; i++) {
+                    title = cardContainer[i].querySelector(".card-title");
+                    if (title.innerText.toUpperCase().indexOf(filter) > -1) {
+                        cardContainer[i].style.display = "";
+                    } else {
+                        cardContainer[i].style.display = "none";
+                    }
+                }
+            }
+    
+            function confirmBox(url)
+            {
+                var result = confirm('Are you sure you want to delete this item?');
+                if(result)
+                {
+                    window.location.href = url;
                 }
             }
         }

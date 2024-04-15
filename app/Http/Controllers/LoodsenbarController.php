@@ -99,4 +99,27 @@ class LoodsenbarController extends Controller
 
         return redirect()->route('loodsenbar.menage.products')->with('message', 'Product toegevoegd');
     }
+
+    public function deleteProduct(Request $request)
+    {
+        $user = Auth::user();
+        $product = loodsenbar_products::find($request->id);
+        $product->delete();
+
+        return redirect()->route('loodsenbar.menage.products')->with('message', 'Product verwijderd');
+    }
+
+    public function deleteCategory(Request $request)
+    {
+        $user = Auth::user();
+        // check if category has products
+        $products = loodsenbar_products::where('category_id', $request->id)->get();
+        if(count($products) > 0){
+            return redirect()->route('loodsenbar.menage.products')->with('error', 'Categorie heeft nog producten!');
+        }
+        $category = loodsenbar_categories::find($request->id);
+        $category->delete();
+
+        return redirect()->route('loodsenbar.menage.products')->with('message', 'Categorie verwijderd');
+    }
 }

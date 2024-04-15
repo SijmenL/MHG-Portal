@@ -244,6 +244,10 @@ Route::middleware(['checkRole:Administratie,Loodsen Stamoudste, Loodsen Penningm
     // add
     Route::post('/loodsen/loodsenbar/add/product', [LoodsenbarController::class, 'addProduct'])->name('loodsenbar.add.product');
     Route::post('/loodsen/loodsenbar/add/category', [LoodsenbarController::class, 'addCategory'])->name('loodsenbar.add.category');
+
+    // delete
+    Route::get('/loodsen/loodsenbar/delete/product/{id}', [LoodsenbarController::class, 'deleteProduct'])->name('loodsenbar.delete.product');
+    Route::get('/loodsen/loodsenbar/delete/category/{id}', [LoodsenbarController::class, 'deleteCategory'])->name('loodsenbar.delete.category');
 });
 
 Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
