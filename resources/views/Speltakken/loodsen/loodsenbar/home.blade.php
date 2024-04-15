@@ -62,7 +62,7 @@
                     @endif
                     {{-- snel lopende producten --}}
                     <h2 class="text-center">Fast moving products</h2>
-                    <div class="d-flex align-items-center flex-wrap justify-content-start">
+                    <div class="d-flex align-items-center flex-wrap justify-content-center">
                         @for ($x = 1; $x <= 8; $x+=1) 
                         <div class="p-1">
                             <div class="card product-card">
@@ -78,7 +78,7 @@
                     {{-- Categorien --}}
                     <h2 class="text-center">Categories</h2>
                     @php $array_categories = array('Drinks', 'Snacks', 'Candy', 'Ice cream', 'Fruit', 'Other') @endphp
-                    <div class="d-flex align-items-center flex-wrap justify-content-start">
+                    <div class="d-flex align-items-center flex-wrap justify-content-center">
                         @foreach ($array_categories as $category)
                         <div class="p-1">
                             <div class="card product-card">

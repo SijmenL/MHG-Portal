@@ -55,7 +55,7 @@
                     </div>
                      {{-- test producten --}}
                      <h2 class="text-center">Products</h2>
-                     <div class="d-flex align-items-center flex-wrap justify-content-start">
+                     <div class="d-flex align-items-center flex-wrap justify-content-center">
                          @for ($x = 1; $x <= 8; $x+=1) 
                          <div class="p-1">
                              <div class="card product-edit-card">
