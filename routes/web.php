@@ -228,6 +228,7 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
     
     
     Route::get('/loodsen/loodsenbar', [LoodsenbarController::class, 'viewHome'])->name('loodsen.loodsenbar');
+    Route::get('/loodsen/loodsenbar/products/{id}', [LoodsenbarController::class, 'viewProductsOfCategory'])->name('loodsenbar.products');
 
 });
 
@@ -236,14 +237,21 @@ Route::middleware(['checkRole:Administratie,Loodsen Stamoudste, Loodsen Penningm
     // menage
     Route::get('/loodsen/loodsenbar/menage/products', [LoodsenbarController::class, 'viewMenageProducts'])->name('loodsenbar.menage.products');
 
-
     // view add
     Route::get('/loodsen/loodsenbar/view/add/product', [LoodsenbarController::class, 'viewAddProduct'])->name('loodsenbar.view.add.product');
     Route::get('/loodsen/loodsenbar/view/add/category', [LoodsenbarController::class, 'viewAddCategory'])->name('loodsenbar.view.add.category');
 
+    // view edit
+    Route::get('/loodsen/loodsenbar/view/edit/product/{id}', [LoodsenbarController::class, 'viewEditProduct'])->name('loodsenbar.view.edit.product');
+    Route::get('/loodsen/loodsenbar/view/edit/category/{id}', [LoodsenbarController::class, 'viewEditCategory'])->name('loodsenbar.view.edit.category');
+    
     // add
     Route::post('/loodsen/loodsenbar/add/product', [LoodsenbarController::class, 'addProduct'])->name('loodsenbar.add.product');
     Route::post('/loodsen/loodsenbar/add/category', [LoodsenbarController::class, 'addCategory'])->name('loodsenbar.add.category');
+
+    // edit
+    Route::post('/loodsen/loodsenbar/edit/product/{id}', [LoodsenbarController::class, 'editProduct'])->name('loodsenbar.edit.product');
+    Route::post('/loodsen/loodsenbar/edit/category/{id}', [LoodsenbarController::class, 'editCategory'])->name('loodsenbar.edit.category');
 
     // delete
     Route::get('/loodsen/loodsenbar/delete/product/{id}', [LoodsenbarController::class, 'deleteProduct'])->name('loodsenbar.delete.product');

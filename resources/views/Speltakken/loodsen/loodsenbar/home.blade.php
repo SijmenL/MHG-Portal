@@ -9,6 +9,12 @@
         width: 40vw !important;
     }
 
+    a.card-link
+    {
+        text-decoration: none;
+    
+    }
+
 </style>
 
 
@@ -60,37 +66,42 @@
                         <hr>
                     </div>
                     @endif
-                    {{-- snel lopende producten --}}
-                    <h2 class="text-center">Fast moving products</h2>
-                    <div class="d-flex align-items-center flex-wrap justify-content-center">
-                        @php if(count($products) == 0){print "No products found";} @endphp
-                        @foreach ($products as $product) 
-                        <div class="p-1">
-                            <div class="card product-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ $product->name }}</h5>
-                                    <p class="card-text">category: {{ $product->category->name }}</p>
-                                    <p class="card-text">{{ $product->description }}</p>
+                    <div id="loodsenbarHomeItems">
+                        {{-- snel lopende producten --}}
+                        <h2 class="text-center">Fast moving products</h2>
+                        <div class="d-flex align-items-center flex-wrap justify-content-center">
+                            @php if(count($products) == 0){print "No products found";} @endphp
+                            @foreach ($products as $product) 
+                            <div class="p-1">
+                                <div class="card product-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ $product->name }}</h5>
+                                        <p class="card-text">€ {{ $product->price }}</p>
+                                        <p class="card-text">category: {{ $product->category->name }}</p>
+                                        <p class="card-text">{{ $product->description }}</p>
+                                    </div>
                                 </div>
                             </div>
+                            @endforeach
                         </div>
-                        @endforeach
-                    </div>
-                    <hr>
-                    {{-- Categorien --}}
-                    <h2 class="text-center">Categories</h2>
-                    <div class="d-flex align-items-center flex-wrap justify-content-center">
-                        @php if(count($categories) == 0) {print "No categories found";} @endphp
-                        @foreach ($categories as $category)
-                        <div class="p-1">
-                            <div class="card product-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ $category->name }}</h5>
-                                    <p class="card-text">{{ $category->description }} description</p>
+                        <hr>
+                        {{-- Categorien --}}
+                        <h2 class="text-center">Categories</h2>
+                        <div class="d-flex align-items-center flex-wrap justify-content-center">
+                            @php if(count($categories) == 0) {print "No categories found";} @endphp
+                            @foreach ($categories as $category)
+                            <a href="{{ route('loodsenbar.products', ['id' => $category->id]) }}" class="card-link">
+                                <div class="p-1">
+                                    <div class="card product-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ $category->name }}</h5>
+                                            <p class="card-text">{{ $category->description }} description</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
                 </div>
             </div>

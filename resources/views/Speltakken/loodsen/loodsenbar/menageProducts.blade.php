@@ -111,10 +111,11 @@
                              <div class="card product-edit-card">
                                  <div class="card-body">
                                      <h5 class="card-title">{{ $product->name }}</h5>
+                                     <p class="card-text">€ {{ $product->price }}</p>
                                      <p class="card-text">category: {{ $product->category->name }}</p>
                                      <p class="card-text">{{ $product->description }}</p>
                                      <div class="d-flex justify-content-between">
-                                        <span class="material-symbols-rounded text-warning cursor-pointer">edit</span>
+                                        <a href='{{ route('loodsenbar.view.edit.product', ['id' => $product->id]) }}' class="material-symbols-rounded text-warning cursor-pointer">edit</a>
                                         <a onclick="confirmBox('{{ route('loodsenbar.delete.product', ['id' => $product->id]) }}')" class="material-symbols-rounded text-danger cursor-pointer">delete</a>
                                      </div>
                                  </div>
@@ -135,7 +136,7 @@
                                         <h5 class="card-title">{{ $category->name }}</h5>
                                         <p class="card-text">{{ $category->description }}</p>
                                         <div class="d-flex justify-content-between">
-                                            <span class="material-symbols-rounded text-warning cursor-pointer">edit</span>
+                                            <a href='{{ route('loodsenbar.view.edit.category', ['id' => $category->id]) }}' class="material-symbols-rounded text-warning cursor-pointer">edit</a>
                                             <a onclick="confirmBox('{{ route('loodsenbar.delete.category', ['id' => $category->id]) }}')" class="material-symbols-rounded text-danger cursor-pointer">delete</a>
                                          </div>
                                     </div>
