@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Loodsenbar_categories as loodsenbar_categories; 
 use App\Models\Loodsenbar_products as loodsenbar_products;
+use App\Models\User;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +19,12 @@ class LoodsenbarController extends Controller
         $user = Auth::user();
         $categories = loodsenbar_categories::all();
         $products = loodsenbar_products::all();
+        // get all users with role 'loods'
+        $loodsen = User::whereHas('roles', function($q){
+            $q->where('role', 'loods');
+        })->get();
         
-        return view('speltakken.loodsen.loodsenbar.home', ['categories' => $categories, 'products' => $products]);
+        return view('speltakken.loodsen.loodsenbar.home', ['categories' => $categories, 'products' => $products, 'loodsen' => $loodsen]);
     }
 
     public function viewProductsOfCategory(Request $request)

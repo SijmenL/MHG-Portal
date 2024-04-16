@@ -18,6 +18,9 @@ class CheckRole
     {
         $user = $request->user();
 
+        if (!auth()->user()){
+            return redirect()->route('login')->with('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+        }
 
         if (!$user) {
             $log = new Log();

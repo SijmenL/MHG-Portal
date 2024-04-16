@@ -20,17 +20,13 @@
     a.card-link
     {
         text-decoration: none;
+        cursor: pointer;
     }
 
-    .counter-btns
+    .party-function-button
     {
-        visibility: hidden;
-    }
-
-    .btn-choose-users
-    {
-        display: flex;
-        gap: 10px;
+        display: none
+        /* visibility: hidden; */
     }
 
 </style>
@@ -93,19 +89,10 @@
                         </div>
                     </div>
                     @endif
-                    {{-- choose users button --}}
-                    <div class="counter-btns">
-                        <div class="btn-choose-users w-100 mt-4">
-                            <button type="button" class="btn btn-warning w-50 me-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                                Kies gebruikers
-                            </button>
-                            <button class="btn btn-success w-50" type="button" href="#">
-                                Alleen ik
-                            </button>
-                            {{-- undo button --}}
-                        </div>
-                        <button class="btn btn-danger w-100 mt-2" type="button" onclick="resetCount()">
-                            Anuleer
+                    {{-- future party button--}}
+                    <div class="party-function-button">
+                        <button class="btn btn-success w-100 mt-2" type="button" onclick="console.log('set all to owner of party');">
+                            Bestellingen afrekenen
                         </button>
                     </div>
                     <hr>
@@ -115,7 +102,7 @@
                         <div class="d-flex align-items-center flex-wrap justify-content-center">
                             @php if(count($products) == 0){print "No products found";} @endphp
                             @foreach ($products as $product) 
-                            <a onclick="addProduct({{ $product->id }})" class="card-link">
+                            <a data-bs-toggle="modal" data-bs-target="#staticBackdrop" onclick="changeModalTitle(this);" class="card-link">
                                 <div class="p-1">
                                     <div class="card product-card">
                                         <div class="card-body">
@@ -155,24 +142,33 @@
 
                     
                     <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-scrollable">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick='resetModal();'></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="loodsenbar-ordering-users-div input-group mt-2">
+                                        <select class="form-select" onchange='orderUserSelected(this);' id="order-users" >
+                                            <option selected value=''>Kies user...</option>
+                                            @php if(count($loodsen) == 0) {print "No loodsen found";} @endphp
+                                            @foreach ($loodsen as $loods)
+                                                <option value="{{ $loods->id }}">{{ $loods->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="number" id="order-count" class="form-control" placeholder="0" value='' min='0' step='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'>
                                     </div>
-                                    <div class="modal-body">
-                                        ...
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Understood</button>
-                                    </div>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary">Understood</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -180,39 +176,81 @@
 
     <script>
 
-        function addProduct(id)
+        function resetModal()
         {
-            let badge = document.querySelector(`span[product-id="${id}"]`);
-            let count = parseInt(badge.getAttribute('data-count'));
-            count++;
-            badge.setAttribute('data-count', count);
-            badge.classList.remove('d-none');
-            badge.innerHTML = count;
+            // remove all loodsenbar-ordering-users-div except first
+            let divs = document.querySelectorAll('.loodsenbar-ordering-users-div');
 
-            // if count is > 0 show button
-            let button = document.querySelector('.counter-btns');
-            if(count > 0)
+            for(let i = 1; i < divs.length; i++)
             {
-                button.style.visibility = 'visible';
-            }else{
-                button.style.visibility = 'hidden';
+                divs[i].remove();
             }
 
-        }
-
-        function resetCount()
-        {
-            // reset all counts
-            let badges = document.querySelectorAll('span[product-id]');
-            badges.forEach(badge => {
-                badge.setAttribute('data-count', 0);
-                badge.classList.add('d-none');
+            let select = document.querySelector('#order-users');
+            select.value = '';
+            let options = select.querySelectorAll('option');
+            options.forEach(option => {
+                option.selected = false;
             });
+            let input = document.querySelector('#order-count');
+            input.value = '';
 
-            // hide button
-            let button = document.querySelector('.counter-btns');
-            button.style.visibility = 'hidden';
         }
+
+        function orderUserSelected(elment)
+        {
+            // if value of select is not empty add second loodsenbar-ordering-users-div below
+            let value = elment.value;
+            let div = document.querySelector('.loodsenbar-ordering-users-div');
+            let modalBody = document.querySelector('.modal-body');
+            // if value is not empty past new div in end of modal-body
+            if(value != '')
+            {
+                let newDiv = div.cloneNode(true);
+                modalBody.appendChild(newDiv);
+            }
+        }
+
+        function changeModalTitle(element)
+        {
+            let title = element.querySelector('.card-title').innerText;
+            let modal = document.querySelector('.modal-title');
+            modal.innerText = title;
+        }
+
+        // function addProduct(id)
+        // {
+        //     let badge = document.querySelector(`span[product-id="${id}"]`);
+        //     let count = parseInt(badge.getAttribute('data-count'));
+        //     count++;
+        //     badge.setAttribute('data-count', count);
+        //     badge.classList.remove('d-none');
+        //     badge.innerHTML = count;
+
+        //     // if count is > 0 show button
+        //     let button = document.querySelector('.counter-btns');
+        //     if(count > 0)
+        //     {
+        //         button.style.visibility = 'visible';
+        //     }else{
+        //         button.style.visibility = 'hidden';
+        //     }
+
+        // }
+
+        // function resetCount()
+        // {
+        //     // reset all counts
+        //     let badges = document.querySelectorAll('span[product-id]');
+        //     badges.forEach(badge => {
+        //         badge.setAttribute('data-count', 0);
+        //         badge.classList.add('d-none');
+        //     });
+
+        //     // hide button
+        //     let button = document.querySelector('.counter-btns');
+        //     button.style.visibility = 'hidden';
+        // }
 
     </script>
 @endsection
