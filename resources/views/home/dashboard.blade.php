@@ -68,6 +68,11 @@
                         <span class="material-symbols-rounded">supervisor_account</span>
                         <p>Leiding & Organisatie</p>
                     </a>
+                    @else
+                        <a class="btn btn-info quick-action" href="{{ route('leiding.leiding') }}">
+                            <span class="material-symbols-rounded">supervisor_account</span>
+                            <p>Leiding & Organisatie</p>
+                        </a>
                 @endif
 
 
@@ -88,7 +93,7 @@
                 @endif
                 @if(auth()->user() &&
                     (auth()->user()->roles->contains('role', 'Zeeverkenner') ||
-                    auth()->user()->roles->contains('role', 'Zeeverkenners Leding') ||
+                    auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') ||
                     auth()->user()->roles->contains('role', 'Administratie') ||
                     auth()->user()->roles->contains('role', 'Bestuur') ||
                     auth()->user()->roles->contains('role', 'Ouderraad') ||

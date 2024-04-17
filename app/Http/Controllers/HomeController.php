@@ -84,4 +84,9 @@ class HomeController extends Controller
 
         return view('home.notifications', ['user' => $user, 'roles' => $roles, 'notifications' => $notifications, 'notificationsUnseen' => $notificationsUnseen]);
     }
+
+    public function contact() {
+
+        return view('forms.contact');
+    }
 }

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Exports\UsersExport;
 
 class AdminController extends Controller
 {
@@ -73,11 +74,18 @@ class AdminController extends Controller
             ->orderBy('last_name')
             ->paginate(25);
 
+        $user_ids = User::with(['roles' => function ($query) {
+            $query->orderBy('role', 'asc');
+        }])
+            ->orderBy('last_name')
+            ->get()
+            ->pluck('id');
+
         $all_roles = Role::orderBy('role')->get();
 
         $selected_role = '';
 
-        return view('admin.account_management.list', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+        return view('admin.account_management.list', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
     }
 
     public function accountManagementSearch(Request $request)
@@ -89,50 +97,189 @@ class AdminController extends Controller
         $search = $request->input('search');
         $selected_role = $request->input('role');
 
-        if ($selected_role !== 'none') {
-            $users = User::where(function ($query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('last_name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('sex', 'like', '%' . $search . '%')
-                    ->orWhere('infix', 'like', '%' . $search . '%')
-                    ->orWhere('birth_date', 'like', '%' . $search . '%')
-                    ->orWhere('street', 'like', '%' . $search . '%')
-                    ->orWhere('postal_code', 'like', '%' . $search . '%')
-                    ->orWhere('city', 'like', '%' . $search . '%')
-                    ->orWhere('phone', 'like', '%' . $search . '%')
-                    ->orWhere('id', 'like', '%' . $search . '%')
-                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-            })
-                ->whereHas('roles', function ($query) use ($selected_role) {
-                    $query->where('role', $selected_role)->orderBy('role');
+        if ($selected_role !== 'parent' && $selected_role !== 'parent_dolfijnen' && $selected_role !== 'parent_zeeverkenners') {
+
+            if ($selected_role !== 'none') {
+                $users = User::where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 })
-                ->orderBy('last_name')
-                ->paginate(25);
+                    ->whereHas('roles', function ($query) use ($selected_role) {
+                        $query->where('role', $selected_role)->orderBy('role');
+                    })
+                    ->orderBy('last_name')
+                    ->paginate(25);
+            } else {
+                $users = User::where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                    ->orderBy('last_name')
+                    ->with(['roles' => function ($query) {
+                        $query->orderBy('role');
+                    }])
+                    ->paginate(25);
+            }
+
+            if ($selected_role !== 'none') {
+                $user_ids = User::where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                    ->whereHas('roles', function ($query) use ($selected_role) {
+                        $query->where('role', $selected_role)->orderBy('role');
+                    })
+                    ->orderBy('last_name')
+                    ->pluck('id'); // Pluck only the IDs
+            } else {
+                $user_ids = User::where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                    ->orderBy('last_name')
+                    ->pluck('id'); // Pluck only the IDs
+            }
         } else {
-            $users = User::where(function ($query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('last_name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('sex', 'like', '%' . $search . '%')
-                    ->orWhere('infix', 'like', '%' . $search . '%')
-                    ->orWhere('birth_date', 'like', '%' . $search . '%')
-                    ->orWhere('street', 'like', '%' . $search . '%')
-                    ->orWhere('postal_code', 'like', '%' . $search . '%')
-                    ->orWhere('city', 'like', '%' . $search . '%')
-                    ->orWhere('phone', 'like', '%' . $search . '%')
-                    ->orWhere('id', 'like', '%' . $search . '%')
-                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-            })
-                ->orderBy('last_name')
-                ->with(['roles' => function ($query) {
-                    $query->orderBy('role');
-                }])
-                ->paginate(25);
+            if ($selected_role === 'parent') {
+                $users = User::where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                    ->has('children')
+                    ->orderBy('last_name')
+                    ->paginate(25);
+
+                $user_ids = User::where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                    ->has('children')
+                    ->orderBy('last_name')
+                    ->pluck('id');
+            } else {
+
+                $roleName = '';
+                if ($selected_role === 'parent_dolfijnen') {
+                    $roleName = 'Dolfijn';
+                }
+                if ($selected_role === 'parent_zeeverkenners') {
+                    $roleName = 'Zeeverkenner';
+                }
+
+                $users = User::whereHas('children.roles', function ($query) use ($roleName) { // Pass $roleName into the closure
+                    $query->where('role', $roleName);
+                })
+                    ->where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('last_name', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('sex', 'like', '%' . $search . '%')
+                            ->orWhere('infix', 'like', '%' . $search . '%')
+                            ->orWhere('birth_date', 'like', '%' . $search . '%')
+                            ->orWhere('street', 'like', '%' . $search . '%')
+                            ->orWhere('postal_code', 'like', '%' . $search . '%')
+                            ->orWhere('city', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%')
+                            ->orWhere('id', 'like', '%' . $search . '%')
+                            ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                    })
+                    ->orderBy('last_name')
+                    ->paginate(25);
+
+                $user_ids = User::whereHas('children.roles', function ($query) use ($roleName) {
+                    $query->where('role', $roleName);
+                })
+                    ->where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('last_name', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('sex', 'like', '%' . $search . '%')
+                            ->orWhere('infix', 'like', '%' . $search . '%')
+                            ->orWhere('birth_date', 'like', '%' . $search . '%')
+                            ->orWhere('street', 'like', '%' . $search . '%')
+                            ->orWhere('postal_code', 'like', '%' . $search . '%')
+                            ->orWhere('city', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%')
+                            ->orWhere('id', 'like', '%' . $search . '%')
+                            ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                    })
+                    ->pluck('id');
+            }
         }
+
         $all_roles = Role::orderBy('role')->get();
 
-        return view('admin.account_management.list', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+        return view('admin.account_management.list', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+    }
+
+    public function exportData(Request $request)
+    {
+        // Retrieve the filtered user data from the request
+        $users = json_decode($request->input('user_ids'));
+
+        // Export data to Excel
+        $export = new UsersExport($users);
+        return $export->export();
     }
 
     public function accountDetails($id)
@@ -141,9 +288,9 @@ class AdminController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-        $account = User::with(['roles' => function ($query) {
-            $query->orderBy('role', 'asc');
-        }])->find($id);
+            $account = User::with(['roles' => function ($query) {
+                $query->orderBy('role', 'asc');
+            }])->find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
@@ -156,7 +303,7 @@ class AdminController extends Controller
         }
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'View account', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
         return view('admin.account_management.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
@@ -171,7 +318,7 @@ class AdminController extends Controller
         $all_roles = Role::all();
 
         try {
-        $account = User::find($id);
+            $account = User::find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
@@ -194,7 +341,7 @@ class AdminController extends Controller
         $parent_ids = $account->parents()->pluck('users.id')->implode(', ');
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'View account edit', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'View account edit', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
         return view('admin.account_management.edit', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'account' => $account, 'selectedRoles' => $selectedRoles, 'all_users' => $all_users, 'child_ids' => $child_ids, 'parent_ids' => $parent_ids]);
     }
@@ -222,7 +369,7 @@ class AdminController extends Controller
         ]);
 
         try {
-        $user = User::find($id);
+            $user = User::find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
@@ -298,7 +445,7 @@ class AdminController extends Controller
         $user->roles()->sync($request->input('roles'));
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Admin', $user->name.' '.$user->infix.' '.$user->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit account', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
 
         $notification = new Notification();
         $notification->sendNotification(null, [$id], 'Je account gegevens zijn aangepast.', '', '');
@@ -331,7 +478,7 @@ class AdminController extends Controller
             $user->delete();
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete account', 'Admin', $user->name.' '.$user->infix.' '.$user->last_name, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete account', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
 
             return redirect()->route('admin.account-management')->with('success', 'Gebruiker verwijderd');
         }
@@ -408,7 +555,7 @@ class AdminController extends Controller
             }
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create account', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
+            $log->createLog(auth()->user()->id, 2, 'Create account', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
             return redirect()->route('admin.create-account', ['user' => $user, 'roles' => $roles])->with('success', 'Gebruiker succesvol aangemaakt');
 
@@ -423,7 +570,7 @@ class AdminController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-        $account = User::find($id);
+            $account = User::find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Change user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
@@ -466,7 +613,7 @@ class AdminController extends Controller
         $notification->sendNotification(null, [$id], 'Je wachtwoord is aangepast.', '', '');
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $account->name.' '.$account->infix.' '.$account->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'Edit password', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
         return redirect()->route('admin.account-management.edit', $id)->with('success', 'Wachtwoord succesvol bijgewerkt!');
     }
@@ -509,7 +656,7 @@ class AdminController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-        $role = Role::find($id);
+            $role = Role::find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
@@ -532,7 +679,7 @@ class AdminController extends Controller
         ]);
 
         try {
-        $role = Role::find($id);;
+            $role = Role::find($id);;
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
@@ -563,7 +710,7 @@ class AdminController extends Controller
     public function deleteRole($id)
     {
         try {
-        $role = Role::find($id);
+            $role = Role::find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
@@ -681,13 +828,13 @@ class AdminController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-        $post = Post::with(['comments' => function ($query) {
-            $query->withCount('likes') // Count the number of likes for each comment
-            ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
-            ->with(['comments' => function ($query) {
-                $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
-            }]);
-        }])->findOrFail($id);
+            $post = Post::with(['comments' => function ($query) {
+                $query->withCount('likes') // Count the number of likes for each comment
+                ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
+                ->with(['comments' => function ($query) {
+                    $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
+                }]);
+            }])->findOrFail($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View post', 'admin', 'Post id: ' . $id, 'Post bestaat niet');
@@ -722,7 +869,7 @@ class AdminController extends Controller
 
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Delete post', 'Admin', 'Post id: '.$id, '');
+        $log->createLog(auth()->user()->id, 2, 'Delete post', 'Admin', 'Post id: ' . $id, '');
 
         return redirect()->route('admin.forum-management', ['#posts']);
     }
@@ -730,7 +877,7 @@ class AdminController extends Controller
     public function deleteComment($id, $postId)
     {
         try {
-        $comment = Comment::findOrFail($id);
+            $comment = Comment::findOrFail($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete comment', 'admin', 'Comment id: ' . $id, 'Comment bestaat niet');
@@ -742,7 +889,7 @@ class AdminController extends Controller
 
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Admin', 'Comment id: '.$id, '');
+        $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Admin', 'Comment id: ' . $id, '');
 
         return redirect()->route('admin.forum-management.post', [$postId, '#comments']);
 

@@ -297,6 +297,7 @@ class LeidingController extends Controller
     public function leiding()
     {
         $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         $voorzitter = User::whereHas('roles', function ($query) {
             $query->where('role', 'Voorzitter');
@@ -382,6 +383,6 @@ class LeidingController extends Controller
             $query->where('role', 'Vrijwilliger');
         })->get();
 
-        return view('leiding.leiding', ['user' => $user, 'praktijkbgeleiding' => $praktijkbgeleiding, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'vrijwilliger' => $vrijwilliger]);
+        return view('leiding.leiding', ['roles' => $roles, 'user' => $user, 'praktijkbgeleiding' => $praktijkbgeleiding, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'vrijwilliger' => $vrijwilliger]);
     }
 }

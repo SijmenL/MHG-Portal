@@ -1,15 +1,47 @@
-@extends('layouts.leiding')
+@extends(
+    auth()->user()->roles->contains('role', 'Dolfijnen Leiding') ||
+    auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') ||
+    auth()->user()->roles->contains('role', 'Loodsen Stamoudste') ||
+    auth()->user()->roles->contains('role', 'Afterloodsen Organisator') ||
+    auth()->user()->roles->contains('role', 'Vrijwilliger') ||
+    auth()->user()->roles->contains('role', 'Administratie') ||
+    auth()->user()->roles->contains('role', 'Bestuur') ||
+    auth()->user()->roles->contains('role', 'Praktijkbegeleider') ||
+    auth()->user()->roles->contains('role', 'Ouderraad')
+    ? 'layouts.leiding'
+    : 'layouts.app'
+)
+
 
 @section('content')
     <div class="container col-md-11">
         <h1>Leiding & Organisatie</h1>
 
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('leiding') }}">Leiding</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Leiding & Organisatie</li>
-            </ol>
-        </nav>
+        @if(auth()->user() &&
+                    (auth()->user()->roles->contains('role', 'Dolfijnen Leiding') ||
+                    auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') ||
+                    auth()->user()->roles->contains('role', 'Loodsen Stamoudste') ||
+                    auth()->user()->roles->contains('role', 'Afterloodsen Organisator') ||
+                    auth()->user()->roles->contains('role', 'Vrijwilliger') ||
+                    auth()->user()->roles->contains('role', 'Administratie') ||
+                    auth()->user()->roles->contains('role', 'Bestuur') ||
+                    auth()->user()->roles->contains('role', 'Praktijkbegeleider') ||
+                    auth()->user()->roles->contains('role', 'Ouderraad'))
+                    )
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('leiding') }}">Leiding</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Leiding & Organisatie</li>
+                </ol>
+            </nav>
+        @else
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Leiding & Organisatie</li>
+                </ol>
+            </nav>
+        @endif
 
         @if(session('error'))
             <div class="alert alert-danger">
@@ -67,17 +99,31 @@
                                 </div>
 
                             </div>
-                            <div class="card-footer">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 @if($leiding_individual->roles->contains('role', 'Penningmeester'))
-                                    <a href="mailto:penningmeester@waterscoutingmhg.nl">penningmeester@waterscoutingmhg.nl</a>
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="mailto:penningmeester@waterscoutingmhg.nl"><span
+                                            class="material-symbols-rounded">email</span><span
+                                            >penningmeester@waterscoutingmhg.nl</span></a>
                                 @endif
                                 @if($leiding_individual->roles->contains('role', 'Secretaris'))
-                                    <a href="mailto:secretaris@waterscoutingmhg.nl">secretaris@waterscoutingmhg.nl</a>
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="mailto:secretaris@waterscoutingmhg.nl"><span
+                                            class="material-symbols-rounded">email</span><span
+                                            >secretaris@waterscoutingmhg.nl</span></a>
                                 @endif
                                 @if(!$leiding_individual->roles->contains('role', 'Penningmeester') && !$leiding_individual->roles->contains('role', 'Secretaris') && $leiding_individual->roles->contains('role', 'Bestuur'))
-                                    <a href="mailto:bestuur@waterscoutingmhg.nl">bestuur@waterscoutingmhg.nl</a>
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="mailto:bestuur@waterscoutingmhg.nl"><span
+                                            class="material-symbols-rounded">email</span><span
+                                            >bestuur@waterscoutingmhg.nl</span></a>
                                 @endif
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -104,9 +150,17 @@
                                     <h4 class="m-0">Team Administratie</h4>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:administratie@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >administratie@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -127,8 +181,12 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
-
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn'))
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                    <p class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</p>
+                                @endif
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     @if($leiding_individual->roles->contains('role', 'Dolfijnen Hoofdleiding'))
@@ -143,9 +201,17 @@
                                 </div>
 
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:dolfijnen@waterscoutingmhg.nl">dolfijnen@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:dolfijnen@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >dolfijnen@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -182,9 +248,17 @@
                                 </div>
 
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:zeeverkenners@waterscoutingmhg.nl">zeeverkenners@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:zeeverkenners@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >zeeverkenners@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -216,9 +290,17 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:loodsen@waterscoutingmhg.nl">loodsen@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:loodsen@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >loodsen@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -253,9 +335,17 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:afterloodsen@waterscoutingmhg.nl">afterloodsen@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:afterloodsen@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >afterloodsen@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -282,9 +372,17 @@
                                     <h4 class="m-0">Praktijkbegeleider</h4>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:praktijkbegeleider@waterscoutingmhg.nl">praktijkbegeleider@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:praktijkbegeleider@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >praktijkbegeleider@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -311,9 +409,17 @@
                                     <h4 class="m-0">Ouderraad</h4>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <a href="mailto:ouderraad@waterscoutingmhg.nl">ouderraad@waterscoutingmhg.nl</a>
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                   href="mailto:ouderraad@waterscoutingmhg.nl"><span
+                                        class="material-symbols-rounded">email</span><span
+                                        >ouderraad@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -339,8 +445,13 @@
                                     <h4 class="m-0">Vrijwilligers</h4>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                             <div class="card-footer d-flex flex-column gap-1">
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach

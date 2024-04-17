@@ -1,24 +1,24 @@
 @component('mail::message')
-   <h1>Recent aangemaakt account:</h1>
+    <h1>Recent aangemaakt account:</h1>
 
     <p>Recent account data:</p>
-    <ul>
-        <li>Name: {{ $account->name }}</li>
-        <li>Email: {{ $account->email }}</li>
-        <li>Sex: {{ $account->sex }}</li>
-        <li>Infix: {{ $account->infix }}</li>
-        <li>Last Name: {{ $account->last_name }}</li>
-        <li>Birth Date: {{ $account->birth_date }}</li>
-        <li>Street: {{ $account->street }}</li>
-        <li>Postal Code: {{ $account->postal_code }}</li>
-        <li>City: {{ $account->city }}</li>
-        <li>Phone: {{ $account->phone }}</li>
-        <li>Avg: {{ $account->avg ? 'Yes' : 'No' }}</li>
-        <li>Member Date: {{ $account->member_date }}</li>
-        <li>Dolfijnen Name: {{ $account->dolfijnen_name }}</li>
-        <li>Children: {{ $account->children }}</li>
-        <li>Parents: {{ $account->parents }}</li>
-    </ul>
+
+    Name: {{ $account->name }}
+    Email: {{ $account->email }}
+    Sex: {{ $account->sex }}
+    Infix: {{ $account->infix }}
+    Last Name: {{ $account->last_name }}
+    Birth Date: {{ $account->birth_date }}
+    Street: {{ $account->street }}
+    Postal Code: {{ $account->postal_code }}
+    City: {{ $account->city }}
+    Phone: {{ $account->phone }}
+    Avg: {{ $account->avg ? 'Yes' : 'No' }}
+    Member Date: {{ $account->member_date }}
+    Dolfijnen Name: {{ $account->dolfijnen_name }}
+    Children: {{ $account->children }}
+    Parents: {{ $account->parents }}
+
 
     Thanks,<br>
     {{ config('app.name') }}

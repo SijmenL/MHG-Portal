@@ -116,6 +116,11 @@ h1, .h1 {
     object-fit: cover;
 }
 
+.btn-text {
+    font-size: calc(7px + 0.2vw);
+}
+
+
 .btn-admin {
     border: 2px #ffb3af solid;
     background-color: rgb(255, 217, 215);

@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/flunkydj.js',
                 'resources/js/search-user.js',
                 'resources/js/texteditor.js',
+                'resources/js/user-export.js',
             ],
             refresh: true,
         }),
