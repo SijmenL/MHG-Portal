@@ -28,18 +28,20 @@
                             <img alt="foto leiding" class="card-img-top"
                                  src="{{ asset('img/no_profile_picture.webp') }}">
                         @endif
-                        <div class="card-body">
+                            <div class="card-body card-body-leiding">
 
                             <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                            <div class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                             @if($leiding_individual->roles->contains('role', 'Afterloodsen Voorzitter'))
-                                <h3>Voorzitter</h3>
+                                <h4 class="m-0">Voorzitter</h4>
                             @endif
                             @if($leiding_individual->roles->contains('role', 'Afterloodsen Penningmeester'))
-                                <h3>Penningmeester</h3>
+                                <h4 class="m-0">Penningmeester</h4>
                             @endif
                             @if(!$leiding_individual->roles->contains('role', 'Afterloodsen Penningmeester') && !$leiding_individual->roles->contains('role', 'Afterloodsen Voorzitter'))
-                                <h3>Organisator</h3>
+                                <h4 class="m-0">Organisator</h4>
                             @endif
+                            </div>
 
                         </div>
                         <div class="card-footer">

@@ -11,6 +11,8 @@ class Kernel extends HttpKernel
         'checkRole' => \App\Http\Middleware\CheckRole::class,
         'hasChildren' => \App\Http\Middleware\HasChildren::class,
         'isAllowedToRemoveParents' => IsAllowedToRemoveParents::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
     ];
 
     /**

@@ -99,12 +99,36 @@ class rolesSeeder extends Seeder
             ['created_at' => now(),
             'updated_at' => now(),
             'role' => "Bestuur",
-            'description' => "Bestuur van de groep"],
+            'description' => "Bestuur"],
+
+            ['created_at' => now(),
+                'updated_at' => now(),
+                'role' => "Secretaris",
+                'description' => "Secretaris"],
+
+            ['created_at' => now(),
+                'updated_at' => now(),
+                'role' => "Penningmeester",
+                'description' => "Penningmeester"],
+
+            ['created_at' => now(),
+                'updated_at' => now(),
+                'role' => "Voorzitter",
+                'description' => "Voorzitter"],
+            ['created_at' => now(),
+                'updated_at' => now(),
+                'role' => "Vice-voorzitter",
+                'description' => "Vice-voorzitter"],
 
             ['created_at' => now(),
             'updated_at' => now(),
             'role' => "Ouderraad",
             'description' => "Ouderraad van de groep"],
+
+            ['created_at' => now(),
+                'updated_at' => now(),
+                'role' => "Praktijkbegeleider",
+                'description' => "Mensen die bijvoorbeeld CWO les geven"],
         ];
 
         DB::table('roles')->insert($rollen);

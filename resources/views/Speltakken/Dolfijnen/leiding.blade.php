@@ -28,7 +28,7 @@
                             <img alt="foto leiding" class="card-img-top"
                                  src="{{ asset('img/no_profile_picture.webp') }}">
                         @endif
-                        <div class="card-body">
+                            <div class="card-body card-body-leiding">
 
                             @if(auth()->user()->roles->contains('role', 'Dolfijn'))
                                 <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
@@ -36,15 +36,17 @@
                                 <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
                                 <p class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</p>
                             @endif
+                                <div class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                             @if($leiding_individual->roles->contains('role', 'Dolfijnen Hoofdleiding'))
-                                <h3>Hoofdleiding</h3>
+                                <h4 class="m-0">Hoofdleiding</h4>
                             @endif
                             @if($leiding_individual->roles->contains('role', 'Dolfijnen Penningmeester'))
-                                <h3>Penningmeester</h3>
+                                <h4 class="m-0">Penningmeester</h4>
                             @endif
                             @if(!$leiding_individual->roles->contains('role', 'Dolfijnen Penningmeester') && !$leiding_individual->roles->contains('role', 'Dolfijnen Hoofdleiding'))
-                                <h3>Leiding</h3>
+                                <h4 class="m-0">Leiding</h4>
                             @endif
+                                </div>
 
                         </div>
                         <div class="card-footer">

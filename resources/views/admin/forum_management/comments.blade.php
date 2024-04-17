@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@vite('resources/js/search-user.js')
+
 @section('content')
     <div class="container col-md-11">
         <h1>Prikbord beheer</h1>
@@ -12,7 +14,7 @@
             </ol>
         </nav>
 
-        <form id="auto-submit" method="GET">
+        <form id="auto-submit" method="GET" class="user-select-forum-submit">
             <div class="d-flex">
                 <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100">
                     <div class="input-group">
@@ -25,9 +27,27 @@
                     <div class="input-group">
                         <label for="user" class="input-group-text" id="basic-addon1">
                             <span class="material-symbols-rounded">person</span></label>
-                        <input id="user" name="user" type="number" class="form-control"
+
+                        <input id="user" name="user" type="number" class="user-select-window form-control"
                                placeholder="Zoeken op gebruikers id"
-                               aria-label="user" aria-describedby="basic-addon1" value="{{ $search_user }}" onchange="this.form.submit();">
+                               aria-label="user" aria-describedby="basic-addon1" value="{{ $search_user }}"
+                               onchange="this.form.submit();">
+
+                        <div class="user-select-window-popup d-none" style="transform: translateY(40px) translateX(13px)">
+                            <h3>Selecteer gebruikers</h3>
+                            <div class="input-group">
+                                <label class="input-group-text" id="basic-addon1">
+                                    <span class="material-symbols-rounded">search</span></label>
+                                <input type="text" data-type="single" class="user-select-search form-control"
+                                       placeholder="Zoeken op naam, email, adres etc."
+                                       aria-label="Zoeken" aria-describedby="basic-addon1">
+                            </div>
+                            <div class="user-list no-scrolbar">
+                                <div class="w-100 h-100 d-flex justify-content-center align-items-center"><span
+                                        class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

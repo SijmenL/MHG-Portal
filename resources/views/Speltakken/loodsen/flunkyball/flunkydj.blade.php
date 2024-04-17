@@ -25,7 +25,7 @@
 
         </div>
         <div class="buttons">
-            <div id="loading"></div>
+            <div id="loading" class="w-100 h-100 d-flex justify-content-center align-items-center"><span class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span></div>
             <div class="buttons" id="button-display">
                 @foreach($music as $audio)
                     <a class="music-button clickable-button" data-play-type="{{ $audio["play_type"] }}" data-fade-in="{{ $audio["fade_in"] }}"

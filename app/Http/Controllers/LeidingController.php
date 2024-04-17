@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Post;
 use App\Models\User;
 use DOMDocument;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -29,8 +30,8 @@ class LeidingController extends Controller
     }
 
     /*
-     * Forum section, including posts, comments and like handling.
-     */
+         * Forum section, including posts, comments and like handling.
+         */
 
     public function postMessage(Request $request)
     {
@@ -47,14 +48,15 @@ class LeidingController extends Controller
             ]);
 
             $users = User::whereHas('roles', function ($query) {
-                $query->whereIn('role', ['Dolfijnen Leiding', 'Zeeverkenners Leding', 'Loodsen stamoudste', 'Afterloodsen Organisator', 'Vrijwilliger', 'Administratie', 'Ouderraad', 'Bestuur']);
+                $query->whereIn('role', ['Loods', 'leiding Stamoudste']);
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
             $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/leiding/post/' . $post->id, 'leiding');
 
+
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create post', 'Leiding', $post->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create post', 'leiding', 'Post id: ' . $post->id, '');
 
             return redirect()->route('leiding', ['#' . $post->id]);
         } else {
@@ -67,19 +69,26 @@ class LeidingController extends Controller
     {
         $user = Auth::user();
 
-        $post = Post::with(['comments' => function ($query) {
-            $query->withCount('likes') // Count the number of likes for each comment
-            ->orderByDesc('likes_count') // Sort top-level comments by the number of likes (descending)
-            ->with(['comments' => function ($query) {
-                $query->orderBy('created_at', 'asc'); // Sort nested comments by oldest first
-            }]);
-        }])->findOrFail($id);
+        try {
+            $post = Post::with(['comments' => function ($query) {
+                $query->withCount('likes')
+                    ->orderByDesc('likes_count')
+                    ->with(['comments' => function ($query) {
+                        $query->orderBy('created_at', 'asc');
+                    }]);
+            }])->findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View post', 'leiding', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('leiding')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->location !== 4) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View post', 'Leiding', $id, 'Gebruiker had geen toegang tot de post');
+            $log->createLog(auth()->user()->id, 1, 'View post', 'leiding', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
 
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+            return redirect()->route('leiding')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         return view('leiding.post', ['user' => $user, 'post' => $post]);
@@ -93,22 +102,29 @@ class LeidingController extends Controller
 
         if (ForumController::validatePostData($request->input('content'))) {
 
+            try {
+                $post = Post::findOrFail($id);
+            } catch (ModelNotFoundException $exception) {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 1, 'Post comment', 'leiding', 'Comment id: ' . $id, 'Post bestaat niet');
+
+                return redirect()->route('leiding')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+            }
+
             $comment = Comment::create([
                 'content' => $request->input('content'),
                 'user_id' => Auth::id(),
                 'post_id' => $id,
             ]);
 
-            $post = Post::findOrFail($id);
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
             $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/leiding/post/' . $post->id . '#' . $comment->id, 'leiding');
 
 
-
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Leiding', $comment->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'leiding', 'Comment id: ' . $comment->id, '');
 
             return redirect()->route('leiding.post', [$id, '#comments']);
         } else {
@@ -118,6 +134,15 @@ class LeidingController extends Controller
 
     public function postReaction(Request $request, $id, $commentId)
     {
+        try {
+            $post = Post::findOrFail($id);
+            $originalComment = Comment::findOrFail($commentId);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Post comment', 'leiding', 'Comment id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('leiding')->with('error', 'We hebben deze post of reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
         $validator = Validator::make($request->all(), [
             'content' => 'required|max:65535',
         ]);
@@ -130,8 +155,6 @@ class LeidingController extends Controller
                 'comment_id' => $commentId,
             ]);
 
-            $post = Post::findOrFail($id);
-            $originalComment = Comment::findOrFail($commentId);
 
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
@@ -140,7 +163,7 @@ class LeidingController extends Controller
 
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Create comment', 'Leiding', $comment->id, '');
+            $log->createLog(auth()->user()->id, 2, 'Create comment', 'leiding', 'Comment id: ' . $comment->id, '');
 
             return redirect()->route('leiding.post', [$id, '#comment-' . $comment->id]);
         } else {
@@ -152,24 +175,38 @@ class LeidingController extends Controller
     {
         $user = Auth::user();
 
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'leiding', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('leiding')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->location !== 4) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Leiding', $id, 'Gebruiker had geen toegang tot de post');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bekijken.');
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'leiding', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
+            return redirect()->route('leiding')->with('error', 'Je mag deze post niet bekijken.');
         }
 
         if ($post->user_id === Auth::id()) {
             return view('leiding.post_edit', ['user' => $user, 'post' => $post]);
         } else {
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+            return redirect()->route('leiding')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
 
     public function storePost(Request $request, $id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'leiding', 'Post id: ' . $id, 'Post bestaat niet');
+
+            return redirect()->route('leiding')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
 
         if ($post->user_id === Auth::id()) {
             $validatedData = $request->validate([
@@ -178,27 +215,34 @@ class LeidingController extends Controller
 
             if (ForumController::validatePostData($request->input('content'))) {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 2, 'Edit post', 'Leiding', $id, '');
+                $log->createLog(auth()->user()->id, 2, 'Edit post', 'leiding', 'Post id: ' . $id, '');
                 $post->update($validatedData);
             } else {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 0, 'Edit post', 'Leiding', $id, 'Post kon niet bewerkt worden');
+                $log->createLog(auth()->user()->id, 0, 'Edit post', 'leiding', 'Post id: ' . $id, 'Post kon niet bewerkt worden');
                 throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
             }
 
             return redirect()->route('leiding.post', $id);
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Edit post', 'Leiding', $id, 'Gebruiker had geen toegang tot de post');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet bewerken.');
+            $log->createLog(auth()->user()->id, 1, 'Edit post', 'leiding', 'Post id: ' . $id, 'Gebruiker had geen toegang tot de post');
+            return redirect()->route('leiding')->with('error', 'Je mag deze post niet bewerken.');
         }
     }
 
     public function deletePost($id)
     {
-        $post = Post::findOrFail($id);
+        try {
+            $post = Post::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'leiding', 'Post id: ' . $id, 'Post bestaat niet');
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')) {
+            return redirect()->route('leiding')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
+
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'leiding Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -210,32 +254,39 @@ class LeidingController extends Controller
 
             $post->delete();
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete post', 'Leiding', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete post', 'leiding', 'Post id: ' . $id, '');
 
             return redirect()->route('leiding', ['#posts']);
 
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Leiding', $id, 'Gebruiker mag post niet verwijderen.');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+            $log->createLog(auth()->user()->id, 1, 'Delete post', 'leiding', 'Post id: ' . $id, 'Gebruiker mag post niet verwijderen.');
+            return redirect()->route('leiding')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
 
     public function deleteComment($id, $postId)
     {
-        $comment = Comment::findOrFail($id);
+        try {
+            $comment = Comment::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'leiding', 'Comment id: ' . $id, 'Reactie bestaat niet');
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')) {
+            return redirect()->route('leiding')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
+        }
+
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'leiding Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'Leiding', $id, '');
+            $log->createLog(auth()->user()->id, 2, 'Delete comment', 'leiding', 'Comment id: ' . $id, '');
 
             return redirect()->route('leiding.post', [$postId, '#comments']);
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Delete post', 'Leiding', $id, 'Gebruiker mag reactie niet verwijderen.');
-            return redirect()->route('dashboard')->with('error', 'Je mag deze post niet verwijderen.');
+            $log->createLog(auth()->user()->id, 1, 'Delete comment', 'leiding', 'Comment id: ' . $id, 'Gebruiker mag reactie niet verwijderen.');
+            return redirect()->route('leiding')->with('error', 'Je mag deze post niet verwijderen.');
         }
     }
 
@@ -246,35 +297,82 @@ class LeidingController extends Controller
     public function leiding()
     {
         $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $bestuur = User::whereHas('roles', function ($query) {
+        $voorzitter = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Voorzitter');
+        })->get();
+        $vicevoorzitter = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Vice-voorzitter');
+        })->get();
+        $secretaris = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Secretaris');
+        })->get();
+        $penningmeester = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Penningmeester');
+        })->get();
+        $other_bestuur = User::whereHas('roles', function ($query) {
             $query->where('role', 'Bestuur');
+        })->whereDoesntHave('roles', function ($query) {
+            $query->whereIn('role', ['Voorzitter', 'Vice-voorzitter', 'Secretaris', 'Penningmeester']);
         })->get();
+        $bestuur = $voorzitter->merge($vicevoorzitter)->merge($secretaris)->merge($penningmeester)->merge($other_bestuur);
 
-        $dolfijnen = User::whereHas('roles', function ($query) {
+
+        $hoofdleiding_dolfijnen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Dolfijnen Hoofdleiding');
+        })->get();
+        $penningmeester_dolfijnen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Dolfijnen Penningmeester');
+        })->get();
+        $other_leiding_dolfijnen = User::whereHas('roles', function ($query) {
             $query->where('role', 'Dolfijnen Leiding');
+        })->whereDoesntHave('roles', function ($query) {
+            $query->whereIn('role', ['Dolfijnen Hoofdleiding', 'Dolfijnen Penningmeester']);
         })->get();
+        $dolfijnen = $hoofdleiding_dolfijnen->merge($penningmeester_dolfijnen)->merge($other_leiding_dolfijnen);
 
-        $zeeverkenners = User::whereHas('roles', function ($query) {
+
+        $hoofdleiding_zeeverkenners = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Zeeverkenners Hoofdleiding');
+        })->get();
+        $penningmeester_zeeverkenners = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Zeeverkenners Penningmeester');
+        })->get();
+        $other_leiding_zeeverkenners = User::whereHas('roles', function ($query) {
             $query->where('role', 'Zeeverkenners Leiding');
+        })->whereDoesntHave('roles', function ($query) {
+            $query->whereIn('role', ['Zeeverkenners Hoofdleiding', 'Zeeverkenners Penningmeester']);
         })->get();
+        $zeeverkenners = $hoofdleiding_zeeverkenners->merge($penningmeester_zeeverkenners)->merge($other_leiding_zeeverkenners);
 
-        $stamoudste = User::whereHas('roles', function ($query) {
+        $stamoudste_loodsen = User::whereHas('roles', function ($query) {
             $query->where('role', 'Loodsen Stamoudste');
         })->get();
-
-        $penningmeester = User::whereHas('roles', function ($query) {
+        $penningmeester_loodsen = User::whereHas('roles', function ($query) {
             $query->where('role', 'Loodsen Penningmeester');
         })->get();
+        $loodsen = $stamoudste_loodsen->merge($penningmeester_loodsen);
 
-        $loodsen = $stamoudste->merge($penningmeester);
-
-        $afterloodsen = User::whereHas('roles', function ($query) {
-            $query->where('role', 'Afterloodsen Organisator');
+        $hoofdleiding_afterloodsen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Afterloodsen Voorzitter');
         })->get();
+        $penningmeester_afterloodsen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Afterloodsen Penningmeester');
+        })->get();
+        $other_leiding_afterloodsen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Afterloodsen Organisator');
+        })->whereDoesntHave('roles', function ($query) {
+            $query->whereIn('role', ['Afterloodsen Voorzitter', 'Afterloodsen Penningmeester']);
+        })->get();
+        $afterloodsen = $hoofdleiding_afterloodsen->merge($penningmeester_afterloodsen)->merge($other_leiding_afterloodsen);
 
         $ouderraad = User::whereHas('roles', function ($query) {
             $query->where('role', 'Ouderraad');
+        })->get();
+
+        $praktijkbgeleiding = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Praktijkbegeleider');
         })->get();
 
         $admin = User::whereHas('roles', function ($query) {
@@ -285,6 +383,6 @@ class LeidingController extends Controller
             $query->where('role', 'Vrijwilliger');
         })->get();
 
-        return view('leiding.leiding', ['user' => $user, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'vrijwilliger' => $vrijwilliger]);
+        return view('leiding.leiding', ['roles' => $roles, 'user' => $user, 'praktijkbgeleiding' => $praktijkbgeleiding, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'vrijwilliger' => $vrijwilliger]);
     }
 }

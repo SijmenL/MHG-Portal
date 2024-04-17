@@ -11,6 +11,17 @@
             </ol>
         </nav>
 
+        @if(Session::has('error'))
+            <div class="alert alert-danger" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+        @if(Session::has('success'))
+            <div class="alert alert-success" role="alert">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="bg-light rounded-2 p-3">
             <h2>Admin Acties</h2>
             <div class="quick-action-bar">

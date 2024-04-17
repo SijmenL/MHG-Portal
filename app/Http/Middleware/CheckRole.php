@@ -21,7 +21,7 @@ class CheckRole
 
         if (!$user) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'Bekijk pagina', $request->route()->getName(), '', 'Gebruiker had geen toegang tot de pagina');
+            $log->createLog(null, 1, 'Bekijk pagina', $request->route()->getName(), '', 'Gebruiker had geen toegang tot de pagina');
 
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze pagina.');
         }

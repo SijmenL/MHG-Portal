@@ -25,13 +25,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+//Non logged in
+Route::middleware(['guest'])->group(function () {
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+});
+
+
 //Register should be disabled in the future, only admin accounts can create accounts.
 Auth::routes(['register' => false, 'password.request' => false,]);
 
 //Dashboard
 Route::get('/', [HomeController::class, 'index'])->name('dashboard');
 Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
-
 
 Route::get('/changelog', [HomeController::class, 'changelog'])->name('changelog');
 Route::get('/credits', [HomeController::class, 'credits'])->name('credits');
@@ -79,12 +84,14 @@ Route::middleware(['hasChildren'])->group(function () {
 });
 
 //Admin
-Route::middleware(['checkRole:Administratie'])->group(function () {
+Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
 
     // Account management
     Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
     Route::post('/administratie/account-beheer', [AdminController::class, 'accountManagementSearch'])->name('admin.account-management.search');
+
+    Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
 
     Route::get('/administratie/account-beheer/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
 
@@ -127,7 +134,7 @@ Route::middleware(['checkRole:Administratie'])->group(function () {
 });
 
 // Leiding
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider'])->group(function () {
     Route::get('/leiding', [LeidingController::class, 'view'])->name('leiding');
 
 
@@ -142,9 +149,9 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 
     Route::get('/leiding/post/delete/{id}', [LeidingController::class, 'deletePost'])->name('leiding.post.delete');
     Route::get('/leiding/comment/delete/{id}/{postId}', [LeidingController::class, 'deleteComment'])->name('leiding.comment.delete');
-
-    Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 });
+
+Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 
 // Dolfijnen
 Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
@@ -175,7 +182,7 @@ Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur'])->group(
 });
 
 // Zeeverkenners
-Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenner Leiding,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenners Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/zeeverkenners', [ZeeverkennerController::class, 'view'])->name('zeeverkenners');
 
     Route::post('/zeeverkenners', [ZeeverkennerController::class, 'postMessage'])->name('zeeverkenners.message-post');
@@ -193,12 +200,12 @@ Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenner Leiding,Be
     Route::get('/zeeverkenners/leiding', [ZeeverkennerController::class, 'leiding'])->name('zeeverkenners.leiding');
 });
 
-Route::middleware(['checkRole:Administratie,Zeeverkenner Leiding,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/zeeverkenners/groep', [ZeeverkennerController::class, 'group'])->name('zeeverkenners.groep');
     Route::post('/zeeverkenners/groep', [ZeeverkennerController::class, 'groupSearch'])->name('zeeverkenners.group.search');
 });
 
-Route::middleware(['checkRole:Administratie,Zeeverkenner Leiding,Bestuur'])->group(function () {
+Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur'])->group(function () {
     Route::get('/zeeverkenners/groep/details/{id}', [ZeeverkennerController::class, 'groupDetails'])->name('zeeverkenners.groep.details');
 });
 

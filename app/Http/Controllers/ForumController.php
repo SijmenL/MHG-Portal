@@ -19,7 +19,7 @@ class ForumController extends Controller
     public function uploadImage(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:6000',
         ]);
 
         if ($validator->fails()) {
@@ -58,7 +58,7 @@ class ForumController extends Controller
     public function uploadPdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'pdf' => 'required|mimes:pdf',
+            'pdf' => 'required|mimes:pdf|max:6000',
         ]);
 
         if ($validator->fails()) {
@@ -105,7 +105,7 @@ class ForumController extends Controller
 
         if ($like) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Like', '', $postId, 'Like verwijderd');
+            $log->createLog(auth()->user()->id, 2, 'Like', '', 'Post id: '.$postId, 'Like verwijderd');
 
             $like->delete();
             $isLiked = false;
@@ -155,7 +155,7 @@ class ForumController extends Controller
             }
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Like', '', $postId, 'Like geplaatst');
+            $log->createLog(auth()->user()->id, 2, 'Like', '', 'Post id: '.$postId, 'Like geplaatst');
 
             $isLiked = true;
         }
@@ -191,29 +191,24 @@ class ForumController extends Controller
 
                 // Return a response
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 2, 'Edit comment', '', $id, '');
+                $log->createLog(auth()->user()->id, 2, 'Edit comment', '', 'Comment id: '.$id, '');
                 return response()->json(['message' => 'Reactie succesvol bijgewerkt.'], 200);
             } else {
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 0, 'Edit comment', '', $id, 'Reactie kon niet bewerkt worden');
+                $log->createLog(auth()->user()->id, 0, 'Edit comment', '', 'Comment id: '.$id, 'Reactie kon niet bewerkt worden');
                 return response()->json(['message' => 'Bewerking mislukt'], 401);
             }
         } else {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 0, 'Edit comment', '', $id, 'Reactie kon niet bewerkt worden');
+            $log->createLog(auth()->user()->id, 0, 'Edit comment', '', 'Comment id: '.$id, 'Reactie kon niet bewerkt worden');
             throw ValidationException::withMessages(['content' => 'Je post kon niet bewerkt worden.']);
         }
     }
 
     public function searchUser(Request $request)
     {
-        $search = '';
-
-        if ($request->input('search')) {
-            $search = $request->input('search');
-        }
-
-        $ids = explode(',', $request->input('selected'));
+        $search = $request->input('search', '');
+        $ids = explode(',', $request->input('selected', ''));
 
         $selectedUsers = User::where(function ($query) use ($ids, $search) {
             $query->whereIn('id', $ids)
@@ -231,8 +226,7 @@ class ForumController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%')
                         ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 });
-        })
-            ->get();
+        })->get();
 
         $remainingUsers = User::where(function ($query) use ($search) {
             $query->where('name', 'like', '%' . $search . '%')
@@ -250,31 +244,16 @@ class ForumController extends Controller
         })
             ->whereNotIn('id', $ids)
             ->orderBy('created_at', 'asc')
-            ->take(9 - count($selectedUsers))
             ->get();
 
-        $users = $selectedUsers->merge($remainingUsers);
+        $remainingUsersCount = max(0,($selectedUsers->count() + $remainingUsers->count()) - 7);
 
-        $totalUsersCount = User::where(function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('last_name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%')
-                ->orWhere('sex', 'like', '%' . $search . '%')
-                ->orWhere('infix', 'like', '%' . $search . '%')
-                ->orWhere('birth_date', 'like', '%' . $search . '%')
-                ->orWhere('street', 'like', '%' . $search . '%')
-                ->orWhere('postal_code', 'like', '%' . $search . '%')
-                ->orWhere('city', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%')
-                ->orWhere('id', 'like', '%' . $search . '%')
-                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-        })
-            ->whereIn('id', $ids)
-            ->count();
+        $firstNineUsers = $selectedUsers->merge($remainingUsers)->splice(0, 7);
 
-        $remainingUsersCount = max(0, $totalUsersCount - $users->count());
 
-        foreach ($users as $user) {
+
+
+        foreach ($firstNineUsers as $user) {
             if ($user->profile_picture) {
                 $user->profile_picture_url = asset('profile_pictures/' . $user->profile_picture);
             } else {
@@ -283,12 +262,13 @@ class ForumController extends Controller
         }
 
         $usersWithRemainingCount = [
-            'users' => $users,
+            'users' => $firstNineUsers,
             'remainingUsersCount' => $remainingUsersCount
         ];
 
         return response()->json($usersWithRemainingCount);
     }
+
 
 
     public static function validatePostData($content)
