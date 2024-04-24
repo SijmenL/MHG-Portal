@@ -150,20 +150,25 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="loodsenbar-ordering-users-div input-group mt-2">
-                                        <select class="form-select" onchange='orderUserSelected(this);' id="order-users" >
+                                        <select class="form-select" onchange='orderUserSelected(this);' id='order-users'>
                                             <option selected value=''>Kies user...</option>
                                             @php if(count($loodsen) == 0) {print "No loodsen found";} @endphp
                                             @foreach ($loodsen as $loods)
-                                                <option value="{{ $loods->id }}">{{ $loods->name }}</option>
+                                                @php 
+                                                    // $select = '';
+                                                    // if($loods->id == auth()->user()->id) {$select = 'selected';} 
+                                                @endphp
+                                                <option value="{{ $loods->id }}" >{{ $loods->name }}</option>
                                             @endforeach
                                         </select>
-                                        <input type="number" id="order-count" class="form-control" placeholder="0" value='' min='0' step='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'>
+                                        <input type="number" id="order-count" class="form-control" placeholder="0" value='1' min='0' step='1' onkeypress='return event.charCode >= 48 && event.charCode <= 57'>
                                     </div>
 
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary">Understood</button>
+                                <div class="modal-footer d-flex justify-content-between">
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Alleen voor mij</button>
+                                    {{-- button submit --}}
+                                    <button type="submit" class="btn btn-success">Order Opslaan</button>
                                 </div>
                             </div>
                         </div>
