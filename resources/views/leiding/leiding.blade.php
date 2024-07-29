@@ -282,6 +282,9 @@
                                 <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
+                                    @if($leiding_individual->roles->contains('role', 'Loodsen Mentor'))
+                                        <h4 class="m-0">Loodsen Mentor</h4>
+                                    @endif
                                     @if($leiding_individual->roles->contains('role', 'Loodsen Stamoudste'))
                                         <h4 class="m-0">Stamoudste</h4>
                                     @endif

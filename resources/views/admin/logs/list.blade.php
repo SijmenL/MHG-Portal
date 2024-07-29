@@ -2,6 +2,11 @@
 
 @vite('resources/js/search-user.js')
 
+@php
+    use Carbon\Carbon;
+    Carbon::setLocale('nl');
+@endphp
+
 @section('content')
     <div class="container col-md-11">
         <h1>Logs</h1>

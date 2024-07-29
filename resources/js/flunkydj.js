@@ -27,6 +27,7 @@ let paused;
 let newSource;
 let isStopping = false
 let decreasePlaybackRate;
+let stopAudio;
 
 function BufferLoader(context, urlList, callback) {
     this.context = context;
@@ -85,6 +86,8 @@ function init() {
     buttonDisplay = document.getElementById('button-display');
     loadingDisplay = document.getElementById('loading');
     gainNode = context.createGain();
+
+    stopAudio = document.getElementById('stop-audio');
 
     if ('wakeLock' in navigator) {
         let wakeLock = null;
@@ -202,6 +205,10 @@ function stop(allSources) {
         clearInterval(decreasePlaybackRate)
         clear(allSources);
         stopButton.classList.remove('is-stopping');
+
+        stopAudio.play();
+        stopAudio.volume = 0.25;
+        stopAudio.currentTime = 0;
     }
     if (isStopping === false && paused === false) {
         stopButton.classList.add('is-stopping');

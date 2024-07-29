@@ -273,18 +273,27 @@ class ForumController extends Controller
 
     public static function validatePostData($content)
     {
-
-        if (str_contains($content, '<script>') && str_contains($content, '<script') && str_contains($content, '</script>')) {
-
+        // Check for the presence of <script> tags
+        if (str_contains($content, '<script>') || str_contains($content, '<script') || str_contains($content, '</script>')) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 0, 'Create content', '', '', 'Post of reactie mislukt, bevatte javascript.');
-
             return false;
         }
 
-        $dom = new DOMDocument();
-        $dom->loadHTML($content);
+        // Wrap content in a basic HTML structure
+        $content = '<!DOCTYPE html><html><body>' . $content . '</body></html>';
 
+        // Suppress errors and warnings
+        libxml_use_internal_errors(true);
+
+        // Load HTML
+        $dom = new DOMDocument();
+        $dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+        // Clear libxml errors
+        libxml_clear_errors();
+
+        // Check for classes
         $elements = $dom->getElementsByTagName('*');
         $containsClasses = false;
 
@@ -299,11 +308,11 @@ class ForumController extends Controller
         if ($containsClasses) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 0, 'Create content', '', '', 'Post of reactie mislukt, bevatte ongeldige css classes.');
-
             return false;
-
         }
+
         return true;
     }
+
 
 }

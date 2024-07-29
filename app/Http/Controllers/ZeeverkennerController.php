@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersExport;
 use App\Models\Comment;
 use App\Models\Log;
 use App\Models\Notification;
@@ -327,15 +328,26 @@ class ZeeverkennerController extends Controller
         $users = User::with(['roles' => function ($query) {
             $query->where('role', 'Zeeverkenner')->orderBy('role', 'asc');
         }])
+            ->where('accepted', true)
             ->whereHas('roles', function ($query) {
                 $query->where('role', 'Zeeverkenner');
             })
             ->orderBy('last_name')
             ->paginate(25);
 
-        $selected_role = '';
+        $user_ids = User::with(['roles' => function ($query) {
+            $query->where('role', 'Zeeverkenner')->orderBy('role', 'asc');
+        }])
+            ->where('accepted', true)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Zeeverkenner');
+            })
+            ->orderBy('last_name')
+            ->pluck('id');
 
-        return view('speltakken.zeeverkenners.group', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'selected_role' => $selected_role]);
+        $selected_role = 'Zeeverkenners';
+
+        return view('speltakken.zeeverkenners.group', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'selected_role' => $selected_role]);
     }
 
     public function groupSearch(Request $request)
@@ -347,30 +359,112 @@ class ZeeverkennerController extends Controller
         $search = $request->input('search');
         $selected_role = $request->input('role');
 
-        $users = User::where(function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('last_name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%')
-                ->orWhere('sex', 'like', '%' . $search . '%')
-                ->orWhere('infix', 'like', '%' . $search . '%')
-                ->orWhere('birth_date', 'like', '%' . $search . '%')
-                ->orWhere('street', 'like', '%' . $search . '%')
-                ->orWhere('postal_code', 'like', '%' . $search . '%')
-                ->orWhere('city', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%')
-                ->orWhere('id', 'like', '%' . $search . '%')
-                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-        })
-            ->whereHas('roles', function ($query) {
+        if ($selected_role === 'Zeeverkenners') {
+            $users = User::where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('sex', 'like', '%' . $search . '%')
+                    ->orWhere('infix', 'like', '%' . $search . '%')
+                    ->orWhere('birth_date', 'like', '%' . $search . '%')
+                    ->orWhere('street', 'like', '%' . $search . '%')
+                    ->orWhere('postal_code', 'like', '%' . $search . '%')
+                    ->orWhere('city', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('id', 'like', '%' . $search . '%')
+                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+            })
+                ->where('accepted', true)
+                ->whereHas('roles', function ($query) {
+                    $query->where('role', 'Zeeverkenner');
+                })
+                ->orderBy('last_name')
+                ->paginate(25);
+
+            $user_ids = User::where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('sex', 'like', '%' . $search . '%')
+                    ->orWhere('infix', 'like', '%' . $search . '%')
+                    ->orWhere('birth_date', 'like', '%' . $search . '%')
+                    ->orWhere('street', 'like', '%' . $search . '%')
+                    ->orWhere('postal_code', 'like', '%' . $search . '%')
+                    ->orWhere('city', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('id', 'like', '%' . $search . '%')
+                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+            })
+                ->where('accepted', true)
+                ->whereHas('roles', function ($query) {
+                    $query->where('role', 'Zeeverkenner');
+                })
+                ->orderBy('last_name')
+                ->pluck('id');
+        } else {
+            $users = User::whereHas('children.roles', function ($query) {
                 $query->where('role', 'Zeeverkenner');
             })
-            ->orderBy('last_name')
-            ->paginate(25);
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                ->where('accepted', true)
+                ->orderBy('last_name')
+                ->paginate(25);
+
+            $user_ids = User::whereHas('children.roles', function ($query) {
+                $query->where('role', 'Zeeverkenner');
+            })
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                ->where('accepted', true)
+                ->pluck('id');
+        }
 
 
         $all_roles = Role::orderBy('role')->get();
 
-        return view('speltakken.zeeverkenners.group', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+        return view('speltakken.zeeverkenners.group', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+    }
+
+    public function exportData(Request $request)
+    {
+// Retrieve the filtered user data from the request
+        $users = json_decode($request->input('user_ids'));
+        $export_type = $request->input('type');
+
+        if ($export_type === 'Zeeverkenners') {
+            $type = 'zeeverkenners';
+        } else {
+            $type = 'zeeverkenners-ouders';
+        }
+
+// Export data to Excel
+        $export = new UsersExport($users, $type);
+        return $export->export();
     }
 
     public function groupDetails($id)
@@ -379,13 +473,16 @@ class ZeeverkennerController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-        $account = User::with(['roles' => function ($query) {
-            $query->orderBy('role', 'asc');
-        }])
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Zeeverkenner');
-            })
-            ->find($id);
+            $account = User::with(['roles' => function ($query) {
+                $query->orderBy('role', 'asc');
+            }])
+                ->whereHas('roles', function ($query) {
+                    $query->where('role', 'Zeeverkenner');
+                })
+                ->orWhereHas('children.roles', function ($query) {
+                    $query->where('role', 'Zeeverkenner');
+                })
+                ->find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');

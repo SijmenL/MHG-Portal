@@ -1,6 +1,37 @@
 @extends('layouts.afterloodsen')
 
+@vite('resources/js/user-export.js')
+
 @section('content')
+    <div id="popUp" class="popup d-none" style="margin-top: -122px">
+        <div class="popup-body">
+            <h2>Exporteer leden</h2>
+            <p>Alle afterloodsen die aan je zoekopdracht voldoen worden geëxporteerd.</p>
+            <div class="bg-light rounded-2 p-3">
+                <h2>Opties</h2>
+                <div class="quick-action-bar">
+                    <form class="m-0 p-0 quick-action" action="{{ route('afterloodsen.group.export') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="user_ids" value="{{ json_encode($user_ids) }}">
+                        <input type="hidden" name="type" value="{{ $selected_role }}">
+
+                        <button type="submit" class="btn btn-success quick-action">
+                            <span class="material-symbols-rounded">table_view</span>
+                            <p>Excel</p>
+                        </button>
+                    </form>
+                    <a class="btn btn-info quick-action" href="mailto:?bcc=@foreach($users as $user_adres){{$user_adres->email}}@unless($loop->last),@endunless @endforeach">
+                        <span class="material-symbols-rounded">mail</span>
+                        <p>Mail</p>
+                    </a>
+                </div>
+            </div>
+            <div class="button-container">
+                <a id="cancelButton" class="btn btn-outline-danger">Annuleren</a>
+            </div>
+        </div>
+    </div>
+
     <div class="container col-md-11">
         <h1>Leden</h1>
 
@@ -32,6 +63,8 @@
                         <input id="search" name="search" type="text" class="form-control"
                                placeholder="Zoeken op naam, email, adres etc."
                                aria-label="Zoeken" aria-describedby="basic-addon1" value="{{ $search }}" onchange="this.form.submit();">
+                        <a @if($users->count() > 0) id="export-button" @endif class="input-group-text @if($users->count() < 1)disabled @endif" style="text-decoration: none; cursor: pointer">
+                            <span class="material-symbols-rounded">ios_share</span></a>
                     </div>
                 </div>
             </div>
@@ -42,7 +75,6 @@
                 <table class="table table-striped">
                     <thead class="thead-dark table-bordered table-hover">
                     <tr>
-                        <th scope="col">#</th>
                         <th class="no-mobile" scope="col">Profielfoto</th>
                         <th scope="col">Naam</th>
                         <th class="no-mobile" scope="col">Email</th>
@@ -56,7 +88,6 @@
 
                     @foreach ($users as $all_user)
                         <tr id="{{ $all_user->id }}">
-                            <th>{{ $all_user->id }}</th>
                             <th class="no-mobile">
                                 @if($all_user->profile_picture)
                                     <img alt="profielfoto" class="profle-picture"

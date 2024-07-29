@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
 use App\Models\Log;
+use App\Models\News;
 use App\Models\Notification;
 use App\Models\User;
 use DateTime;
@@ -42,7 +44,19 @@ class HomeController extends Controller
             $notifications = "99+";
         }
 
-        return view('home.dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate, 'notifications' => $notifications]);
+        $contact = Contact::where('done', false)->count();
+
+        $signup = User::where('accepted', false)->count();
+
+        $news = News::where('accepted', false)->count();
+
+        $admin = $contact + $signup + $news;
+
+        if ($admin > 100) {
+            $admin = "99+";
+        }
+
+        return view('home.dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate, 'notifications' => $notifications, 'admin' => $admin]);
     }
 
     public function changelog() {
@@ -83,10 +97,5 @@ class HomeController extends Controller
         }
 
         return view('home.notifications', ['user' => $user, 'roles' => $roles, 'notifications' => $notifications, 'notificationsUnseen' => $notificationsUnseen]);
-    }
-
-    public function contact() {
-
-        return view('forms.contact');
     }
 }

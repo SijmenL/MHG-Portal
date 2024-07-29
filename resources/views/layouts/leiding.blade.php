@@ -10,6 +10,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Leiding & Organisatie</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <link rel="mask-icon" href="/public/safari-pinned-tab.svg" color="#0092df">
+    <meta name="msapplication-TileColor" content="#1c244b">
+    <meta name="theme-color" content="#ffffff">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">

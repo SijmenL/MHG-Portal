@@ -4,6 +4,8 @@ use App\Http\Controllers\AfterloodsenController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LeidingController;
 use App\Http\Controllers\LoodsenController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\NonLoggedInController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DolfijnenController;
@@ -26,12 +28,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 //Non logged in
-Route::middleware(['guest'])->group(function () {
-    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-});
+Route::get('/contact', [NonLoggedInController::class, 'contact'])->name('contact');
+Route::post('/contact', [NonLoggedInController::class, 'contactSubmit'])->name('contact.submit');
 
+Route::get('/inschrijven', [NonLoggedInController::class, 'inschrijven'])->name('inschrijven');
+Route::post('/inschrijven', [NonLoggedInController::class, 'inschrijvenSubmit'])->name('inschrijven.submit');
 
-//Register should be disabled in the future, only admin accounts can create accounts.
+Route::get('/nieuws/item/{id}', [NewsController::class, 'viewNewsItem'])->name('news.item');
+Route::get('/nieuws/overzicht', [NewsController::class, 'viewNewsPage'])->name('news.list');
+
 Auth::routes(['register' => false, 'password.request' => false,]);
 
 //Dashboard
@@ -53,15 +58,16 @@ Route::post('/instellingen/account/bewerk', [SettingsController::class, 'editAcc
 Route::get('/instellingen/verander-wachtwoord', [SettingsController::class, 'changePassword'])->name('settings.change-password');
 Route::post('/instellingen/verander-wachtwoord', [SettingsController::class, 'updatePassword'])->name('settings.change-password.store');
 
-Route::get('/instellingen/ouder-account', [SettingsController::class, 'parent'])->name('settings.parent');
+Route::middleware(['checkAccepted'])->group(function () {
+    Route::get('/instellingen/ouder-account', [SettingsController::class, 'parent'])->name('settings.parent');
 
-Route::get('/instellingen/ouder-account/link', [SettingsController::class, 'linkParent'])->name('settings.link-parent');
-Route::post('/instellingen/ouder-account/link', [SettingsController::class, 'linkParentStore'])->name('settings.link-parent.store');
-Route::get('/instellingen/ouder-account/link/{id}', [SettingsController::class, 'confirmParent'])->name('settings.link-parent.confirm');
+    Route::get('/instellingen/ouder-account/link', [SettingsController::class, 'linkParent'])->name('settings.link-parent');
+    Route::post('/instellingen/ouder-account/link', [SettingsController::class, 'linkParentStore'])->name('settings.link-parent.store');
+    Route::get('/instellingen/ouder-account/link/{id}', [SettingsController::class, 'confirmParent'])->name('settings.link-parent.confirm');
 
-Route::get('/instellingen/ouder-account/maak-account', [SettingsController::class, 'createAccount'])->name('settings.link-new-parent.create');
-Route::post('/instellingen/ouder-account/maak-account', [SettingsController::class, 'createAccountStore'])->name('settings.link-new-parent.store');
-
+    Route::get('/instellingen/ouder-account/maak-account', [SettingsController::class, 'createAccount'])->name('settings.link-new-parent.create');
+    Route::post('/instellingen/ouder-account/maak-account', [SettingsController::class, 'createAccountStore'])->name('settings.link-new-parent.store');
+});
 
 Route::middleware(['isAllowedToRemoveParents'])->group(function () {
     Route::get('/instellingen/ouder-account/verwijder', [SettingsController::class, 'removeParentLink'])->name('settings.remove-parent-link');
@@ -83,9 +89,44 @@ Route::middleware(['hasChildren'])->group(function () {
     Route::post('/kinderen/edit/{id}', [ParentController::class, 'editChildSave'])->name('children.store');
 });
 
+// News
+Route::middleware(['auth'])->group(function () {
+    Route::get('/nieuws', [NewsController::class, 'home'])->name('news');
+
+    Route::get('/nieuws/nieuw-nieuwtje', [NewsController::class, 'news'])->name('news.new');
+    Route::post('/nieuws/nieuw-nieuwtje', [NewsController::class, 'newsCreate'])->name('news.new.create');
+
+    Route::get('/nieuws/mijn-nieuws', [NewsController::class, 'userNews'])->name('news.user');
+
+    Route::get('/nieuws/mijn-nieuws/bewerk/{id}', [NewsController::class, 'editNews'])->name('news.user.edit');
+    Route::post('/nieuws/mijn-nieuws/bewerk/{id}', [NewsController::class, 'saveEditNews'])->name('news.user.edit.save');
+
+    Route::get('/nieuws/mijn-nieuws/verwijder/{id}', [NewsController::class, 'deleteNews'])->name('news.user.edit.delete');
+});
 //Admin
 Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
+
+    // Content
+    Route::get('/administratie/contact', [AdminController::class, 'contact'])->name('admin.contact');
+    Route::get('/administratie/contact/details/{id}', [AdminController::class, 'contactDetails'])->name('admin.contact.details');
+    Route::get('/administratie/contact/verwijder/{id}', [AdminController::class, 'contactDelete'])->name('admin.contact.delete');
+    Route::get('/administratie/contact/afgehandeld/{id}', [AdminController::class, 'contactSeen'])->name('admin.contact.seen');
+
+    Route::get('/administratie/inschrijvingen', [AdminController::class, 'signup'])->name('admin.signup');
+    Route::get('/administratie/inschrijvingen/details/{id}', [AdminController::class, 'signupAccountDetails'])->name('admin.signup.details');
+
+    Route::get('/administratie/inschrijvingen/accepteer/{id}', [AdminController::class, 'signupAccept'])->name('admin.signup.accept');
+    Route::get('/administratie/inschrijvingen/verwijder/{id}', [AdminController::class, 'signupDelete'])->name('admin.signup.delete');
+
+    Route::get('/administratie/nieuws', [AdminController::class, 'news'])->name('admin.news');
+    Route::get('/administratie/nieuws/details/{id}', [AdminController::class, 'newsDetails'])->name('admin.news.details');
+
+    Route::get('/administratie/nieuws/bewerk/{id}', [AdminController::class, 'newsEdit'])->name('admin.news.edit');
+    Route::post('/administratie/nieuws/bewerk/{id}', [AdminController::class, 'newsEditSave'])->name('admin.news.edit.save');
+
+    Route::get('/administratie/nieuws/publiceer/{id}', [AdminController::class, 'newsPublish'])->name('admin.news.publish');
+    Route::get('/administratie/nieuws/verwijder/{id}', [AdminController::class, 'newsDelete'])->name('admin.news.delete');
 
     // Account management
     Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
@@ -134,7 +175,7 @@ Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
 });
 
 // Leiding
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider'])->group(function () {
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor'])->group(function () {
     Route::get('/leiding', [LeidingController::class, 'view'])->name('leiding');
 
 
@@ -149,12 +190,13 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 
     Route::get('/leiding/post/delete/{id}', [LeidingController::class, 'deletePost'])->name('leiding.post.delete');
     Route::get('/leiding/comment/delete/{id}/{postId}', [LeidingController::class, 'deleteComment'])->name('leiding.comment.delete');
+
+    Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 });
 
-Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 
 // Dolfijnen
-Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
     Route::get('/dolfijnen', [DolfijnenController::class, 'view'])->name('dolfijnen');
     Route::post('/dolfijnen', [DolfijnenController::class, 'postMessage'])->name('dolfijnen.message-post');
 
@@ -175,6 +217,7 @@ Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ou
 Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/dolfijnen/groep', [DolfijnenController::class, 'group'])->name('dolfijnen.groep');
     Route::post('/dolfijnen/groep', [DolfijnenController::class, 'groupSearch'])->name('dolfijnen.group.search');
+    Route::post('/dolfijnen/groep/export', [DolfijnenController::class, 'exportData'])->name('dolfijnen.groep.export');
 });
 
 Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur'])->group(function () {
@@ -182,7 +225,7 @@ Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur'])->group(
 });
 
 // Zeeverkenners
-Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenners Leiding,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenners Leiding,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
     Route::get('/zeeverkenners', [ZeeverkennerController::class, 'view'])->name('zeeverkenners');
 
     Route::post('/zeeverkenners', [ZeeverkennerController::class, 'postMessage'])->name('zeeverkenners.message-post');
@@ -203,6 +246,7 @@ Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenners Leiding,B
 Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/zeeverkenners/groep', [ZeeverkennerController::class, 'group'])->name('zeeverkenners.groep');
     Route::post('/zeeverkenners/groep', [ZeeverkennerController::class, 'groupSearch'])->name('zeeverkenners.group.search');
+    Route::post('/zeeverkenners/groep/export', [ZeeverkennerController::class, 'exportData'])->name('zeeverkenners.groep.export');
 });
 
 Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur'])->group(function () {
@@ -210,7 +254,7 @@ Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur'])->gr
 });
 
 // Loodsen
-Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Ouderraad,Loodsen Mentor', 'checkAccepted'])->group(function () {
     Route::get('/loodsen', [LoodsenController::class, 'view'])->name('loodsen');
 
     Route::post('/loodsen', [LoodsenController::class, 'postMessage'])->name('loodsen.message-post');
@@ -233,12 +277,13 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
     Route::get('/loodsen/flunkyball/regels', [LoodsenController::class, 'rules'])->name('loodsen.flunkyball.rules');
 });
 
-Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad,Loodsen Mentor'])->group(function () {
     Route::get('/loodsen/groep', [LoodsenController::class, 'group'])->name('loodsen.groep');
     Route::post('/loodsen/groep', [LoodsenController::class, 'groupSearch'])->name('loodsen.group.search');
+    Route::post('/loodsen/groep/export', [LoodsenController::class, 'exportData'])->name('loodsen.group.export');
 });
 
-Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur'])->group(function () {
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Loodsen Mentor'])->group(function () {
     Route::get('/loodsen/groep/details/{id}', [LoodsenController::class, 'groupDetails'])->name('loodsen.groep.details');
 });
 
@@ -256,7 +301,7 @@ Route::middleware(['checkRole:Administratie,Loodsen Stamoudste'])->group(functio
 });
 
 // After loodsen
-Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Organisator,Bestuur,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Organisator,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
     Route::get('/afterloodsen', [AfterloodsenController::class, 'view'])->name('afterloodsen');
 
 
@@ -279,6 +324,7 @@ Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Organisator,
 Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur,Ouderraad'])->group(function () {
     Route::get('/afterloodsen/leden', [AfterloodsenController::class, 'group'])->name('afterloodsen.groep');
     Route::post('/afterloodsen/leden', [AfterloodsenController::class, 'groupSearch'])->name('afterloodsen.group.search');
+    Route::post('/afterloodsen/leden/export', [AfterloodsenController::class, 'exportData'])->name('afterloodsen.group.export');
 });
 
 Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur'])->group(function () {

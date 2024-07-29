@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Log;
+use App\Models\News;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\User;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LeidingController extends Controller
@@ -346,13 +348,16 @@ class LeidingController extends Controller
         })->get();
         $zeeverkenners = $hoofdleiding_zeeverkenners->merge($penningmeester_zeeverkenners)->merge($other_leiding_zeeverkenners);
 
+        $mentor_loodsen = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Loodsen Mentor');
+        })->get();
         $stamoudste_loodsen = User::whereHas('roles', function ($query) {
             $query->where('role', 'Loodsen Stamoudste');
         })->get();
         $penningmeester_loodsen = User::whereHas('roles', function ($query) {
             $query->where('role', 'Loodsen Penningmeester');
         })->get();
-        $loodsen = $stamoudste_loodsen->merge($penningmeester_loodsen);
+        $loodsen = $mentor_loodsen->merge($stamoudste_loodsen)->merge($penningmeester_loodsen);
 
         $hoofdleiding_afterloodsen = User::whereHas('roles', function ($query) {
             $query->where('role', 'Afterloodsen Voorzitter');

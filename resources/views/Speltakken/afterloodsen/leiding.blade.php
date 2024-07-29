@@ -45,14 +45,19 @@
 
                         </div>
                         <div class="card-footer">
-                            <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                            @if(isset($leiding_individual->phone))
+                                <a class="btn btn-outline-dark d-flex flex-row gap-1 align-items-center"
+                                   href="tel:{{ $leiding_individual->phone }}"><span
+                                        class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <span class="material-symbols-rounded me-2">person_off</span>Geen leiding gevonden...
+                <span class="material-symbols-rounded me-2">person_off</span>Geen organisatie gevonden...
             </div>
         @endif
 

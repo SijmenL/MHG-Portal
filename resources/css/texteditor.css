@@ -27,12 +27,14 @@
     background-color: #ffffff;
     outline: none;
     color: #020929;
+    user-select: none;
 }
 
 select {
     padding: 7px;
     border: 1px solid #020929;
     border-radius: 3px;
+    user-select: none;
 }
 
 .color-picker {
@@ -87,8 +89,9 @@ input[type="color"]::-moz-color-swatch {
     margin-top: 10px;
     border: 1px solid #dddddd;
     padding: 20px;
-    max-width: calc(100% - 66px);
-    width: calc(100% - 66px);
+    max-width: calc(100%);
+    width: 100%;
+    overflow-x: scroll;
 }
 
 .active-button {
