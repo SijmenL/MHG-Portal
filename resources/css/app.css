@@ -66,10 +66,17 @@ h1, .h1 {
 .card {
     width: 75vw;
     max-width: 300px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, .15);
+    transition: 0.2s;
+    border: none;
+}
+
+.card:hover {
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, .25);
 }
 
 .quick-action {
-    height: 50px;
+    min-height: 50px;
     aspect-ratio: unset;
     align-items: center;
     display: flex;
@@ -78,7 +85,9 @@ h1, .h1 {
     overflow: hidden;
     flex-grow: 2;
     width: 100%;
+    transition: 0.25s;
 }
+
 
 .dashboard-notification {
     top: 0;
@@ -120,6 +129,11 @@ h1, .h1 {
     font-size: calc(7px + 0.2vw);
 }
 
+.disabled {
+    cursor: not-allowed !important;
+    background: var(--secondary-color);
+    color: rgb(128, 128, 128);
+}
 
 .btn-admin {
     border: 2px #ffb3af solid;
@@ -225,6 +239,25 @@ pre {
     margin: 5px;
 }
 
+.news-image-full {
+    width: 100%;
+    max-height: 750px;
+    object-fit: contain;
+}
+
+.news-content img {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+}
+
+* {
+    word-wrap: break-word; /* Older syntax */
+    overflow-wrap: break-word; /* Modern syntax */
+    word-break: break-word; /* Ensure words break properly */
+    hyphens: auto; /* Enable hyphenation */
+}
+
 .nav-link:hover {
     background-color: var(--accent-color);
 }
@@ -298,10 +331,11 @@ pre {
     text-align: center;
     text-shadow: -5px 5px 16px rgba(0, 0, 0, 0.96);
     margin-bottom: 50px;
+    padding: 10px;
 }
 
 .header-title {
-    font-size: 35px;
+    font-size: 25px;
     font-weight: 600;
     margin: 0 auto;
 }
@@ -383,10 +417,24 @@ pre {
     width: 90vw;
 }
 
-.login-logo {
-    width: 75%;
-    padding: 25px;
-    filter: drop-shadow(0px 0px 15px #000000);
+.contact-image {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    justify-content: center;
+    align-items: center;
+    display: none;
+}
+
+.contact-text {
+    width: 100%;
+}
+
+.contact {
+    flex-direction: column;
+    width: 95vw;
 }
 
 .clickable-button {
@@ -741,6 +789,56 @@ th .form-control, .form-select {
     justify-content: space-between;
 }
 
+.form-step {
+    border-radius: 50%;
+    padding: 5px;
+    border: var(--primary-color) solid 1px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.form-step p {
+    padding: 0;
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    color: var(--primary-color);
+}
+
+.form-line {
+    transform: translateY(15px);
+    border: var(--secondary-color) 1px solid;
+    height: 0;
+    width: 100%;
+}
+
+.form-step-active {
+    background: var(--primary-color);
+}
+
+.form-step-active p {
+    color: white !important;
+}
+
+.btn-primary:hover {
+    color: white !important;
+}
+
+.btn-outline-primary:hover {
+    color: white !important;
+}
+
 @media screen and (min-width: 992px) {
     .mobile-only {
         display: none;
@@ -846,6 +944,12 @@ th .form-control, .form-select {
         width: 70vw;
     }
 
+    .contact {
+        flex-direction: row;
+        height: 95vh;
+        width: 95vw;
+    }
+
     .forum-image {
         width: 50%;
     }
@@ -873,6 +977,20 @@ th .form-control, .form-select {
     }
 
     .login-image {
+        width: 100%;
+        height: 100%;
+        max-width: 500px;
+        flex-direction: column-reverse;
+        justify-content: end;
+        align-items: end;
+    }
+
+    .contact-text {
+        width: 75%;
+    }
+
+    .contact-image {
+        display: flex;
         width: 100%;
         height: 100%;
         max-width: 500px;

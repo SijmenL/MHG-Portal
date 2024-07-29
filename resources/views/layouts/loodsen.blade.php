@@ -10,6 +10,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Loodsen</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <link rel="mask-icon" href="/public/safari-pinned-tab.svg" color="#0092df">
+    <meta name="msapplication-TileColor" content="#1c244b">
+    <meta name="theme-color" content="#ffffff">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -77,8 +82,8 @@
                                    href="{{ route('loodsen.flunkyball') }}"><img alt="flunkyball" class="navbar-icon" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">Flunkyball</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text no-tablet"
-                                   href="{{ route('loodsen') }}"><img alt="loodsenbar" class="navbar-icon" src="{{ asset('files/loodsen/logo-bar.webp') }}">Loodsenbar</a>
+{{--                                <a class="nav-link d-flex flex-row gap-1 justify-content-center align-items-center white-text no-tablet"--}}
+{{--                                   href="{{ route('loodsen') }}"><img alt="loodsenbar" class="navbar-icon" src="{{ asset('files/loodsen/logo-bar.webp') }}">Loodsenbar</a>--}}
                             </li>
                         </ul>
                         @guest

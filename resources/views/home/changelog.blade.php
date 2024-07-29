@@ -11,6 +11,21 @@
             </ol>
         </nav>
 
+        <h2>Update 1.1</h2>
+        <p class="fst-italic">10/07/2024</p>
+        <ul>
+            <li class="added">Het beheer van nieuwsitems gaat volledig via portal</li>
+            <ul>
+                <li class="added">Iedereen kan nieuws aanmaken</li>
+                <li class="added">Nieuws wordt op de website gepubliceerd wanneer de administratie dit geaccepteerd heeft</li>
+                <ul>
+                    <li class="added">Gebruikers krijgen een melding wanneer hun nieuws op de site staat</li>
+                </ul>
+                <li class="added">Nog niet gepubliceerd nieuws kan bewerkt worden</li>
+                <li class="added">Al het nieuws wat al op de website stond is overgezet naar het nieuwe systeem</li>
+            </ul>
+        </ul>
+
         <h2>Update 1.0</h2>
         <p class="fst-italic">26/03/2024</p>
         <ul>

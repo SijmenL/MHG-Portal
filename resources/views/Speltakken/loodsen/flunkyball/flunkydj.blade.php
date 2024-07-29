@@ -24,6 +24,7 @@
 
 
         </div>
+        <audio id="stop-audio" src="{{ asset('files/loodsen/flunkyball/stop.mp3') }}"></audio>
         <div class="buttons">
             <div id="loading" class="w-100 h-100 d-flex justify-content-center align-items-center"><span class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span></div>
             <div class="buttons" id="button-display">

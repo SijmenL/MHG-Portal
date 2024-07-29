@@ -44,6 +44,8 @@
                         <span class="material-symbols-rounded">arrow_forward_ios</span>
                     </div>
                 </a>
+
+                @if($user->accepted === 1)
                 <div class="devider"></div>
                 <a class="setting" href="{{ route('settings.parent') }}">
                     <div class="setting-text">
@@ -85,6 +87,7 @@
                     </a>
                 @endif
             </div>
+            @endif
         </div>
     </div>
 @endsection

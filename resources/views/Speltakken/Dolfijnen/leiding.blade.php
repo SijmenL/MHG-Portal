@@ -50,7 +50,12 @@
 
                         </div>
                         <div class="card-footer">
-                            <a href="tel:{{ $leiding_individual->phone }}">{{ $leiding_individual->phone }}</a>
+                            @if(isset($leiding_individual->phone))
+                                <a class="btn btn-outline-dark d-flex flex-row gap-1 align-items-center"
+                                   href="tel:{{ $leiding_individual->phone }}"><span
+                                        class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endforeach

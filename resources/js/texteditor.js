@@ -144,6 +144,33 @@ const initializer = () => {
         }
 
         inputFields.forEach(function (field) {
+            // field.addEventListener('paste', function (event) {
+            //     console.log('Paste event detected');
+            //
+            //     // Prevent the default paste behavior
+            //     event.preventDefault();
+            //
+            //     // Check if clipboard data is available
+            //     const clipboardData = event.clipboardData || window.clipboardData;
+            //     if (!clipboardData) {
+            //         console.error('Clipboard data not available');
+            //         return;
+            //     }
+            //
+            //     // Get the plain text from the clipboard
+            //     const plainText = clipboardData.getData('text/plain');
+            //     if (!plainText) {
+            //         console.error('No plain text found in clipboard data');
+            //         return;
+            //     }
+            //
+            //     // Insert the plain text into the editable div at the current cursor position
+            //     document.execCommand('insertText', false, plainText);
+            //
+            //     console.log('Plain text pasted:', plainText);
+            //     editText()
+            // });
+
             field.addEventListener('paste', function (event) {
                 console.log('Paste event detected');
 
@@ -157,19 +184,95 @@ const initializer = () => {
                     return;
                 }
 
-                // Get the plain text from the clipboard
+                // Get the HTML from the clipboard
+                const html = clipboardData.getData('text/html');
                 const plainText = clipboardData.getData('text/plain');
-                if (!plainText) {
-                    console.error('No plain text found in clipboard data');
+                if (!html && !plainText) {
+                    console.error('No HTML or plain text found in clipboard data');
                     return;
                 }
 
-                // Insert the plain text into the editable div at the current cursor position
-                document.execCommand('insertText', false, plainText);
+                // Create a temporary container for the HTML content
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html || plainText;
 
-                console.log('Plain text pasted:', plainText);
-                editText()
+                // Function to clean unwanted styles
+                function cleanStyles(element) {
+                    if (element.style) {
+                        element.style = '';
+                    }
+                    for (let i = 0; i < element.children.length; i++) {
+                        cleanStyles(element.children[i]);
+                    }
+                }
+
+                // Function to remove classes from elements
+                function removeClasses(element) {
+                    if (element.classList) {
+                        if (element instanceof SVGElement) {
+                            element.setAttribute('class', ''); // For SVG elements
+                        } else {
+                            element.className = ''; // For regular HTML elements
+                        }
+                    }
+                    for (let i = 0; i < element.children.length; i++) {
+                        removeClasses(element.children[i]);
+                    }
+                }
+
+                // Function to remove ids from elements
+                function removeIds(element) {
+                    if (element.id) {
+                        element.removeAttribute('id'); // Remove id attribute
+                    }
+                    for (let i = 0; i < element.children.length; i++) {
+                        removeIds(element.children[i]);
+                    }
+                }
+
+                // Function to remove disallowed elements
+                function removeDisallowedElements(element) {
+                    const disallowedTags = [
+                        'input', 'nav', 'select', 'script', 'footer', 'iframe', 'button',
+                        'textarea', 'form', 'style', 'link', 'label', 'header', 'aside',
+                        'article', 'embed', 'object', 'svg', 'canvas', 'video', 'audio',
+                    ];
+                    if (disallowedTags.includes(element.tagName.toLowerCase())) {
+                        element.remove();
+                        return;
+                    }
+                    for (let i = 0; i < element.children.length; i++) {
+                        removeDisallowedElements(element.children[i]);
+                    }
+                }
+
+                // Clean styles, remove classes, remove ids, and remove disallowed elements
+                function cleanElement(element) {
+                    cleanStyles(element);
+                    removeClasses(element);
+                    removeIds(element);
+                    removeDisallowedElements(element);
+                }
+
+                // Recursively clean all elements within the tempDiv
+                function cleanAllElements(element) {
+                    cleanElement(element);
+                    for (let i = 0; i < element.children.length; i++) {
+                        cleanAllElements(element.children[i]);
+                    }
+                }
+
+                cleanAllElements(tempDiv);
+
+                // Insert the cleaned HTML into the editable div at the current cursor position
+                const cleanedHtml = tempDiv.innerHTML;
+                document.execCommand('insertHTML', false, cleanedHtml);
+
+                console.log('Cleaned HTML pasted:', cleanedHtml);
+                editText();
             });
+
+
 
             field.addEventListener('dragover', function (event) {
                 event.preventDefault();

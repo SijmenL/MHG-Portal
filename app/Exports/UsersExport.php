@@ -13,10 +13,12 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
 class UsersExport
 {
     protected $users;
+    protected  $type;
 
-    public function __construct($users)
+    public function __construct($users, $type)
     {
         $this->users = $users;
+        $this->type = $type;
     }
 
     public function export()
@@ -83,7 +85,9 @@ class UsersExport
 
         // Save the Excel file
         $writer = new Xlsx($spreadsheet);
-        $filename = 'mhg-leden-export-' . date('d-m-Y') . '.xlsx';
+
+        $filename = 'mhg-'.$this->type.'-export-' . date('d-m-Y') . '.xlsx';
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');

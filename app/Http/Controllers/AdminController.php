@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Mail\TestMail;
 use App\Models\Comment;
+use App\Models\Contact;
 use App\Models\Log;
+use App\Models\News;
 use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Role;
@@ -26,8 +28,13 @@ class AdminController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        $contact = Contact::where('done', false)->count();
 
-        return view('admin.admin', ['user' => $user, 'roles' => $roles]);
+        $signup = User::where('accepted', false)->count();
+
+        $news = News::where('accepted', false)->count();
+
+        return view('admin.admin', ['user' => $user, 'roles' => $roles, 'contact' => $contact, 'news' => $news, 'signup' => $signup]);
     }
 
     // Logs
@@ -59,6 +66,458 @@ class AdminController extends Controller
         return view('admin.logs.list', ['user' => $user, 'roles' => $roles, 'logs' => $logs, 'search' => $search, 'search_user' => $search_user]);
     }
 
+    // Contact
+    public function contact()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = request('search');
+        $seen = request('seen');
+
+        if ($seen !== 'all' && $seen !== 'seen' && $seen !== 'unseen') {
+            $seen = 'all';
+        }
+
+        if ($seen === 'all') {
+            $contact_submissions = Contact::query()
+                ->when($search, function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('message', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%');
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(25);
+        }
+        if ($seen === 'seen') {
+            $contact_submissions = Contact::query()
+                ->when($search, function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('message', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%');
+                    });
+                })
+                ->where('done', true)
+                ->orderBy('created_at', 'desc')
+                ->paginate(25);
+        }
+        if ($seen === 'unseen') {
+            $contact_submissions = Contact::query()
+                ->when($search, function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('message', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%');
+                    });
+                })
+                ->where('done', false)
+                ->orderBy('created_at', 'desc')
+                ->paginate(25);
+        }
+
+
+        return view('admin.contact.list', ['user' => $user, 'roles' => $roles, 'contact_submissions' => $contact_submissions, 'search' => $search, 'seen' => $seen]);
+    }
+
+    public function contactDetails($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        try {
+            $contact = Contact::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Contact details', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
+            return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
+        }
+        if ($contact === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Contact details', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
+            return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
+        }
+
+        return view('admin.contact.details', ['user' => $user, 'roles' => $roles, 'contact' => $contact]);
+    }
+
+    public function contactSeen($id)
+    {
+        try {
+            $contact = Contact::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Contact seen', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
+            return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
+        }
+
+        $contact->done = !$contact->done;
+
+        $contact->save();
+
+        return redirect()->route('admin.contact.details', [$contact->id]);
+    }
+
+
+    public function contactDelete($id)
+    {
+        try {
+            $contact = Contact::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete contact', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
+            return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
+        }
+        if ($contact === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete contact', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
+            return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
+        }
+
+        if ($contact === null) {
+            return redirect()->route('admin.contact')->with('error', 'Geen contact gevonden om te verwijderen');
+        }
+
+        $contact->delete();
+
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Delete contact', 'Admin', $contact->id, '');
+
+        return redirect()->route('admin.contact')->with('success', 'Contact verwijderd');
+
+    }
+
+    public function signup()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = '';
+
+        $users = User::orderBy('created_at', 'desc')
+            ->where('accepted', false)
+            ->paginate(25);
+
+        $user_ids = User::orderBy('created_at', 'desc')
+            ->where('accepted', false)
+            ->get()
+            ->pluck('id');
+
+        $all_roles = Role::orderBy('role')->get();
+
+        $selected_role = '';
+
+        return view('admin.signup.list', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+    }
+
+    public function signupAccountDetails($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        try {
+            $account = User::with(['roles' => function ($query) {
+                $query->orderBy('role', 'asc');
+            }])->find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+        return view('admin.signup.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+    }
+
+    public function signupAccept($id)
+    {
+        $account = User::find($id);
+
+        $account->accepted = true;
+
+        $account->save();
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Accept signup', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+        $notification = new Notification();
+        $notification->sendNotification(null, [$id], 'Je account is officieel geactiveerd! Welkom bij de Matthijs Heldt Groep!', '', '');
+
+        return redirect()->route('admin.signup')->with('success', 'Inschrijving geaccepteerd');
+    }
+
+    public function signupDelete($id)
+    {
+        try {
+            $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete signup', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.signup')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete signup', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.signup')->with('error', 'Dit account bestaat niet.');
+        }
+
+        if ($user === null) {
+            return redirect()->route('admin.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
+        }
+        if ($id === (string)Auth::id()) {
+            return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
+        } else {
+            $user->delete();
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Delete signup', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
+
+            return redirect()->route('admin.signup')->with('success', 'Inschrijving verwijderd');
+        }
+    }
+
+    // Nieuws
+
+    public function news()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = request('search');
+        $accepted = request('accepted');
+
+        if ($accepted !== 'all' && $accepted !== 'accepted' && $accepted !== 'unaccepted') {
+            $accepted = 'all';
+        }
+
+        if ($accepted === 'all') {
+            $news = News::query()
+                ->when($search, function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('title', 'like', '%' . $search . '%')
+                            ->orWhere('content', 'like', '%' . $search . '%')
+                            ->orWhere('category', 'like', '%' . $search . '%')
+                            ->orWhere('speltak', 'like', '%' . $search . '%')
+                            ->orWhere('date', 'like', '%' . $search . '%')
+                            ->orWhere('category', 'like', '%' . $search . '%');
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(25);
+        }
+        if ($accepted === 'accepted') {
+            $news = News::query()
+                ->when($search, function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('title', 'like', '%' . $search . '%')
+                            ->orWhere('content', 'like', '%' . $search . '%')
+                            ->orWhere('category', 'like', '%' . $search . '%')
+                            ->orWhere('speltak', 'like', '%' . $search . '%')
+                            ->orWhere('date', 'like', '%' . $search . '%')
+                            ->orWhere('category', 'like', '%' . $search . '%');
+                    });
+                })
+                ->where('accepted', true)
+                ->orderBy('created_at', 'desc')
+                ->paginate(25);
+        }
+        if ($accepted === 'unaccepted') {
+            $news = News::query()
+                ->when($search, function ($query, $search) {
+                    return $query->where(function ($query) use ($search) {
+                        $query->where('title', 'like', '%' . $search . '%')
+                            ->orWhere('content', 'like', '%' . $search . '%')
+                            ->orWhere('category', 'like', '%' . $search . '%')
+                            ->orWhere('speltak', 'like', '%' . $search . '%')
+                            ->orWhere('date', 'like', '%' . $search . '%')
+                            ->orWhere('category', 'like', '%' . $search . '%');
+                    });
+                })
+                ->where('accepted', false)
+                ->orderBy('created_at', 'desc')
+                ->paginate(25);
+        }
+
+
+        $all_roles = Role::orderBy('role')->get();
+
+        $selected_role = '';
+
+        return view('admin.news.list', ['user' => $user, 'accepted' => $accepted, 'roles' => $roles, 'news' => $news, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+    }
+
+    public function newsDetails($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        try {
+            $news = News::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+        if ($news === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+
+        return view('admin.news.details', ['user' => $user, 'roles' => $roles, 'news' => $news]);
+    }
+
+    public function newsPublish($id)
+    {
+        try {
+            $news = News::findOrFail($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News publish', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+
+        $news->accepted = !$news->accepted;
+
+        if ($news->accepted === true) {
+            $notification = new Notification();
+            $notification->sendNotification(null, [$news->user_id], 'Je nieuwsitem '.$news->title.' is gepubliceerd!', route('news.item', $news->id), '');
+        }
+
+        $news->save();
+
+        return redirect()->route('admin.news.details', [$news->id]);
+    }
+
+    public function newsEdit($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        try {
+            $news = News::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+        if ($news === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+
+        return view('admin.news.edit', ['user' => $user, 'roles' => $roles, 'news' => $news]);
+    }
+
+    public function newsEditSave(Request $request, $id)
+    {
+        $request->validate([
+            'content' => 'string|max:65535|required',
+            'description' => 'string|max:200|required',
+            'date' => 'date|required',
+            'category' => 'string|required',
+            'title' => 'string|required',
+            'speltak' => 'array',
+            'image' => 'mimes:jpeg,png,jpg,gif,webp|max:6000',
+        ]);
+
+        try {
+            $news = News::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News edit', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+        if ($news === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News edit', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
+        }
+
+        try {
+            if (isset($request->image)) {
+                // Process image upload
+                $newPictureName = time() . '.' . $request->image->extension();
+                $destinationPath = 'files/news/news_images';
+                $request->image->move(public_path($destinationPath), $newPictureName);
+
+                $news->image = $newPictureName;
+            }
+
+            if ($request->input('speltak') !== null) {
+                $speltak = $request->input('speltak');
+                $speltakken = implode(', ', $speltak);
+            } else {
+                $speltakken = null;
+            }
+
+            // Validate content for disallowed elements or styles
+            if (ForumController::validatePostData($request->input('content'))) {
+
+                $news->content = $request->input('content');
+                $news->description = $request->input('description');
+                $news->date = $request->input('date');
+                $news->category = $request->input('category');
+                $news->title = $request->input('title');
+                $news->speltak = $speltakken;
+
+                $news->save();
+
+                // Log the creation of the news item
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 2, 'edit nieuws', 'admin', 'News id: ' . $news->id, '');
+
+                return redirect()->route('admin.news.details', $id)->with('success', 'Je wijzigingen zijn opgelsagen!');
+            } else {
+                throw ValidationException::withMessages(['content' => 'Je wijzigingen kunnen niet opgeslagen worden']);
+            }
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            // General exception handling for unexpected errors
+            return redirect()->back()->with('error', 'Er is een fout opgetreden bij het opslaan van je wijzigingen. Probeer het opnieuw.')->withInput();
+        }
+    }
+
+    public function newsDelete($id)
+    {
+        try {
+            $news = News::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News delete', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
+        }
+        if ($news === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'News delete', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
+            return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
+        }
+
+        $news->delete();
+
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'News delete', 'admin', $news->id, '');
+
+        return redirect()->route('admin.news')->with('success', 'Dit nieuwsitem is permanent verwijderd!');
+
+    }
+
     // Account management
 
     public function accountManagement()
@@ -71,6 +530,7 @@ class AdminController extends Controller
         $users = User::with(['roles' => function ($query) {
             $query->orderBy('role', 'asc');
         }])
+            ->where('accepted', true)
             ->orderBy('last_name')
             ->paginate(25);
 
@@ -117,6 +577,7 @@ class AdminController extends Controller
                     ->whereHas('roles', function ($query) use ($selected_role) {
                         $query->where('role', $selected_role)->orderBy('role');
                     })
+                    ->where('accepted', true)
                     ->orderBy('last_name')
                     ->paginate(25);
             } else {
@@ -134,6 +595,7 @@ class AdminController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%')
                         ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 })
+                    ->where('accepted', true)
                     ->orderBy('last_name')
                     ->with(['roles' => function ($query) {
                         $query->orderBy('role');
@@ -159,6 +621,7 @@ class AdminController extends Controller
                     ->whereHas('roles', function ($query) use ($selected_role) {
                         $query->where('role', $selected_role)->orderBy('role');
                     })
+                    ->where('accepted', true)
                     ->orderBy('last_name')
                     ->pluck('id'); // Pluck only the IDs
             } else {
@@ -176,6 +639,7 @@ class AdminController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%')
                         ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 })
+                    ->where('accepted', true)
                     ->orderBy('last_name')
                     ->pluck('id'); // Pluck only the IDs
             }
@@ -195,6 +659,7 @@ class AdminController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%')
                         ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 })
+                    ->where('accepted', true)
                     ->has('children')
                     ->orderBy('last_name')
                     ->paginate(25);
@@ -213,6 +678,7 @@ class AdminController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%')
                         ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 })
+                    ->where('accepted', true)
                     ->has('children')
                     ->orderBy('last_name')
                     ->pluck('id');
@@ -243,6 +709,7 @@ class AdminController extends Controller
                             ->orWhere('id', 'like', '%' . $search . '%')
                             ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                     })
+                    ->where('accepted', true)
                     ->orderBy('last_name')
                     ->paginate(25);
 
@@ -277,8 +744,10 @@ class AdminController extends Controller
         // Retrieve the filtered user data from the request
         $users = json_decode($request->input('user_ids'));
 
+        $type = 'administratie';
+
         // Export data to Excel
-        $export = new UsersExport($users);
+        $export = new UsersExport($users, $type);
         return $export->export();
     }
 
@@ -384,6 +853,9 @@ class AdminController extends Controller
         if (!$user) {
             return redirect()->back()->with('error', 'Gebruiker niet gevonden');
         }
+
+        $user->parents()->detach();
+        $user->children()->detach();
 
         // Handle children relationships
         if (isset($request->children)) {

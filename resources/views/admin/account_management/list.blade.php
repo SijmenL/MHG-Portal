@@ -19,7 +19,7 @@
                             <p>Excel</p>
                         </button>
                     </form>
-                    <a class="btn btn-info quick-action" href="mailto:?bcc=@foreach($users as $user_adres){{$user_adres->email}}@unless($loop->last);@endunless @endforeach">
+                    <a class="btn btn-info quick-action" href="mailto:?bcc=@foreach($users as $user_adres){{$user_adres->email}}@unless($loop->last),@endunless @endforeach">
 
                     <span class="material-symbols-rounded">mail</span>
                         <p>Mail</p>
@@ -83,7 +83,7 @@
                             @endforeach
                         </select>
 
-                        <a id="export-button" class="input-group-text" style="text-decoration: none; cursor: pointer">
+                        <a @if($users->count() > 0) id="export-button" @endif class="input-group-text @if($users->count() < 1)disabled @endif" style="text-decoration: none; cursor: pointer">
                             <span class="material-symbols-rounded">ios_share</span></a>
                     </div>
                 </div>

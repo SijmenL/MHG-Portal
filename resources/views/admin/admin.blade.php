@@ -21,8 +21,46 @@
                 {{ session('success') }}
             </div>
         @endif
-
         <div class="bg-light rounded-2 p-3">
+            <h2>Content</h2>
+            <div class="quick-action-bar">
+                <a class="btn btn-info quick-action" href="{{ route('admin.contact') }}">
+                    <div style="margin-bottom: -10px; position: relative">
+                        <span class="material-symbols-rounded">call</span>
+                        @if($contact >= 1)
+                            <pre style="position: absolute"
+                                 class="badge badge-pill bg-danger dashboard-notification">{{ $contact }}</pre>
+                        @endif
+                    </div>
+                    <p>Contact</p>
+                </a>
+
+                <a class="btn btn-info quick-action" href="{{ route('admin.signup') }}">
+                    <div style="margin-bottom: -10px; position: relative">
+                        <span class="material-symbols-rounded">app_registration</span>
+                        @if($signup >= 1)
+                            <pre style="position: absolute"
+                                 class="badge badge-pill bg-danger dashboard-notification">{{ $signup }}</pre>
+                        @endif
+                    </div>
+                    <p>Inschrijvingen</p>
+                </a>
+
+                <a class="btn btn-info quick-action" href="{{ route('admin.news') }}">
+                    <div style="margin-bottom: -10px; position: relative">
+                        <span class="material-symbols-rounded">newspaper</span>
+                        @if($news >= 1)
+                            <pre style="position: absolute"
+                                 class="badge badge-pill bg-danger dashboard-notification">{{ $news }}</pre>
+                        @endif
+                    </div>
+                    <p>Nieuwsitems</p>
+                </a>
+            </div>
+        </div>
+
+
+        <div class="bg-light rounded-2 p-3 mt-4">
             <h2>Admin Acties</h2>
             <div class="quick-action-bar">
 

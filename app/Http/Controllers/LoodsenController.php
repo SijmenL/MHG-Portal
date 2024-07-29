@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersExport;
 use App\Models\Comment;
 use App\Models\FlunkyDJMusic;
 use App\Models\Log;
@@ -322,15 +323,26 @@ class LoodsenController extends Controller
         $users = User::with(['roles' => function ($query) {
             $query->where('role', 'Loods')->orderBy('role', 'asc');
         }])
+            ->where('accepted', true)
             ->whereHas('roles', function ($query) {
                 $query->where('role', 'Loods');
             })
             ->orderBy('last_name')
             ->paginate(25);
 
+        $user_ids = User::with(['roles' => function ($query) {
+            $query->where('role', 'Loods')->orderBy('role', 'asc');
+        }])
+            ->where('accepted', true)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Loods');
+            })
+            ->orderBy('last_name')
+            ->pluck('id');
+
         $selected_role = '';
 
-        return view('speltakken.loodsen.group', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'selected_role' => $selected_role]);
+        return view('speltakken.loodsen.group', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'selected_role' => $selected_role]);
     }
 
     public function groupSearch(Request $request)
@@ -356,16 +368,38 @@ class LoodsenController extends Controller
                 ->orWhere('id', 'like', '%' . $search . '%')
                 ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
         })
+            ->where('accepted', true)
             ->whereHas('roles', function ($query) {
                 $query->where('role', 'Loods');
             })
             ->orderBy('last_name')
             ->paginate(25);
 
+        $user_ids = User::where(function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('last_name', 'like', '%' . $search . '%')
+                ->orWhere('email', 'like', '%' . $search . '%')
+                ->orWhere('sex', 'like', '%' . $search . '%')
+                ->orWhere('infix', 'like', '%' . $search . '%')
+                ->orWhere('birth_date', 'like', '%' . $search . '%')
+                ->orWhere('street', 'like', '%' . $search . '%')
+                ->orWhere('postal_code', 'like', '%' . $search . '%')
+                ->orWhere('city', 'like', '%' . $search . '%')
+                ->orWhere('phone', 'like', '%' . $search . '%')
+                ->orWhere('id', 'like', '%' . $search . '%')
+                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+        })
+            ->where('accepted', true)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Loods');
+            })
+            ->orderBy('last_name')
+            ->pluck('id');
+
 
         $all_roles = Role::orderBy('role')->get();
 
-        return view('speltakken.loodsen.group', ['user' => $user, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+        return view('speltakken.loodsen.group', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
     }
 
     public function groupDetails($id)
@@ -397,6 +431,18 @@ class LoodsenController extends Controller
 
 
         return view('speltakken.loodsen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+    }
+
+    public function exportData(Request $request)
+    {
+        // Retrieve the filtered user data from the request
+        $users = json_decode($request->input('user_ids'));
+
+        $type = 'loodsen';
+
+        // Export data to Excel
+        $export = new UsersExport($users, $type);
+        return $export->export();
     }
 
     public function flunkyball()

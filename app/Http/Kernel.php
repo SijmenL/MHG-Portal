@@ -13,6 +13,7 @@ class Kernel extends HttpKernel
         'isAllowedToRemoveParents' => IsAllowedToRemoveParents::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+        'checkAccepted' => \App\Http\Middleware\CheckAccepted::class,
     ];
 
     /**

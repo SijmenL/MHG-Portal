@@ -95,6 +95,7 @@
                             @endif
                         </th>
                     </tr>
+                    @if($account->children->count() === 0)
                     <tr>
                         <th>Ouders</th>
                         @if($account->parents->count() > 0)
@@ -109,7 +110,7 @@
                                             <img alt="profielfoto" class="profle-picture"
                                                  src="{{ asset('img/no_profile_picture.webp') }}">
                                         @endif
-                                        <span>{{ $parent->name.' '.$parent->infic.' '.$parent->last_name }}</span>
+                                        <span>{{ $parent->name.' '.$parent->infix.' '.$parent->last_name }}</span>
                                         <span><a href="mailto:{{ $parent->email }}">{{ $parent->email }}</a></span>
                                         <span><a href="tel:{{ $parent->phone }}">{{ $parent->phone }}</a></span>
                                         {{--                                        <span>{{ $parent->street.' '.$parent->postal_code.' '.$parent->city }}</span>--}}
@@ -124,6 +125,27 @@
                             </th>
                         @endif
                     </tr>
+                    @else
+                        <tr>
+                            <th>Kinderen</th>
+                                <th class="d-flex flex-wrap flex-row gap-2 align-items-center justify-content-center">
+                                    @foreach ($account->children as $child)
+                                        <div
+                                            class="d-flex flex-column gap-1 align-items-center m-2 bg-light p-2 rounded text-center">
+                                            @if($child->profile_picture)
+                                                <img alt="profielfoto" class="profle-picture"
+                                                     src="{{ asset('/profile_pictures/' . $child->profile_picture) }}">
+                                            @else
+                                                <img alt="profielfoto" class="profle-picture"
+                                                     src="{{ asset('img/no_profile_picture.webp') }}">
+                                            @endif
+                                            <span>{{ $child->name.' '.$child->infix.' '.$child->last_name }}</span>
+                                            {{--                                        <span>{{ $parent->street.' '.$parent->postal_code.' '.$parent->city }}</span>--}}
+                                        </div>
+                                    @endforeach
+                                </th>
+                        </tr>
+                    @endif
                     </tbody>
                 </table>
             </div>
