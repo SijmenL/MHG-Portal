@@ -479,9 +479,10 @@ class ZeeverkennerController extends Controller
                 ->whereHas('roles', function ($query) {
                     $query->where('role', 'Zeeverkenner');
                 })
-                ->orWhereHas('children.roles', function ($query) {
-                    $query->where('role', 'Zeeverkenner');
-                })
+                // TODO: Fix this
+                // ->orWhereHas('children.roles', function ($query) {
+                //     $query->where('role', 'Zeeverkenner');
+                // })
                 ->find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();

@@ -480,9 +480,10 @@ class DolfijnenController extends Controller
             ->whereHas('roles', function ($query) {
                 $query->where('role', 'Dolfijn');
             })
-            ->orWhereHas('children.roles', function ($query) {
-                $query->where('role', 'Dolfijn');
-            })
+            // TODO: Fix this query
+            // ->orWhereHas('children.roles', function ($query) {
+            //     $query->where('role', 'Dolfijn');
+            // })
             ->find($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
