@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/texteditor.css',
                 'resources/js/app.js',
+                'resources/js/calendar.js',
                 'resources/js/bootstrap.js',
                 'resources/js/flunkydj.js',
                 'resources/js/search-user.js',

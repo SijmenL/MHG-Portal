@@ -839,6 +839,135 @@ th .form-control, .form-select {
     color: white !important;
 }
 
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+
+.calendar-cell {
+    position: relative;
+    padding: 5px;
+    border: 1px solid #ddd;
+    height: 150px; /* Adjust height as needed */
+    vertical-align: top;
+}
+
+.highlight {
+    background-color: var(--accent-color); /* Highlight color */
+}
+
+.calendar-event {
+    position: absolute;
+    height: 25px; /* Fixed height for events */
+    left: 0;
+    width: 102%;
+    transform: translateX(-1%);
+    background-color: var(--accent-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.calendar-event-hovered {
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+}
+
+#event-popup {
+    display: none;
+    position: absolute;
+    z-index: 1019;
+    background-color: white;
+    padding: 10px;
+    border-radius: 15px;
+    width: 350px;
+    text-wrap: none;
+
+    -webkit-box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
+    box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
+}
+
+#event-popup img {
+    width: 100%;
+}
+
+.calendar-event-first {
+    border-radius: 8px 0 0 8px;
+    margin-left: 10px;
+    z-index: 100;
+}
+
+.calendar-event-monday {
+    z-index: 100;
+}
+
+.calendar-event-last {
+    border-radius: 0 8px 8px 0;
+    width: 95%;
+}
+
+.calendar-event-single {
+    border-radius: 8px !important;
+    width: 90%;
+    transform: translateX(5%);
+
+}
+
+.calendar-event:not(.calendar-event-first):not(.calendar-event-last) {
+    border-radius: 0;
+}
+
+
+.calendar-event-title {
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: visible; /* Allow overflow into adjacent cells */
+    text-overflow: clip; /* Don't clip text */
+    position: relative;
+    padding: 2px 5px;
+    z-index: 200;
+    margin-left: -1px; /* Adjust as necessary */
+    margin-right: -5px; /* Adjust as necessary */
+    font-size: 12pt;
+}
+
+.calendar-cell {
+    border: 0.25px solid var(--secondary-color);
+    font-size: 1.3rem;
+    transition: 0.1s;
+}
+
+.calendar-cell p {
+    margin: 5px;
+}
+
+.calendar-cell:hover {
+    border-bottom: black 2px solid;
+}
+
+.calendar-cell.highlight {
+    background-color: var(--accent-color);
+}
+
+.calendar-cell.empty {
+    background-color: #f3f3f2;
+    border: none;
+}
+
+.event-title {
+    font-size: 0.75rem;
+    margin-top: 5px;
+    color: white;
+}
+
 @media screen and (min-width: 992px) {
     .mobile-only {
         display: none;

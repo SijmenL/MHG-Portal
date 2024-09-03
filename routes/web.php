@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AfterloodsenController;
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LeidingController;
 use App\Http\Controllers\LoodsenController;
@@ -103,6 +104,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/nieuws/mijn-nieuws/verwijder/{id}', [NewsController::class, 'deleteNews'])->name('news.user.edit.delete');
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/agenda', [AgendaController::class, 'home'])->name('agenda');
+
+    Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
+    Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
+});
+
+
 //Admin
 Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
