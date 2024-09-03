@@ -162,7 +162,7 @@
                     <span class="material-symbols-rounded">news</span>
                     <p>Nieuws</p>
                 </a>
-                <a class="btn btn-secondary quick-action" href="">
+                <a class="btn btn-secondary quick-action" href="{{ route('agenda') }}">
                     <span class="material-symbols-rounded">event</span>
                     <p>Agenda</p>
                 </a>

@@ -19,18 +19,20 @@ function init() {
 
     body = document.getElementById('app');
 
-    document.addEventListener('click', function (event) {
-        // Iterate over each user-select-window input
-        userSelectWindows.forEach(function (select, index) {
-            // Check if the click event target is not the input field or its corresponding popup
-            if (event.target !== select && !isDescendant(event.target, userSelectWindowPopup[index])) {
-                // Close the popup if it's open
-                userSelectWindowPopup[index].classList.add('d-none');
-                userSelectSearch[index].value = '';
-                userList[index].innerHTML = '<div class="w-100 h-100 d-flex justify-content-center align-items-center"><span class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span></div>';
-            }
+    if (userSelectSearch[0].dataset.stayopen !== 'true') {
+        document.addEventListener('click', function (event) {
+            // Iterate over each user-select-window input
+            userSelectWindows.forEach(function (select, index) {
+                // Check if the click event target is not the input field or its corresponding popup
+                if (event.target !== select && !isDescendant(event.target, userSelectWindowPopup[index])) {
+                    // Close the popup if it's open
+                    userSelectWindowPopup[index].classList.add('d-none');
+                    userSelectSearch[index].value = '';
+                    userList[index].innerHTML = '<div class="w-100 h-100 d-flex justify-content-center align-items-center"><span class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span></div>';
+                }
+            });
         });
-    });
+    }
 
     console.log(userSelectWindows)
 
