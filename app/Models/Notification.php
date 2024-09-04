@@ -36,6 +36,5 @@ class Notification extends Model
             $notification->seen = false;
             $notification->save();
         }
-
     }
 }

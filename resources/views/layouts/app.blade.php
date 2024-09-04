@@ -81,11 +81,8 @@
                                 </a>
                                 <div id="dropdown-menu" class="dropdown-menu dropdown-menu-end"
                                      aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('settings.account.edit') }}">
-                                        Persoonlijke informatie
-                                    </a>
-                                    <a class="dropdown-item" href="{{ route('settings.change-password') }}">
-                                        Wijzig wachtwoord
+                                    <a class="dropdown-item" href="{{ route('settings') }}">
+                                        Instellingen
                                     </a>
                                     <div class="devider mt-1 mb-1"></div>
                                     <a class="dropdown-item" href="{{ route('logout') }}"

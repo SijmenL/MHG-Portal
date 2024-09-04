@@ -178,7 +178,7 @@ class SettingsController extends Controller
         $user = Auth::user();
 
         try {
-        $parent = User::findOrFail($id);
+            $parent = User::findOrFail($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Link parent', 'settings', 'Account id: ' . $id, 'Ouder bestaat niet');
@@ -189,7 +189,7 @@ class SettingsController extends Controller
         $user->parents()->attach($parent);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name.' '.$parent->infix.' '.$parent->last_name, 'Bestaand ouder account gekoppeld');
+        $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, 'Bestaand ouder account gekoppeld');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '', '');
@@ -255,13 +255,15 @@ class SettingsController extends Controller
 
             if (isset($request->profile_picture)) {
                 $parent->profile_picture = $newPictureName;
-                $parent->save();
             }
+
+            $parent->accepted = true;
+            $parent->save();
 
             $user->parents()->attach($parent);
 
             $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name.' '.$parent->infix.' '.$parent->last_name, 'Nieuw ouder account aangemaakt');
+            $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, 'Nieuw ouder account aangemaakt');
 
             $notification = new Notification();
             $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '', '');
@@ -320,7 +322,7 @@ class SettingsController extends Controller
         $user->parents()->detach($parent->id);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->name.' '.$parent->infix.' '.$parent->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, '');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '', '');
@@ -343,7 +345,7 @@ class SettingsController extends Controller
     public function removeChildLinkId($id)
     {
         try {
-        $child = User::findOrFail($id);
+            $child = User::findOrFail($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Link child', 'settings', 'Account id: ' . $id, 'Kind bestaat niet');
@@ -366,7 +368,7 @@ class SettingsController extends Controller
         $user = Auth::user();
 
         try {
-        $child = User::findOrFail($id);
+            $child = User::findOrFail($id);
         } catch (ModelNotFoundException $exception) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Link child', 'settings', 'Account id: ' . $id, 'Kind bestaat niet');
@@ -377,7 +379,7 @@ class SettingsController extends Controller
         $user->children()->detach($child->id);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->name.' '.$child->infix.' '.$child->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->name . ' ' . $child->infix . ' ' . $child->last_name, '');
 
         $notification = new Notification();
         $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '', '');

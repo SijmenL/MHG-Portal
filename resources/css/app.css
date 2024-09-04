@@ -258,6 +258,14 @@ pre {
     hyphens: auto; /* Enable hyphenation */
 }
 
+
+table, th, td, label {
+    word-break: normal !important; /* Prevent words from breaking unnecessarily */
+    overflow-wrap: normal !important; /* Standard wrapping */
+    hyphens: none !important; /* Disable hyphenation in tables */
+}
+
+
 .nav-link:hover {
     background-color: var(--accent-color);
 }

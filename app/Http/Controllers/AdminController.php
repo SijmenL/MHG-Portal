@@ -394,7 +394,7 @@ class AdminController extends Controller
 
         if ($news->accepted === true) {
             $notification = new Notification();
-            $notification->sendNotification(null, [$news->user_id], 'Je nieuwsitem '.$news->title.' is gepubliceerd!', route('news.item', $news->id), '');
+            $notification->sendNotification(null, [$news->user_id], 'Je nieuwsitem ' . $news->title . ' is gepubliceerd!', route('news.item', $news->id), '');
         }
 
         $news->save();
@@ -1019,8 +1019,10 @@ class AdminController extends Controller
 
             if (isset($request->profile_picture)) {
                 $account->profile_picture = $newPictureName;
-                $account->save();
             }
+
+            $account->accepted = true;
+            $account->save();
 
             if (!empty($request->roles)) {
                 $account->roles()->attach($request->roles);
