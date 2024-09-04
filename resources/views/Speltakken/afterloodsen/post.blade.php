@@ -106,11 +106,15 @@
                 <div class="container">
                     <form method="POST" action="{{ route('afterloodsen.comment-post', $post->id) }}">
                         @csrf
-                        @yield('editor')
-                        <div class="d-flex flex-row gap-2 align-items-end comment-input">
-                            <div class="text-input w-100" id="text-input" style="min-height: 75px"
-                                 contenteditable="true">{!! old('content') !!}</div>
-                            <div>
+                        <div class="d-flex flex-row-responsive gap-2 align-items-end comment-input">
+                            <div class="editor-parent w-100">
+                                @yield('editor')
+                                <div class="text-input w-100" id="text-input" style="min-height: 75px"
+                                     contenteditable="true">{!! old('content') !!}</div>
+                                <div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-center">
                                 <button type="submit" class="btn d-flex align-items-center"><span
                                         class="save-button material-symbols-rounded" style="font-size: 30pt">send</span>
                                 </button>

@@ -104,10 +104,12 @@
 
                     <div class="mt-4">
                         <label for="text-input">De content van je bericht</label>
-                        @yield('editor')
-                        <div id="text-input" contenteditable="true" name="text-input"
-                             class="text-input">{!! old('content') !!}</div>
-                        <small id="characters"></small>
+                        <div class="editor-parent">
+                            @yield('editor')
+                            <div id="text-input" contenteditable="true" name="text-input"
+                                 class="text-input">{!! old('content') !!}</div>
+                            <small id="characters"></small>
+                        </div>
 
                         @error('content')
                         <span class="invalid-feedback" role="alert">
