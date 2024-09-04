@@ -37,7 +37,7 @@
                 }
             </script>
             @if($items > 3)
-            <form id="auto-submit" method="GET" class="user-select-forum-submit m-5 w-100 d-flex justify-content-center">
+            <form id="auto-submit" method="GET" class="user-select-forum-submit mt-5 w-100 d-flex justify-content-center">
                 <div class="d-flex w-75">
                     <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100">
                         <div class="input-group">
@@ -51,11 +51,11 @@
                 </div>
             </form>
             @endif
-            <div class="d-flex flex-row flex-wrap gap-4 justify-content-center" style="margin: 30px; padding: 5px">
+            <div class="d-flex flex-row-responsive flex-wrap gap-4 justify-content-center" style="margin: 30px; padding: 5px">
                 @foreach($news as $news_item)
                     <a onclick="breakOut({{ $news_item->id }})" class="text-black text-decoration-none">
 
-                        <div class="card" style="cursor: pointer">
+                        <div class="card" style="cursor: pointer; margin: 0 auto">
                             <p class="badge rounded-pill bg-info text-black"
                                style="position: absolute; top: 15px; right: 15px; font-size: 1rem">{{ $news_item->category }}</p>
                             <img alt="Nieuws afbeelding" class="card-img-top"
@@ -82,7 +82,7 @@
             {{ $news->appends(request()->query())->links() }}
         </div>
         @else
-            <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
                 <span class="material-symbols-rounded me-2">unsubscribe</span>Geen nieuws gevonden...
             </div>
         @endif

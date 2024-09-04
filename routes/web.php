@@ -201,8 +201,8 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
     Route::get('/leiding/post/delete/{id}', [LeidingController::class, 'deletePost'])->name('leiding.post.delete');
     Route::get('/leiding/comment/delete/{id}/{postId}', [LeidingController::class, 'deleteComment'])->name('leiding.comment.delete');
 
-    Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 });
+Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 
 
 // Dolfijnen
