@@ -40,7 +40,8 @@
             </div>
         @endif
 
-        <p>Het kan zijn dat je nieuws niet meteen op de site te vinden is, we kijken je item eerst na voordat we hem publiceren. Onder Mijn Inzendingen kun je al je items zien en bewerken.</p>
+        <p>Het kan zijn dat je nieuws niet meteen op de site te vinden is, we kijken je item eerst na voordat we hem
+            publiceren. Onder Mijn Inzendingen kun je al je items zien en bewerken.</p>
 
         <div class="bg-light rounded-2 p-3">
             <div class="container">
@@ -151,8 +152,10 @@
                     </div>
 
                     <div class="d-flex flex-column">
-                        <label for="description" class="col-md-4 col-form-label ">Korte samenvatting of beschrijving</label>
-                        <input name="description" type="text" class="form-control" id="description" value="{{ old('description') }}"
+                        <label for="description" class="col-md-4 col-form-label ">Korte samenvatting of
+                            beschrijving</label>
+                        <input name="description" type="text" class="form-control" id="description"
+                               value="{{ old('description') }}"
                         >
                         @error('description')
                         <span class="text-danger">{{ $message }}</span>
@@ -179,10 +182,12 @@
 
                     <div class="mt-4">
                         <label for="text-input">De content van je bericht</label>
-                        @yield('editor')
-                        <div id="text-input" contenteditable="true" name="text-input"
-                             class="text-input">{!! old('content') !!}</div>
-                        <small id="characters"></small>
+                        <div class="editor-parent">
+                            @yield('editor')
+                            <div id="text-input" contenteditable="true" name="text-input"
+                                 class="text-input">{!! old('content') !!}</div>
+                            <small id="characters"></small>
+                        </div>
 
                         @error('content')
                         <span class="invalid-feedback" role="alert">

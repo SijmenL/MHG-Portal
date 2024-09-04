@@ -43,7 +43,7 @@
                 </div>
             </div>
             <div class="">
-                <img class="w-100" alt="groepsfoto" src="{{ asset('files/leiding/leiding.jpg') }}">
+                <img class="w-100 zoomable-image" alt="groepsfoto" src="{{ asset('files/leiding/leiding.jpg') }}">
             </div>
         </div>
 
@@ -53,10 +53,12 @@
 
             <div class="bg-light rounded-2 p-3">
                 <div class="container">
+                    <div class="editor-parent">
                     @yield('editor')
 
                     <div id="text-input" contenteditable="true" class="text-input">{!! old('content') !!}</div>
                     <small id="characters"></small>
+                    </div>
 
                     @error('content')
                     <span class="invalid-feedback" role="alert">

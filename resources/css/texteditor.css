@@ -7,7 +7,12 @@
     left: 50%;
     top: 50%;
     border-radius: 10px;
-    box-shadow: 0 25px 50px rgba(7, 20, 35, 0.2);
+}
+
+.editor-parent {
+    background-color: #d5e7f7;
+    padding: 15px;
+    border-radius: 15px;
 }
 
 .options {
@@ -15,6 +20,30 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 20px;
+    position: sticky;
+    top: 98px;
+    padding: 10px;
+    background-color: #d5e7f7; /* Solid background color */
+    min-height: 50px;
+    -webkit-box-shadow: 0px 17px 19px -15px rgba(0, 0, 0, 0.20);
+    -moz-box-shadow: 0px 17px 19px -15px rgba(0, 0, 0, 0.20);
+    box-shadow: 0px 17px 19px -15px rgba(0, 0, 0, 0.20);
+    z-index: 2;
+}
+
+
+#text-input {
+    transform: translateY(-5px);
+    padding: 20px;
+    max-width: calc(100%);
+    width: 100%;
+    background-color: rgb(255, 255, 255);
+    margin-bottom: 5px;
+    border: none;
+}
+
+#text-input img {
+    width: 50%;
 }
 
 .option-button {
@@ -85,17 +114,9 @@ input[type="color"]::-moz-color-swatch {
     box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #1c244b;
 }
 
-#text-input {
-    margin-top: 10px;
-    border: 1px solid #dddddd;
-    padding: 20px;
-    max-width: calc(100%);
-    width: 100%;
-    overflow-x: scroll;
-}
-
 .active-button {
-    background-color: #CEE3F6;
+    background-color: #020929;
+    color: white;
 }
 
 .invalid {

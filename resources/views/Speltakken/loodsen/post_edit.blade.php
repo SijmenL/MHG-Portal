@@ -54,15 +54,21 @@
                     <span class="message-arrow"></span>
                 @endif
 
-                <div class="d-flex flex-column-r w-100">
+                    <div class="d-flex w-100">
+                        <div class="w-100 forum-content bg-white p-3 rounded">
+                            <div class="editor-parent" style="min-height: 300px; position: relative">
+                                @yield('editor')
+                                <style>
+                                    .options {
+                                        top: 0 !important;
+                                        position: sticky;
+                                        z-index: 1000;
+                                    }
+                                </style>
+                                <div id="text-input" style="min-height: 175px" contenteditable="true" class="text-input">{!! $post->content !!}</div>
+                                <small id="characters"></small>
 
-                    <div style="overflow: auto;"
-                         class="w-100 forum-content bg-white p-3 rounded">
-                        <div class="container">
-                            @yield('editor')
-                            <div id="text-input" contenteditable="true" class="text-input">{!! $post->content !!}</div>
-                            <small id="characters"></small>
-
+                            </div>
                             @error('content')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -70,7 +76,6 @@
                             @enderror
                         </div>
                     </div>
-                </div>
             </div>
         </div>
 

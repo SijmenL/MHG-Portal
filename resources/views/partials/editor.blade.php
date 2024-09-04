@@ -28,7 +28,6 @@
 {{--            </button>--}}
 {{--        </div>--}}
 {{--    </div>--}}
-
     <!-- Text Format -->
     <div class="wysiwyg-button">
         <button type="button" title="vet" id="bold" class="option-button format d-flex justify-content-center bold">
@@ -117,6 +116,11 @@
         <button type="button" title="inspringing verkleinen" id="outdent"
                 class="option-button spacing justify-content-center outdent">
             <span class="material-symbols-rounded">format_indent_decrease</span>
+        </button>
+    </div>
+    <div class="wysiwyg-button">
+        <button type="button" title="verwijder stijling" id="clear" class="option-button d-flex justify-content-center bold">
+            <span class="material-symbols-rounded">format_clear</span>
         </button>
     </div>
 </div>

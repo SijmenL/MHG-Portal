@@ -35,7 +35,8 @@
                     <div class="quick-action-bar">
 
                         @if(auth()->user() && (auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
-                            <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EuwMCCfVtDdNrYSIo3LpHecBN0sYT5jmCf9M3_9-Nqgtsg?e=5eMcA7">
+                            <a class="btn btn-info quick-action" target="_blank"
+                               href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EuwMCCfVtDdNrYSIo3LpHecBN0sYT5jmCf9M3_9-Nqgtsg?e=5eMcA7">
                                 <span class="material-symbols-rounded">folder_open</span>
                                 <p>Bestanden</p>
                             </a>
@@ -54,7 +55,7 @@
                 </div>
             </div>
             <div class="">
-                <img class="w-100" alt="groepsfoto" src="{{ asset('files/zeeverkenners/zeeverkenners.jpg') }}">
+                <img class="w-100 zoomable-image" alt="groepsfoto" src="{{ asset('files/zeeverkenners/zeeverkenners.jpg') }}">
             </div>
         </div>
 
@@ -64,11 +65,12 @@
 
             <div class="bg-light rounded-2 p-3">
                 <div class="container">
-                    @yield('editor')
+                    <div class="editor-parent">
+                        @yield('editor')
 
-                    <div id="text-input" contenteditable="true" class="text-input">{!! old('content') !!}</div>
-                    <small id="characters"></small>
-
+                        <div id="text-input" contenteditable="true" class="text-input">{!! old('content') !!}</div>
+                        <small id="characters"></small>
+                    </div>
                     @error('content')
                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

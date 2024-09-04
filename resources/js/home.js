@@ -87,4 +87,5 @@ function openPopup() {
 
 function closePopup() {
     popUp.style.display = 'none';
+    html.classList.remove('no-scroll');
 }

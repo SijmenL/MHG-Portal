@@ -3,6 +3,8 @@ let advancedOptionButton = document.querySelectorAll(".adv-option-button");
 let formatBlock = document.getElementById("formatBlock");
 let linkButton = document.getElementById("createLink");
 let alignButtons = document.querySelectorAll(".align");
+let orderedListButton = document.getElementById('insertOrderedList');
+let unorderedListButton = document.getElementById('insertUnorderedList');
 let spacingButtons = document.querySelectorAll(".spacing");
 let formatButtons = document.querySelectorAll(".format");
 let scriptButtons = document.querySelectorAll(".script");
@@ -43,6 +45,14 @@ const initializer = () => {
             editText();
         });
     }
+
+    document.addEventListener('selectionchange', updateFormatBlock);
+
+    document.getElementById('clear').addEventListener('click', function() {
+        document.execCommand('removeFormat', false, null);
+        document.execCommand('formatBlock', false, 'p');
+    });
+
 
     document.addEventListener("DOMContentLoaded", function () {
         // Find and remove all o:wrapblock elements
@@ -235,7 +245,7 @@ const initializer = () => {
                     const disallowedTags = [
                         'input', 'nav', 'select', 'script', 'footer', 'iframe', 'button',
                         'textarea', 'form', 'style', 'link', 'label', 'header', 'aside',
-                        'article', 'embed', 'object', 'svg', 'canvas', 'video', 'audio',
+                        'article', 'embed', 'object', 'svg', 'canvas', 'video', 'audio', 'img',
                     ];
                     if (disallowedTags.includes(element.tagName.toLowerCase())) {
                         element.remove();
@@ -321,17 +331,23 @@ const initializer = () => {
             const activeElement = document.activeElement;
 
             if (activeElement === textInput || textInput.contains(activeElement)) {
+                // Update format buttons (bold, italic, etc.)
                 formatButtons.forEach(button => {
                     const command = button.id;
                     updateButtonState(button, command);
                 });
 
+                // Update alignment buttons (left, right, etc.)
                 alignButtons.forEach(button => {
                     const command = button.id;
                     updateButtonState(button, command);
                 });
+
+                updateButtonState(orderedListButton, 'insertOrderedList');
+                updateButtonState(unorderedListButton, 'insertUnorderedList');
             }
         });
+
     })
 }
 
@@ -773,6 +789,29 @@ const highlighter = (className, needsRemoval) => {
         });
     });
 };
+
+function updateFormatBlock() {
+    const formatBlockSelect = document.getElementById('formatBlock');
+    const selection = window.getSelection();
+
+    if (selection.rangeCount > 0) {
+        let selectedElement = selection.anchorNode.parentElement;
+
+        // Traverse up the DOM to find the first element that matches H1-H6 or p
+        while (selectedElement && !selectedElement.tagName.match(/^H[1-6]$/) && selectedElement.tagName !== 'P') {
+            selectedElement = selectedElement.parentElement; // Go up one level
+        }
+
+        // If we find an H1-H6 or P, update the select value accordingly
+        if (selectedElement && selectedElement.tagName.match(/^H[1-6]$/)) {
+            formatBlockSelect.value = selectedElement.tagName;
+        } else {
+            formatBlockSelect.value = 'p'; // Default to 'p' if no heading is found
+        }
+    }
+}
+
+
 
 const highlighterRemover = (className) => {
     className.forEach((button) => {
