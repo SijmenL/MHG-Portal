@@ -1,7 +1,12 @@
 window.addEventListener('load', init);
 
+let isMobile;
+let html;
+
 function init() {
     console.log('loaded')
+
+    html = document.querySelector('html')
 
     // Gather all event elements
     const events = document.querySelectorAll('.calendar-event');
@@ -35,8 +40,46 @@ function init() {
     });
 }
 
+function openPopupCenter() {
+    const popup = document.getElementById('event-popup');
+    const overlay = document.getElementById('popup-overlay');
+
+    // Position the popup in the center
+    popup.style.left = '50%';
+    popup.style.top = '50%';
+    popup.style.transform = 'translate(-50%, -50%)'; // Center the popup both horizontally and vertically
+    popup.style.position = 'fixed'; // Keep the popup fixed in the viewport
+
+    // Show the popup and the overlay
+    popup.style.display = 'block';
+    overlay.style.display = 'block';
+
+    const scrollPosition = window.scrollY;
+    html.classList.add('no-scroll');
+    window.scrollTo(0, scrollPosition);
+}
+
+function closePopup() {
+    const popup = document.getElementById('event-popup');
+    const overlay = document.getElementById('popup-overlay');
+
+    // Hide the popup and the overlay
+    popup.style.display = 'none';
+    overlay.style.display = 'none';
+
+    // Enable scrolling on the body
+    html.classList.remove('no-scroll');
+}
+
+// Attach event listener to the overlay for closing the popup
+document.getElementById('popup-overlay').addEventListener('click', closePopup);
+
+
 function positionPopup(event) {
     const popup = document.getElementById('event-popup');
+
+    popup.style.transform = 'unset'; // Center the popup both horizontally and vertically
+    popup.style.position = 'absolute'
 
     // Calculate the popup dimensions
     const popupWidth = popup.offsetWidth;
@@ -94,38 +137,55 @@ function positionPopup(event) {
 
 // Attach the event listeners to all calendar events
 document.querySelectorAll('.calendar-event').forEach(eventDiv => {
-    eventDiv.addEventListener('mouseover', function(event) {
-        const image = this.getAttribute('data-image');
-        const title = this.getAttribute('data-title');
-        const content = this.getAttribute('data-content');
+    eventDiv.addEventListener('click', function (event) {
+        isMobile = window.innerWidth < 768;
 
-        // Update popup content
-        if (image) {
-            document.getElementById('popup-image').src = image;
-            document.getElementById('popup-image').style.display = "block";
-        } else {
-            document.getElementById('popup-image').style.display = "none";
+        // Mobile: open popup centered on click
+        if (isMobile) {
+            openDisplay(eventDiv);
+            openPopupCenter();
         }
-        document.getElementById('popup-title').textContent = title;
-        document.getElementById('popup-content').textContent = content;
-
-        // Display the popup
-        const popup = document.getElementById('event-popup');
-        popup.style.display = 'block';
-
-        // Position the popup near the mouse
-        positionPopup(event);
     });
 
-    eventDiv.addEventListener('mousemove', function(event) {
-        // Continuously reposition the popup as the mouse moves
-        positionPopup(event);
+    eventDiv.addEventListener('mousemove', function (event) {
+        isMobile = window.innerWidth < 768;
+        if (!isMobile) {
+            openDisplay(eventDiv);
+            positionPopup(event);
+        }
     });
 
-    eventDiv.addEventListener('mouseout', function() {
-        // Hide the popup when the mouse leaves the event
-        const popup = document.getElementById('event-popup');
-        popup.style.display = 'none';
+    eventDiv.addEventListener('mouseout', function () {
+        isMobile = window.innerWidth < 768;
+        if (!isMobile) {
+            // Hide the popup when the mouse leaves the event
+            const popup = document.getElementById('event-popup');
+            popup.style.display = 'none';
+        }
     });
 });
 
+function openDisplay(eventDiv) {
+    console.log(isMobile)
+    const image = eventDiv.getAttribute('data-image');
+    const title = eventDiv.getAttribute('data-title');
+    const content = eventDiv.getAttribute('data-content');
+    const start = eventDiv.getAttribute('data-event-start');
+    const end = eventDiv.getAttribute('data-event-end');
+
+    // Update popup content
+    if (image) {
+        document.getElementById('popup-image').src = image;
+        document.getElementById('popup-image').style.display = "block";
+    } else {
+        document.getElementById('popup-image').style.display = "none";
+    }
+    document.getElementById('popup-title').textContent = title;
+    document.getElementById('popup-content').textContent = content;
+    document.getElementById('date-start').textContent = start;
+    document.getElementById('date-end').textContent = end;
+
+    // Display the popup
+    const popup = document.getElementById('event-popup');
+    popup.style.display = 'block';
+}

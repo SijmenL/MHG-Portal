@@ -14,7 +14,7 @@ use MailerSend\Common\Roles;
 
 class AgendaController extends Controller
 {
-    public function home(Request $request)
+    public function agendaMonth(Request $request)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
@@ -54,7 +54,7 @@ class AgendaController extends Controller
             })
             ->get();
 
-        return view('agenda.home', [
+        return view('agenda.month', [
             'user' => $user,
             'roles' => $roles,
             'day' => $calculatedDay,
@@ -71,6 +71,49 @@ class AgendaController extends Controller
             'events' => $events,
         ]);
     }
+
+    public function agendaSchedule(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        // Retrieve query parameters for offsets, default to 0 if not set
+        $monthOffset = $request->query('month', 0);
+        $dayOffset = $request->query('day', 0);
+
+        // Set locale to Dutch
+        Carbon::setLocale('nl');
+
+        // Calculate the date based on the offsets
+        $baseDate = Carbon::now();
+        $calculatedDate = $baseDate->copy()->addMonths($monthOffset)->addDays($dayOffset);
+
+        // Get the month name and year for display
+        $monthName = $calculatedDate->translatedFormat('F');
+        $calculatedYear = $calculatedDate->year;
+
+        // Calculate the start and end date for the 3-month period
+        $startDate = $calculatedDate->copy()->startOfMonth()->startOfDay();
+        $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
+
+        // Retrieve events between the start of the calculated month and 3 months later
+        $events = CalendarItem::whereBetween('date_start', [$startDate, $endDate])
+            ->orderBy('date_start')
+            ->get();
+
+        // Return view with events data
+        return view('agenda.schedule', [
+            'events' => $events,
+            'roles' => $roles,
+            'user' => $user,
+            'monthOffset' => $monthOffset,
+            'monthName' => $monthName,
+            'year' => $calculatedYear,
+            'dayOffset' => $dayOffset
+        ]);
+    }
+
+
 
     public function createAgenda()
     {
@@ -165,5 +208,6 @@ class AgendaController extends Controller
             return redirect()->back()->with('error', 'Er is een fout opgetreden bij het opslaan van je agendapunt. Probeer het opnieuw.')->withInput();
         }
     }
+
 
 }

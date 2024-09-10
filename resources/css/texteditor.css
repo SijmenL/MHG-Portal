@@ -17,8 +17,8 @@
 
 .options {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    align-items: start;
+    justify-content: space-between;
     gap: 20px;
     position: sticky;
     top: 98px;
@@ -31,6 +31,12 @@
     z-index: 2;
 }
 
+.options-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+}
 
 #text-input {
     transform: translateY(-5px);
@@ -38,7 +44,7 @@
     max-width: calc(100%);
     width: 100%;
     background-color: rgb(255, 255, 255);
-    margin-bottom: 5px;
+    min-height: 130px;
     border: none;
 }
 
