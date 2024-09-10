@@ -105,8 +105,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/nieuws/mijn-nieuws/verwijder/{id}', [NewsController::class, 'deleteNews'])->name('news.user.edit.delete');
 });
 
+//Agenda
 Route::middleware(['auth'])->group(function () {
-    Route::get('/agenda', [AgendaController::class, 'home'])->name('agenda');
+    Route::get('/agenda/maand', [AgendaController::class, 'agendaMonth'])->name('agenda.month');
+    Route::get('/agenda/overzicht', [AgendaController::class, 'agendaSchedule'])->name('agenda.schedule');
 
     Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');

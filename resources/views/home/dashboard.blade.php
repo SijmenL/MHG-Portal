@@ -318,7 +318,7 @@
                     <span class="material-symbols-rounded">news</span>
                     <p>Nieuws</p>
                 </a>
-                <a class="btn btn-secondary quick-action" href="{{ route('agenda') }}">
+                <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
                     <span class="material-symbols-rounded">event</span>
                     <p>Agenda</p>
                 </a>

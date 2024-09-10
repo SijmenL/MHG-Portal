@@ -24,7 +24,8 @@
         @endif
 
         <div class="bg-light rounded-2 p-3">
-            <h2>Pas je wachtwoord aan</h2>
+            <div class="mt-4">
+            <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">key</span>Pas je wachtwoord aan</h2>
             <form method="POST" action="{{ route('settings.change-password.store') }}"
                   enctype="multipart/form-data">
                 @csrf
@@ -61,6 +62,7 @@
                 </div>
 
             </form>
+            </div>
         </div>
     </div>
 @endsection

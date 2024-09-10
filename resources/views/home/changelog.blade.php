@@ -11,13 +11,33 @@
             </ol>
         </nav>
 
+        <h2>Update 2.0</h2>
+        <p class="fst-italic">23/09/2024</p>
+        <ul>
+            <li class="added">De kalender is volledig over naar portal</li>
+            <ul>
+            <li class="added">Activiteiten zijn aan te maken per gebruiker en speltak</li>
+                <li class="added">Openbare activiteiten zijn via portal te maken en op de openbare website te zetten</li>
+                <li class="added">Maand weergave en planning weergave</li>
+            </ul>
+            <li class="added">Verschillende QOL updates:</li>
+            <ul>
+                <li class="added">De tekst editor werkt soepeler en is fijner in gebruik</li>
+                <li class="added">De pagina voor het aanpassen van persoonsgegevens is opnieuw vormgegeven</li>
+                <li class="added">Notificaties die op portal binnenkomen worden ook per mail naar de gebruiker verstuurd</li>
+                <li class="added">Verschillende bugs zijn eruit gehaald</li>
+            </ul>
+        </ul>
+
         <h2>Update 1.1</h2>
         <p class="fst-italic">10/07/2024</p>
         <ul>
             <li class="added">Het beheer van nieuwsitems gaat volledig via portal</li>
             <ul>
                 <li class="added">Iedereen kan nieuws aanmaken</li>
-                <li class="added">Nieuws wordt op de website gepubliceerd wanneer de administratie dit geaccepteerd heeft</li>
+                <li class="added">Nieuws wordt op de website gepubliceerd wanneer de administratie dit geaccepteerd
+                    heeft
+                </li>
                 <ul>
                     <li class="added">Gebruikers krijgen een melding wanneer hun nieuws op de site staat</li>
                 </ul>
@@ -31,7 +51,10 @@
         <ul>
             <li class="added">Administratieve logs toegevoegd, voor het vinden van bugs en fouten.</li>
             <ul>
-                <li class="added">De logs worden aangemaakt bij elke administratieve handeling en bij het bekijken van avg gegevens. Deze logs kunnen gebruikt worden om fouten uit het systeem te halen en om te kijken waar dingen mis kunnen gaan.</li>
+                <li class="added">De logs worden aangemaakt bij elke administratieve handeling en bij het bekijken van
+                    avg gegevens. Deze logs kunnen gebruikt worden om fouten uit het systeem te halen en om te kijken
+                    waar dingen mis kunnen gaan.
+                </li>
             </ul>
             <li class="added">Notificaties toegevoegd, notificaties worden verstuurd als:</li>
             <ul>
@@ -41,7 +64,9 @@
                 <li class="added">Je gegevens worden aangepast.</li>
             </ul>
             <li class="added">Notificaties worden automatisch na 1 week verwijderd.</li>
-            <li class="added">Notificaties kunnen een snelle link bevatten om bij hetgeen te komen waar de notificatie over gaat.</li>
+            <li class="added">Notificaties kunnen een snelle link bevatten om bij hetgeen te komen waar de notificatie
+                over gaat.
+            </li>
         </ul>
 
         <h2>Update 0.6</h2>
