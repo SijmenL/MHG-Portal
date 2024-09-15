@@ -119,6 +119,39 @@ class SettingsController extends Controller
         return back()->with("success", "Wachtwoord succesvol opgeslagen!");
     }
 
+
+    public function notifications()
+    {        
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        // $user = Auth::user();
+        // $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        // $weekAgo = now()->subWeek();
+        // Notification::where('receiver_id', Auth::id())
+        //     ->where('created_at', '<', $weekAgo)
+        //     ->delete();
+
+        // $notifications = Notification::where('receiver_id', Auth::id())
+        //     ->orderBy('seen', 'asc')
+        //     ->orderBy('created_at', 'desc')
+        //     ->paginate(25);
+
+        // $notificationsUnseen = Notification::where('receiver_id', Auth::id())
+        //     ->where('seen', false)
+        //     ->get();
+
+        // foreach ($notificationsUnseen as $notification) {
+        //     $notification->seen = true;
+        //     $notification->save();
+        // }
+
+        // ['user' => $user, 'roles' => $roles, 'notifications' => $notifications]
+        return view('settings.edit-notifications', ['user' => $user, 'roles' => $roles]);
+    }
+
+
     public function parent()
     {
         $user = Auth::user();

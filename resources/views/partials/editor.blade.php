@@ -28,7 +28,10 @@
 {{--            </button>--}}
 {{--        </div>--}}
 {{--    </div>--}}
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     <!-- Text Format -->
     <div class="wysiwyg-button">
         <button type="button" title="vet" id="bold" class="option-button format d-flex justify-content-center bold">
@@ -119,5 +122,13 @@
             <span class="material-symbols-rounded">format_indent_decrease</span>
         </button>
     </div>
+<<<<<<< Updated upstream
+=======
+    <div class="wysiwyg-button">
+        <button type="button" title="verwijder stijling" id="clear" class="option-button d-flex justify-content-center bold">
+            <span class="material-symbols-rounded">format_clear</span>
+        </button>
+    </div>
+>>>>>>> Stashed changes
 </div>
 @endsection
