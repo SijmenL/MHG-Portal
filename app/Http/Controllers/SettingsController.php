@@ -151,6 +151,13 @@ class SettingsController extends Controller
         return view('settings.edit-notifications', ['user' => $user, 'roles' => $roles]);
     }
 
+    public function notificationsSave()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        return redirect()->route('settings.edit-notifications')->with("error", "Deze functie is nog niet beschikbaar.");
+    }
 
     public function parent()
     {

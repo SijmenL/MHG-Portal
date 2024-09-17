@@ -22,51 +22,180 @@
                 {{ session('success') }}
             </div>
         @endif
+        @php
+            // NOTIFICATIES VOOR IEDEREEN:
+            // jou account gegevens zijn aangepast
+            // jouw wachtwoord is aangepast
+            
+            // iemand heeft een post geplaatst
+            // jou nieuws item is geplaatst
+            // heeft je post geliked
+            // heeft je reactie geliked
+            // heeft op je post gereageerd
+            // heeft op jou reactie gereageerd
 
-        <form method="POST" action="{{ route('settings.edit-notifications.store') }}" enctype="multipart/form-data">
-            @csrf
+            // NOTIFICATIES VOOR ROL KINDEREN:
+            // {{ naam ouder }} heeft je gegevens aangepast
+            // {{ naam ouder }} heeft je als kind verwijderd
+            
 
-            <div class="bg-light rounded-2 p-3">
-                <h2>App notificaties</h2>
-                <p>Hier kun je instellen welke notificaties je wilt ontvangen via de app.</p>
+            // NOTIFICATIES VOOR ROL OUDERS:
+            // {{ naam kind }} heeft je als ouder toegevoegd
+            // {{ naam kind }} heeft je als ouder verwijderd
 
-                <div class="container">
-                    <div class="row">
-                        <div class="col">
-                            
-                        </div>
-                    </div>
-                </div>
+            // NOTIFICATIES VOOR ROL ADMINISTRATIE:
+            // nieuw contactformulier is ingevuld
+            // nieuwe aanmelding is binnen
+            // nieuw nieuws item is geplaatst
+        @endphp
 
+        <style>
+            .form-switch {
+                padding-left: 0rem;
+                /* padding-right: 2rem; */
+            }
+        </style>
+
+
+        <div class="bg-light rounded-2 p-3 row">
+            <div class="notification-settings-header text-center">
+                <h2>Account notificaties</h2>
             </div>
+            <form method="POST" action="{{ route('settings.edit-notifications.store') }}" enctype="multipart/form-data">
+                @csrf
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Notificatie</th>
+                            <th scope="col" class="text-center">App</th>
+                            <th scope="col" class="text-center">Mail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Account gegevens zijn aangepast</td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='app_account_change' id='app_account_change' @if(old('app_account_change')) checked @endif>                                    
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='mail_account_change' id='mail_account_change' @if(old('mail_account_change')) checked @endif>                                    
+                                </div>
+                            </td>
+                        </tr>
 
-            <div class="bg-light rounded-2 p-3 mt-3">
-                <h2>Email notificaties</h2>
-                <p>Hier kun je instellen welke notificaties je wilt ontvangen via de mail.</p>
+                        <tr>
+                            <td>Wachtwoord is aangepast</td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='app_password_change' id='app_password_change' @if(old('app_password_change')) checked @endif>                                    
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='mail_password_change' id='mail_password_change' @if(old('mail_password_change')) checked @endif>
+                                </div>
+                            </td>
+                        </tr>
 
 
-                <div class="container">
-                    <div class="row">
-                        <div class="col">
-                            
-                        </div>
-                    </div>
-                </div>
-                
-            </div>  
-        
-            @if ($errors->any())
-                <div class="text-danger">
-                    <p>Er is iets misgegaan...</p>
-                </div>
-            @endif
+                    </tbody>
+                </table>
+            </form>
 
-            <div class="d-flex flex-row flex-wrap gap-2 mt-3">
-                <button type="submit" class="btn btn-success">Opslaan</button>
-                <a href="{{ route('settings') }}"
-                    class="btn btn-danger text-white">Annuleren</a>
+            <div class="notification-settings-header text-center">
+                <h2>Post & nieuws notificaties</h2>
             </div>
+            <form method="POST" action="{{ route('settings.edit-notifications.store') }}" enctype="multipart/form-data">
+                @csrf
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>Er is een nieuwe post</td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='app_new_post' id='app_new_post' @if(old('app_new_post')) checked @endif>                                    </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='mail_new_post' id='mail_new_post' @if(old('mail_new_post')) checked @endif>                                    </div>
+                            </td>
+                        </tr>
 
-        </form>
+                        <tr>
+                            <td>Jouw nieuwsitem is goedgekeurd</td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='app_password_change' id='app_password_change' @if(old('app_password_change')) checked @endif>                                    </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='mail_password_change' id='mail_password_change' @if(old('mail_password_change')) checked @endif>
+                                </div>
+                            </td>
+                        </tr>
+
+
+                    </tbody>
+                </table>
+            </form>
+
+            <div class="notification-settings-header text-center">
+                <h2>''Per rol'' notificaties</h2>
+            </div>
+            <form method="POST" action="{{ route('settings.edit-notifications.store') }}" enctype="multipart/form-data">
+                @csrf
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>Account gegevens zijn aangepast</td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='app_account_change' id='app_account_change' @if(old('app_account_change')) checked @endif>                                    </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='mail_account_change' id='mail_account_change' @if(old('mail_account_change')) checked @endif>                                    </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Wachtwoord is aangepast</td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='app_password_change' id='app_password_change' @if(old('app_password_change')) checked @endif>                                    </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                    <input class="form-check-input fs-4 m-0"  type="checkbox" role="switch" name='mail_password_change' id='mail_password_change' @if(old('mail_password_change')) checked @endif>
+                                </div>
+                            </td>
+                        </tr>
+
+
+                    </tbody>
+                </table>
+            </form>
+            
+
+        </div>
+
+        @if ($errors->any())
+            <div class="text-danger">
+                <p>Er is iets misgegaan...</p>
+            </div>
+        @endif
     </div>
+ 
+    <script>
+        // onchange of the checkbox, submit the form
+        document.querySelectorAll('.form-check-input').forEach(item => {
+            item.addEventListener('change', event => {
+                item.closest('form').submit();
+            });
+        });
+    </script>
+
 @endsection
