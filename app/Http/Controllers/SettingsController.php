@@ -6,6 +6,7 @@ use App\Models\Log;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserNotificationSettings;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -125,38 +126,33 @@ class SettingsController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        // $user = Auth::user();
-        // $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-        // $weekAgo = now()->subWeek();
-        // Notification::where('receiver_id', Auth::id())
-        //     ->where('created_at', '<', $weekAgo)
-        //     ->delete();
-
-        // $notifications = Notification::where('receiver_id', Auth::id())
-        //     ->orderBy('seen', 'asc')
-        //     ->orderBy('created_at', 'desc')
-        //     ->paginate(25);
-
-        // $notificationsUnseen = Notification::where('receiver_id', Auth::id())
-        //     ->where('seen', false)
-        //     ->get();
-
-        // foreach ($notificationsUnseen as $notification) {
-        //     $notification->seen = true;
-        //     $notification->save();
-        // }
-
-        // ['user' => $user, 'roles' => $roles, 'notifications' => $notifications]
-        return view('settings.edit-notifications', ['user' => $user, 'roles' => $roles]);
+        $notification_settings = UserNotificationSettings::all()->where('user_id', $user->id)->pluck('on_status', 'type')->toArray();
+        
+        return view('settings.edit-notifications', compact('user', 'roles', 'notification_settings'));
     }
 
-    public function notificationsSave()
+    public function notificationsSave(Request $request)
     {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $request->validate([
+            'hidden_form_field' => 'required',
+        ]);
 
-        return redirect()->route('settings.edit-notifications')->with("error", "Deze functie is nog niet beschikbaar.");
+        // check if the notification setting already exists
+        $notification_setting = UserNotificationSettings::where('user_id', Auth::user()->id)->where('type', $request->hidden_form_field)->first();
+
+        // if exists, delete
+        if ($notification_setting) {
+            $notification_setting->delete();
+            return redirect()->route('settings.edit-notifications')->with("success", "Notificatie instelling succesvol opgeslagen.");
+        }
+    
+        UserNotificationSettings::create([
+            'user_id' => Auth::user()->id,
+            'type' => $request->hidden_form_field,
+            'on_status' => 0               
+        ]);
+
+        return redirect()->route('settings.edit-notifications')->with("success", "Notificatie instelling succesvol opgeslagen.");
     }
 
     public function parent()

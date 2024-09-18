@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class plainMail extends Mailable
+class newSignUp extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -28,7 +28,7 @@ class plainMail extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.test_plain')->with(['data', $this->data]);
+        return $this->markdown('emails.new_sign_up')->with(['data', $this->data]);
         
         // return redirect()->route('maintenance.MeldingOverzicht')->with('success','werkbon has been created successfully.');
 

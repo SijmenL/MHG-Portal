@@ -7,6 +7,7 @@ use App\Models\Log;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Role;
+use App\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -28,16 +29,21 @@ class NonLoggedInController extends Controller
             'message' => 'required|string'
         ]);
 
-        $contact = Contact::create([
-            'email' => $request->input('email'),
+        $data = [
             'name' => $request->input('name'),
+            'email' => $request->input('email'),
             'phone' => $request->input('phone'),
             'message' => $request->input('message'),
-            'done' => false,
-        ]);
+            'done' => false
+        ];
+
+        $contact = Contact::create($data);
 
         $log = new Log();
         $log->createLog(null, 2, 'Contact', 'Admin', $contact->id, 'Contact formulier opgeslagen');
+
+        $notification = new NotificationController();
+        $notification->sendNotificationToRole('administratie', 'contact_message', $data);
 
         return view('forms.contact.succes');
     }
@@ -75,7 +81,7 @@ class NonLoggedInController extends Controller
                 $avg = true;
             }
 
-            $account = User::create([
+            $data = [
                 'email' => $request->input('email'),
                 'password' => Hash::make($request->input('new_password')),
                 'sex' => $request->input('sex'),
@@ -90,7 +96,9 @@ class NonLoggedInController extends Controller
                 'avg' => $avg,
                 'accepted' => false,
                 'member_date' => Date::now(),
-            ]);
+            ]
+
+            $account = User::create($data);
 
             if ($request->input('speltak') === 'dolfijnen') {
                 $role = Role::where('role', 'Dolfijn')->first();
@@ -114,6 +122,9 @@ class NonLoggedInController extends Controller
 
             $notification = new Notification();
             $notification->sendNotification(null, [$account->id], 'Welkom bij de MHG! Je account is succesvol aangemaakt!.', '', '');
+
+            $NotificationController = new NotificationController();
+            $NotificationController->sendNotificationToRole('administratie', 'new_registration', $data);
 
 
             return view('forms.inschrijven.succes');
