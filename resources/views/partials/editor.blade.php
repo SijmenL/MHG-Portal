@@ -3,7 +3,7 @@
     <div class="options flex-row-responsive">
         <div class="options-container">
             <!-- Headings -->
-            <select id="formatBlock" class="adv-option-button" style="">
+            <select id="formatBlock" class="form-select" style="max-width: 100px; width: unset">
                 <option value="H1" class="h1">Titel</option>
                 <option value="H2" class="h2">Kop 2</option>
                 <option value="H3" class="h3">Kop 3</option>

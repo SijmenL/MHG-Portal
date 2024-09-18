@@ -26,8 +26,11 @@
                 <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                     <div style="text-align: start">
                         <p>Elke speltak heeft op het Ledenportaal zijn eigen pagina.</p>
-                        <p>Binnen deze pagina zijn verschillende dingen te doen. Zo heeft elke speltak zijn eigen prikbord, waarop verschillende meldingen van de leiding zullen verschijnen en waarop je zelf ook leuke dingen kunt plaatsten!</p>
-                        <p>Verder kun je ook de informatie van de leiding oproepen, zoals telefoonnummers en verenigingsgebonden e-mailadressen.</p>
+                        <p>Binnen deze pagina zijn verschillende dingen te doen. Zo heeft elke speltak zijn eigen
+                            prikbord, waarop verschillende meldingen van de leiding zullen verschijnen en waarop je zelf
+                            ook leuke dingen kunt plaatsten!</p>
+                        <p>Verder kun je ook de informatie van de leiding oproepen, zoals telefoonnummers en
+                            verenigingsgebonden e-mailadressen.</p>
                     </div>
                     <img class="w-50" src="{{ asset('img/tutorial/speltakpagina.png') }}">
                 </div>
@@ -36,8 +39,10 @@
                 <h2>Speltak</h2>
                 <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                     <div style="text-align: start">
-                        <p>Als je een post op het prikbord maakt kan deze geliket worden, en er kunnen zelfs mensen op reageren.</p>
-                        <p>Posts die je maakt kan je altijd nog bewerken of verwijderen als dat zou moeten. Er kan niemand anders je post aanpassen.</p>
+                        <p>Als je een post op het prikbord maakt kan deze geliket worden, en er kunnen zelfs mensen op
+                            reageren.</p>
+                        <p>Posts die je maakt kan je altijd nog bewerken of verwijderen als dat zou moeten. Er kan
+                            niemand anders je post aanpassen.</p>
                         <p>Posts worden in de gaten gehouden door team Admin en de leiding van de speltak.</p>
                     </div>
                     <img class="w-50" src="{{ asset('img/tutorial/post.png') }}">
@@ -79,7 +84,8 @@
 
                     <div style="text-align: start">
                         <p>Op het dashboard staat ook een knop notificaties.</p>
-                        <p>Op de pagina <a href="{{ route('notifications') }}">Notificaties</a> krijg je alle notificaties te zien die binnen het ledenportaal naar
+                        <p>Op de pagina <a href="{{ route('notifications') }}">Notificaties</a> krijg je alle
+                            notificaties te zien die binnen het ledenportaal naar
                             jou
                             toegestuurd zijn. Dit is bijvoorbeeld als iemand een post maakt binnen jouw speltak of je
                             accountgegevens zijn bijvoorbeeld aangepast door je ouder of de administratie.</p>
@@ -89,18 +95,19 @@
                     <img class="w-75" src="{{ asset('img/tutorial/notificaties.png') }}">
                 </div>
             </div>
-                @if($user->children()->count() > 0)
+            @if($user->children()->count() > 0)
                 <div class="page" style="display: none">
                     <h2>Kinderen</h2>
                     <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                         <div style="text-align: start">
-                            <p>Omdat je een kindaccount gelinkt hebt, heb je toegang tot de <a href="{{ route('children') }}">Mijn Kinderen</a> pagina.</p>
+                            <p>Omdat je een kindaccount gelinkt hebt, heb je toegang tot de <a
+                                    href="{{ route('children') }}">Mijn Kinderen</a> pagina.</p>
                             <p>Op deze pagina kan je de persoonsgegevens van je kinderen aanpassen.</p>
                         </div>
                         <img class="w-50" src="{{ asset('img/tutorial/kinderen.png') }}">
                     </div>
                 </div>
-                @endif
+            @endif
             <div class="page" style="display: none">
                 <h2>Leiding & Organisatie</h2>
                 @if($user &&
@@ -115,13 +122,16 @@
                    $user->roles->contains('role', 'Loodsen Mentor') ||
                    $user->roles->contains('role', 'Ouderraad'))
                    )
-                    <p>De pagina <a href="{{ route('leiding') }}">Leiding & Organisatie</a> bevat net als de speltakpagina's een prikbord waar informatie met elkaar gedeeld kan worden.</p>
+                    <p>De pagina <a href="{{ route('leiding') }}">Leiding & Organisatie</a> bevat net als de
+                        speltakpagina's een prikbord waar informatie met elkaar gedeeld kan worden.</p>
                     <p>Op deze pagina valt ook een archief te vinden van de notules van de afgelopen groepsraden.</p>
 
                     <p>Ook is er een grote lijst te zien waar iedereen binnen de organisatie te vinden is.</p>
                     <img class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
                 @else
-                <p>Op de pagina <a href="{{ route('leiding.leiding') }}">Leiding & Organisatie</a> is een overzicht te vinden met alle belangrijke contactpersonen binnen de club. Je kan hier de telefoonnummers en clubgebonden e-mailadressen opvragen.</p>
+                    <p>Op de pagina <a href="{{ route('leiding.leiding') }}">Leiding & Organisatie</a> is een overzicht
+                        te vinden met alle belangrijke contactpersonen binnen de club. Je kan hier de telefoonnummers en
+                        clubgebonden e-mailadressen opvragen.</p>
                     <img class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
                 @endif
             </div>
@@ -129,16 +139,21 @@
                 <h2>Nieuws</h2>
                 <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                     <div style="text-align: start">
-                        <p>Op de pagina <a href="{{ route('news') }}">Nieuws</a> kun je nieuwtjes insturen die op de normale website komen te staan.</p>
-                        <p>Als je een nieuwtje instuurt wordt deze eerst nagekeken voordat deze online komt te staan.</p>
+                        <p>Op de pagina <a href="{{ route('news') }}">Nieuws</a> kun je nieuwtjes insturen die op de
+                            normale website komen te staan.</p>
+                        <p>Als je een nieuwtje instuurt wordt deze eerst nagekeken voordat deze online komt te
+                            staan.</p>
                     </div>
                     <img class="w-50" src="{{ asset('img/tutorial/nieuws.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
                 <h2>Als laatste..</h2>
-                        <p>In de toekomst zullen we nog meer dingen toe gaan voegen aan ons Ledenportaal, dus als je op het dashboard een nieuwe knop ziet, kijk dan zeker de rondleiding nog even na door op het vraagteken te drukken.</p>
-                <p>Mocht je nog vragen hebben staan we hier altijd voor open! We zijn te mailen via <a href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>!</p>
+                <p>In de toekomst zullen we nog meer dingen toe gaan voegen aan ons Ledenportaal, dus als je op het
+                    dashboard een nieuwe knop ziet, kijk dan zeker de rondleiding nog even na door op het vraagteken te
+                    drukken.</p>
+                <p>Mocht je nog vragen hebben staan we hier altijd voor open! We zijn te mailen via <a
+                        href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>!</p>
                 <p>Groetjes en veel plezier!</p>
                 <p>Team Administratie</p>
             </div>
@@ -318,10 +333,27 @@
                     <span class="material-symbols-rounded">news</span>
                     <p>Nieuws</p>
                 </a>
-                <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
-                    <span class="material-symbols-rounded">event</span>
-                    <p>Agenda</p>
-                </a>
+                @if($user &&
+                    ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                    $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                    $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                    $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                    $user->roles->contains('role', 'Administratie') ||
+                    $user->roles->contains('role', 'Bestuur') ||
+                    $user->roles->contains('role', 'Praktijkbegeleider') ||
+                    $user->roles->contains('role', 'Loodsen Mentor') ||
+                    $user->roles->contains('role', 'Ouderraad'))
+                    )
+                    <a class="btn btn-secondary quick-action" href="{{ route('agenda') }}">
+                        <span class="material-symbols-rounded">event</span>
+                        <p>Agenda</p>
+                    </a>
+                @else
+                        <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
+                            <span class="material-symbols-rounded">event</span>
+                            <p>Agenda</p>
+                        </a>
+                @endif
             </div>
         </div>
         <h1 class="mt-2"></h1>

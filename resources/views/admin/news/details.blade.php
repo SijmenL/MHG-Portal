@@ -42,7 +42,7 @@
                     @endif
                 </div>
                 <h5 style="font-weight: bolder;">{{ $news->description }}</h5>
-                <img class="news-image-full" src="{{ asset('/files/news/news_images/'.$news->image.' ') }}"
+                <img class="news-image-full zoomable-image p-3" src="{{ asset('/files/news/news_images/'.$news->image.' ') }}"
                      alt="nieuws afbeelding">
                 <div class="news-content">{!! $news->content !!}</div>
 

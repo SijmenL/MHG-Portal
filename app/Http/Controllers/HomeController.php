@@ -77,11 +77,6 @@ class HomeController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $weekAgo = now()->subWeek();
-        Notification::where('receiver_id', Auth::id())
-            ->where('created_at', '<', $weekAgo)
-            ->delete();
-
         $notifications = Notification::where('receiver_id', Auth::id())
             ->orderBy('seen', 'asc')
             ->orderBy('created_at', 'desc')

@@ -8,6 +8,7 @@ function init() {
 
     html = document.querySelector('html')
 
+
     // Gather all event elements
     const events = document.querySelectorAll('.calendar-event');
 
@@ -39,40 +40,6 @@ function init() {
         });
     });
 }
-
-function openPopupCenter() {
-    const popup = document.getElementById('event-popup');
-    const overlay = document.getElementById('popup-overlay');
-
-    // Position the popup in the center
-    popup.style.left = '50%';
-    popup.style.top = '50%';
-    popup.style.transform = 'translate(-50%, -50%)'; // Center the popup both horizontally and vertically
-    popup.style.position = 'fixed'; // Keep the popup fixed in the viewport
-
-    // Show the popup and the overlay
-    popup.style.display = 'block';
-    overlay.style.display = 'block';
-
-    const scrollPosition = window.scrollY;
-    html.classList.add('no-scroll');
-    window.scrollTo(0, scrollPosition);
-}
-
-function closePopup() {
-    const popup = document.getElementById('event-popup');
-    const overlay = document.getElementById('popup-overlay');
-
-    // Hide the popup and the overlay
-    popup.style.display = 'none';
-    overlay.style.display = 'none';
-
-    // Enable scrolling on the body
-    html.classList.remove('no-scroll');
-}
-
-// Attach event listener to the overlay for closing the popup
-document.getElementById('popup-overlay').addEventListener('click', closePopup);
 
 
 function positionPopup(event) {
@@ -137,16 +104,6 @@ function positionPopup(event) {
 
 // Attach the event listeners to all calendar events
 document.querySelectorAll('.calendar-event').forEach(eventDiv => {
-    eventDiv.addEventListener('click', function (event) {
-        isMobile = window.innerWidth < 768;
-
-        // Mobile: open popup centered on click
-        if (isMobile) {
-            openDisplay(eventDiv);
-            openPopupCenter();
-        }
-    });
-
     eventDiv.addEventListener('mousemove', function (event) {
         isMobile = window.innerWidth < 768;
         if (!isMobile) {

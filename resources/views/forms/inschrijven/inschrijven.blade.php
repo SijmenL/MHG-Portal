@@ -337,7 +337,7 @@
 
                         <div class="form-check mt-4">
                             <p class="m-0">Avg wetgeving</p>
-                            <input class="form-check-input" type="checkbox" value="0" id="avg" name="avg">
+                            <input class="form-check-input" type="checkbox" value="0" id="avg" name="avg" checked>
                             <label class="form-check-label" for="avg">
                                 Ik geef toestemming om foto's en video's waar ik op sta te gebruiken in online
                                 materiaal, zoals Facebook of de website

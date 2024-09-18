@@ -110,8 +110,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/agenda/maand', [AgendaController::class, 'agendaMonth'])->name('agenda.month');
     Route::get('/agenda/overzicht', [AgendaController::class, 'agendaSchedule'])->name('agenda.schedule');
 
+    Route::get('/agenda/activiteit/{id}', [AgendaController::class, 'agendaActivity'])->name('agenda.activity');
+    Route::post('/agenda/activiteit/{id}', [AgendaController::class, 'handleActivityForm'])->name('agenda.activity.submit');
+
+    Route::get('/agenda/activiteit/aanwezig/{id}', [AgendaController::class, 'agendaPresent'])->name('agenda.activity.present');
+    Route::get('/agenda/activiteit/niet-aanwezig/{id}', [AgendaController::class, 'agendaAbsent'])->name('agenda.activity.absent');
+});
+
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
     Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
+
+    Route::get('/agenda', [AgendaController::class, 'home'])->name('agenda');
+
+    Route::get('/agenda/aanwezigheid', [AgendaController::class, 'agendaPresence'])->name('agenda.presence');
+    Route::get('/agenda/aanwezigheid/{id}', [AgendaController::class, 'agendaPresenceActivity'])->name('agenda.presence.activity');
+    Route::post('/agenda/aanwezigheid/export', [AgendaController::class, 'exportPresenceData'])->name('agenda.presence.export');
 });
 
 

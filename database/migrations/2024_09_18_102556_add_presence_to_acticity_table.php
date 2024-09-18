@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('activities', function (Blueprint $table) {
-            $table->string('location')->nullable();
-            $table->string('price')->nullable();
-            $table->string('organisator')->nullable();
+            $table->boolean('presence')->nullable();
+            $table->boolean('repeat')->nullable();
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('activities', function (Blueprint $table) {
+        Schema::table('acticity', function (Blueprint $table) {
             //
         });
     }
