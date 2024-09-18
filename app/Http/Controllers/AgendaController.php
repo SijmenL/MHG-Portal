@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CalendarItem;
+use App\Exports\AgendaExport;
+use App\Models\Activity;
+use App\Models\ActivityFormElement;
+use App\Models\ActivityFormResponse;
 use App\Models\Log;
 use App\Models\News;
+use App\Models\Presence;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -14,45 +19,276 @@ use MailerSend\Common\Roles;
 
 class AgendaController extends Controller
 {
-    public function agendaMonth(Request $request)
+
+    public function home()
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        // Retrieve query parameters for offsets, default to 0 if not set
+
+        return view('agenda.home', ['user' => $user, 'roles' => $roles]);
+    }
+
+    public function agendaPresence(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = $request->query('search', '');
+
+        $currentDate = now();
+
+        $activities = Activity::query()
+            ->where('presence', 1)  // Filter by presence
+            ->when(empty($search), function ($query) use ($currentDate) {
+                // Exclude activities with date_start in the past when not searching
+                $query->where('date_start', '>=', $currentDate);
+            })
+            ->when($search, function ($query, $search) {
+                // Include past activities when searching
+                $query->where(function ($query) use ($search) {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhere('date_start', 'like', "%{$search}%")
+                        ->orWhere('date_end', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhere('price', 'like', "%{$search}%")
+                        ->orWhere('organisator', 'like', "%{$search}%");
+                });
+            })
+            ->orderByRaw(
+                'CASE
+                WHEN date_start >= ? THEN date_start
+                ELSE NULL
+            END ASC,
+            date_start ASC',
+                [$currentDate]
+            )
+            ->paginate(10);
+
+        return view('agenda.presence', ['user' => $user, 'roles' => $roles, 'search' => $search, 'activities' => $activities]);
+    }
+
+    public function agendaPresenceActivity(Request $request, $id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $selected_role = $request->query('role', 'none');
+        $search = $request->query('search', '');
+
+        $activity = Activity::find($id);
+
+        if (!$activity) {
+            return redirect()->route('agenda.presence')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        $activityRoleIds = !empty($activity->roles)
+            ? array_map('trim', explode(',', $activity->roles))
+            : [];
+
+        $activityUserIds = !empty($activity->users)
+            ? array_map('trim', explode(',', $activity->users))
+            : [];
+
+        $all_roles = Role::whereIn('id', $activityRoleIds)->get();
+
+
+        if (isset($selected_role) && !in_array($selected_role, Role::whereIn('id', $activityRoleIds)->pluck('role')->toArray())) {
+            $selected_role = 'none';
+        }
+
+        if (isset($selected_role) && $selected_role !== 'none') {
+            // Use where for a single role, not whereIn, and order by last_name
+            $usersWithRoles = User::whereHas('roles', function ($query) use ($selected_role) {
+                $query->where('role', $selected_role); // Assuming `role` is the name of the field
+            })
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                ->orderBy('last_name', 'asc')->get();
+        } else {
+            // Fetch users with roles from activityRoleIds, and order by last_name
+            $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds) {
+                $query->whereIn('role_id', $activityRoleIds); // Assuming `role_id` is used here
+            })
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('sex', 'like', '%' . $search . '%')
+                        ->orWhere('infix', 'like', '%' . $search . '%')
+                        ->orWhere('birth_date', 'like', '%' . $search . '%')
+                        ->orWhere('street', 'like', '%' . $search . '%')
+                        ->orWhere('postal_code', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%')
+                        ->orWhere('id', 'like', '%' . $search . '%')
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                })
+                ->orderBy('last_name', 'asc')->get();
+        }
+
+
+        // Get specific users mentioned in the activity
+        $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
+
+        // Merge both collections and remove duplicates
+        $users = $usersWithRoles->merge($mentionedUsers)->unique('id');
+
+        // Check presence status and set it in a new array
+        $userPresenceArray = $users->mapWithKeys(function ($user) use ($activity) {
+            $presenceRecord = Presence::where('activity_id', $activity->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            $status = $presenceRecord ? ($presenceRecord->presence ? 'present' : 'absent') : 'null';
+
+            return [$user->id => $status];
+        });
+
+        // Attach presence status to each user
+        $users->each(function ($user) use ($userPresenceArray) {
+            $user->presence = $userPresenceArray->get($user->id, 'null');
+        });
+
+        return view('agenda.presence-activity', [
+            'user' => $user,
+            'roles' => $roles,
+            'activity' => $activity,
+            'users' => $users,
+            'all_roles' => $all_roles,
+            'selected_role' => $selected_role,
+            'search' => $search
+        ]);
+    }
+
+    public function exportPresenceData(Request $request)
+    {
+        // Retrieve the filtered user data from the request
+        $usersData = json_decode($request->input('users'), true);
+
+        $activityName = $request->input('activity_name');
+
+        // Export data to Excel
+        $export = new AgendaExport($usersData, $activityName);
+        return $export->export();
+    }
+
+
+    public function agendaMonth(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $rolesIDList = $roles->pluck('id')->toArray();
+        $canViewAll = false;
+
+        // Check if the user has one of the roles that allow them to view all activities
+        if ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+            $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+            $user->roles->contains('role', 'Loodsen Stamoudste') ||
+            $user->roles->contains('role', 'Afterloodsen Organisator') ||
+            $user->roles->contains('role', 'Administratie') ||
+            $user->roles->contains('role', 'Bestuur') ||
+            $user->roles->contains('role', 'Praktijkbegeleider') ||
+            $user->roles->contains('role', 'Loodsen Mentor') ||
+            $user->roles->contains('role', 'Ouderraad')
+        ) {
+            $canViewAll = true;
+        }
+
+        $wantViewAll = $request->query('all', 'false');
+
+
+        if ($wantViewAll === 'false') {
+            $canViewAll = false;
+        }
+
         $monthOffset = $request->query('month', 0);
         $dayOffset = $request->query('day', 0);
 
-        // Set locale to Dutch
         Carbon::setLocale('nl');
-
-        // Calculate the date based on the offsets
         $baseDate = Carbon::now();
         $calculatedDate = $baseDate->copy()->addMonths($monthOffset)->addDays($dayOffset);
-
-        // Extract day, month, and year from the calculated date
         $calculatedDay = $calculatedDate->day;
         $calculatedMonth = $calculatedDate->month;
         $calculatedYear = $calculatedDate->year;
 
-        // Create a Carbon instance for the first day of the calculated month and year
         $firstDayOfMonth = Carbon::create($calculatedYear, $calculatedMonth, 1);
         $daysInMonth = $firstDayOfMonth->daysInMonth;
-        $firstDayOfWeek = $firstDayOfMonth->dayOfWeek;
+        $firstDayOfWeek = ($firstDayOfMonth->dayOfWeek + 6) % 7;
 
-        // Adjust for weeks starting on Monday (0 = Monday, 6 = Sunday)
-        $firstDayOfWeek = ($firstDayOfWeek + 6) % 7;
-
-        // Get the month name in Dutch
         $monthName = $calculatedDate->translatedFormat('F');
 
-        $events = CalendarItem::whereYear('date_start', $calculatedYear)
+        // Fetch activities for the calculated month and year
+        $activities = Activity::whereYear('date_start', $calculatedYear)
             ->whereMonth('date_start', $calculatedMonth)
             ->orWhere(function ($query) use ($calculatedYear, $calculatedMonth) {
                 $query->whereYear('date_end', $calculatedYear)
                     ->whereMonth('date_end', $calculatedMonth);
             })
-            ->get();
+            ->get()
+            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll) {
+                // Check if activity has roles or users
+                $activityRoleIds = !empty($activity->roles)
+                    ? array_map('trim', explode(',', $activity->roles))
+                    : [];
+
+                $activityUserIds = !empty($activity->users)
+                    ? array_map('trim', explode(',', $activity->users))
+                    : [];
+
+                // Default behavior if both roles and users are null: available for everyone without highlighting
+                if (empty($activityRoleIds) && empty($activityUserIds)) {
+                    $activity->should_highlight = false;
+                    return true; // Keep activity available
+                } else {
+                    // If the user can view all, check if it should be highlighted
+                    $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+                    $isUserListed = in_array($user->id, $activityUserIds);
+
+                    if ($canViewAll) {
+                        // Highlight only if there are roles or users and the user doesn't have access
+                        $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
+                        return true; // Keep activity in the list
+                    } else {
+                        // Hide activity if the user doesn't have access
+                        return $hasRoleAccess || $isUserListed;
+                    }
+                }
+            });
+
+        $globalRowTracker = [];
+        $activityPositions = [];
+
+        foreach ($activities as $activity) {
+            $startDate = Carbon::parse($activity->date_start)->startOfDay();
+            $endDate = Carbon::parse($activity->date_end)->endOfDay();
+            $position = 0; // Initialize position
+
+            $conflictFound = true;
+
+            // Find a non-conflicting position
+            while ($conflictFound) {
+                $conflictFound = !$this->trackEventPosition($activity->id, $startDate, $endDate, $position, $globalRowTracker);
+                if ($conflictFound) {
+                    $position++;
+                }
+            }
+
+            $activityPositions[$activity->id] = $position;
+        }
 
         return view('agenda.month', [
             'user' => $user,
@@ -68,14 +304,111 @@ class AgendaController extends Controller
             'monthOffset' => $monthOffset,
             'dayOffset' => $dayOffset,
             'monthName' => $monthName,
-            'events' => $events,
+            'activities' => $activities,
+            'wantViewAll' => $wantViewAll,
+            'activityPositions' => $activityPositions,
         ]);
+    }
+
+    // Function to track event positions and detect conflicts
+    private function trackEventPosition($eventId, $startDate, $endDate, $position, &$globalRowTracker)
+    {
+        $conflictFound = false;
+
+        for ($day = $startDate->copy(); $day->lte($endDate); $day->addDay()) {
+            $formattedDay = $day->format('Y-m-d');
+
+            if (!isset($globalRowTracker[$formattedDay])) {
+                $globalRowTracker[$formattedDay] = [];
+            }
+
+            if (isset($globalRowTracker[$formattedDay][$position])) {
+                $conflictFound = true;
+                break;
+            }
+        }
+
+        if ($conflictFound) {
+            return false;
+        }
+
+        for ($day = $startDate->copy(); $day->lte($endDate); $day->addDay()) {
+            $formattedDay = $day->format('Y-m-d');
+            $globalRowTracker[$formattedDay][$position] = $eventId;
+        }
+
+        return true;
+    }
+
+    public function agendaPresent($id)
+    {
+        $user = Auth::id();
+
+        $presence = Presence::where('user_id', $user)
+            ->where('activity_id', $id)
+            ->first();
+
+        if ($presence) {
+            $presence->update(['presence' => 1]);
+        } else {
+            Presence::create([
+                'user_id' => $user,
+                'activity_id' => $id,
+                'presence' => 1,
+            ]);
+        }
+
+        return redirect()->route('agenda.activity', $id)->with('success', 'Je bent aanwezig gemeld!');
+    }
+
+    public function agendaAbsent($id)
+    {
+        $user = Auth::id();
+
+        $presence = Presence::where('user_id', $user)
+            ->where('activity_id', $id)
+            ->first();
+
+        if ($presence) {
+            $presence->update(['presence' => 0]);
+        } else {
+            Presence::create([
+                'user_id' => $user,
+                'activity_id' => $id,
+                'presence' => 0,
+            ]);
+        }
+
+        return redirect()->route('agenda.activity', $id)->with('success', 'Je bent afwezig gemeld, jammer dat je er niet bij bent!');
     }
 
     public function agendaSchedule(Request $request)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $rolesIDList = $roles->pluck('id')->toArray();
+        $canViewAll = false;
+
+        // Check if the user has one of the roles that allow them to view all activities
+        if ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+            $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+            $user->roles->contains('role', 'Loodsen Stamoudste') ||
+            $user->roles->contains('role', 'Afterloodsen Organisator') ||
+            $user->roles->contains('role', 'Administratie') ||
+            $user->roles->contains('role', 'Bestuur') ||
+            $user->roles->contains('role', 'Praktijkbegeleider') ||
+            $user->roles->contains('role', 'Loodsen Mentor') ||
+            $user->roles->contains('role', 'Ouderraad')
+        ) {
+            $canViewAll = true;
+        }
+
+        $wantViewAll = $request->query('all', 'false');
+
+
+        if ($wantViewAll === 'false') {
+            $canViewAll = false;
+        }
 
         // Retrieve query parameters for offsets, default to 0 if not set
         $monthOffset = $request->query('month', 0);
@@ -96,23 +429,175 @@ class AgendaController extends Controller
         $startDate = $calculatedDate->copy()->startOfMonth()->startOfDay();
         $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
 
-        // Retrieve events between the start of the calculated month and 3 months later
-        $events = CalendarItem::whereBetween('date_start', [$startDate, $endDate])
+        // Retrieve activities between the start of the calculated month and 3 months later
+        $activities = Activity::whereBetween('date_start', [$startDate, $endDate])
             ->orderBy('date_start')
-            ->get();
+            ->get()
+            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll) {
+                // Check if activity has roles or users
+                $activityRoleIds = !empty($activity->roles)
+                    ? array_map('trim', explode(',', $activity->roles))
+                    : [];
 
-        // Return view with events data
+                $activityUserIds = !empty($activity->users)
+                    ? array_map('trim', explode(',', $activity->users))
+                    : [];
+
+                // Default behavior if both roles and users are null: available for everyone without highlighting
+                if (empty($activityRoleIds) && empty($activityUserIds)) {
+                    $activity->should_highlight = false;
+                    return true; // Keep activity available for everyone
+                } else {
+                    // If the user can view all, check if it should be highlighted
+                    $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+                    $isUserListed = in_array($user->id, $activityUserIds);
+
+                    if ($canViewAll) {
+                        // Highlight only if there are roles or users and the user doesn't have access
+                        $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
+                        return true; // Keep activity in the list
+                    } else {
+                        // Hide activity if the user doesn't have access
+                        return $hasRoleAccess || $isUserListed;
+                    }
+                }
+            });
+
+        // Return view with activities data
         return view('agenda.schedule', [
-            'events' => $events,
+            'activities' => $activities,
             'roles' => $roles,
             'user' => $user,
             'monthOffset' => $monthOffset,
             'monthName' => $monthName,
             'year' => $calculatedYear,
-            'dayOffset' => $dayOffset
+            'dayOffset' => $dayOffset,
+            'wantViewAll' => $wantViewAll
         ]);
     }
 
+
+    public function agendaActivity(Request $request, $id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $wantViewAll = $request->query('all', 'false');
+        $month = $request->query('month', '0');
+        $view = $request->query('view', 'month');
+
+        $rolesIDList = $roles->pluck('id')->toArray();
+
+        // Fetch the activity using the provided id
+        $activity = Activity::find($id);
+
+        if (!$activity) {
+            return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        $userPresence = Presence::where('user_id', Auth::id())
+            ->where('activity_id', $activity->id)
+            ->first();
+        $presenceStatus = $userPresence ? $userPresence->presence : null;
+
+        if (empty($activity->roles) && empty($activity->users)) {
+            return view('agenda.event', [
+                'user' => $user,
+                'roles' => $roles,
+                'activity' => $activity,
+                'presenceStatus' => $presenceStatus,
+
+                'month' => $month,
+                'wantViewAll' => $wantViewAll,
+                'view' => $view
+            ]);
+        } else {
+
+            if (!$user || !$user->roles->contains('role', 'Dolfijnen Leiding') && !$user->roles->contains('role', 'Zeeverkenners Leiding') && !$user->roles->contains('role', 'Loodsen Stamoudste') && !$user->roles->contains('role', 'Afterloodsen Organisator') && !$user->roles->contains('role', 'Administratie') && !$user->roles->contains('role', 'Bestuur') && !$user->roles->contains('role', 'Praktijkbegeleider') && !$user->roles->contains('role', 'Loodsen Mentor') && !$user->roles->contains('role', 'Ouderraad')
+            ) {
+                $activityRoleIds = !empty($activity->roles)
+                    ? array_map('trim', explode(',', $activity->roles))
+                    : [];
+
+                $activityUserIds = !empty($activity->users)
+                    ? array_map('trim', explode(',', $activity->users))
+                    : [];
+
+                // Check if the users has the right roles or id
+                $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+                $isUserListed = in_array($user->id, $activityUserIds);
+
+                if (!$hasRoleAccess && !$isUserListed) {
+                    $log = new Log();
+                    $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
+
+                    return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
+                }
+
+            }
+
+
+            return view('agenda.event', [
+                'user' => $user,
+                'roles' => $roles,
+                'activity' => $activity,
+                'presenceStatus' => $presenceStatus,
+
+                'month' => $month,
+                'wantViewAll' => $wantViewAll,
+                'view' => $view
+            ]);
+        }
+    }
+
+    public function handleActivityForm(Request $request, $id)
+    {
+        // Validate the request
+        $validatedData = $request->validate([
+            'form_elements' => 'required|array',
+        ]);
+
+
+        try {
+            // Retrieve the activity to ensure it exists
+            $activity = Activity::findOrFail($id);
+
+            // Retrieve the highest current submitted_id for this activity
+            $maxSubmittedId = ActivityFormResponse::where('activity_id', $activity->id)->max('submitted_id');
+            $nextSubmittedId = $maxSubmittedId ? $maxSubmittedId + 1 : 1;
+
+
+            // Loop through each form element and save the response
+            foreach ($validatedData['form_elements'] as $formElementId => $response) {
+                $formElement = ActivityFormElement::findOrFail($formElementId);
+
+                // Handle checkbox inputs which are arrays
+                if ($formElement->type === 'checkbox' && is_array($response)) {
+                    foreach ($response as $checkboxValue) {
+                        ActivityFormResponse::create([
+                            'activity_id' => $activity->id,
+                            'activity_form_element_id' => $formElementId,
+                            'response' => $checkboxValue,
+                            'submitted_id' => $nextSubmittedId,
+                        ]);
+                    }
+                } else {
+                    // For other input types, store the response directly
+                    ActivityFormResponse::create([
+                        'activity_id' => $activity->id,
+                        'activity_form_element_id' => $formElementId,
+                        'response' => $response,
+                        'submitted_id' => $nextSubmittedId,
+                    ]);
+                }
+            }
+
+
+            return redirect()->route('agenda.activity', $activity->id)->with('success', 'Je inzending was succesvol!!');
+        } catch (\Exception $e) {
+            return redirect()->route('agenda.activity', $activity->id)->with('success', 'Je inzending was succesvol!!');
+        }
+    }
 
 
     public function createAgenda()
@@ -129,60 +614,48 @@ class AgendaController extends Controller
     public function createAgendaSave(Request $request)
     {
         // Validate the request inputs
-        $request->validate([
+        $validatedData = $request->validate([
             'title' => 'string|required',
             'content' => 'string|max:65535|required',
             'date_start' => 'date|required',
             'date_end' => 'date|required',
-            'roles' => 'array',
+            'roles' => 'array|nullable',
             'users' => 'string|nullable',
             'public' => 'boolean|required',
+            'presence' => 'boolean|required',
+            'price' => 'numeric|nullable',
+            'location' => 'string|nullable',
+            'organisator' => 'string|nullable',
             'image' => 'mimes:jpeg,png,jpg,gif,webp|max:6000',
+
+
+            'form_labels' => 'nullable|array',
+            'form_types' => 'nullable|array',
+            'form_options' => 'nullable|array',
+            'is_required' => 'nullable|array',
         ]);
 
         try {
-            if (null !== $request->input('content') && $request->hasFile('image')) {
-                // Process image upload
+            // Process image upload
+            $newPictureName = null;
+            if ($request->hasFile('image')) {
                 $newPictureName = time() . '.' . $request->file('image')->extension();
                 $destinationPath = 'files/agenda/agenda_images';
                 $request->file('image')->move(public_path($destinationPath), $newPictureName);
-            } else {
-                $newPictureName = null;
             }
 
-
-            if ($request->input('roles') !== null) {
-                $role = $request->input('roles');
-                $roles = implode(', ', $role);
-            } else {
-                $roles = null;
-            }
-
-            if ($request->input('users') !== null) {
-                $userInput = $request->input('users');
-
-                // Check if userInput is a string and convert it to an array
-                if (is_string($userInput)) {
-                    $user = explode(',', $userInput);
-                } else {
-                    $user = $userInput;
-                }
-
-                // Trim whitespace and remove empty values
-                $user = array_map('trim', $user);
-                $user = array_filter($user);
-
-                $users = implode(', ', $user);
-            } else {
-                $users = Auth::id();
-            }
+            // Handle roles and users input
+            $roles = $request->input('roles') ? implode(', ', $request->input('roles')) : null;
+            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : Auth::id();
 
             // Validate content for disallowed elements or styles
             if (ForumController::validatePostData($request->input('content'))) {
-
-                // Create the news item
-                $agenda = CalendarItem::create([
+                // Create the activity
+                $activity = Activity::create([
                     'content' => $request->input('content'),
+                    'price' => $request->input('price'),
+                    'organisator' => $request->input('organisator'),
+                    'location' => $request->input('location'),
                     'date_start' => $request->input('date_start'),
                     'date_end' => $request->input('date_end'),
                     'title' => $request->input('title'),
@@ -191,20 +664,46 @@ class AgendaController extends Controller
                     'users' => $users,
                     'image' => $newPictureName,
                     'public' => $request->input('public'),
+                    'presence' => $request->input('presence'),
                 ]);
 
-                // Log the creation of the news item
+                // Log the creation of the activity
                 $log = new Log();
-                $log->createLog(auth()->user()->id, 2, 'Create agenda', 'agenda', 'Agenda item id: ' . $agenda->id, '');
+                $log->createLog(auth()->user()->id, 2, 'Create activity', 'agenda', 'Activity id: ' . $activity->id, '');
 
-                return redirect()->route('agenda.new')->with('success', 'Je agendapunt is opgeslagen!.');
+                // Handle form elements (if provided)
+                if (isset($validatedData['form_labels'])) {
+                    foreach ($validatedData['form_labels'] as $index => $label) {
+                        $type = $validatedData['form_types'][$index];
+                        $isRequired = isset($validatedData['is_required'][$index]);
+
+                        $optionsString = null;
+                        // If the field type is select, radio, or checkbox, save options
+                        if (in_array($type, ['select', 'radio', 'checkbox']) && isset($validatedData['form_options'][$index])) {
+                            $optionsString = implode(',', $validatedData['form_options'][$index]);
+                        }
+
+                        // Create form element
+                        ActivityFormElement::create([
+                            'option_value' => $optionsString,
+                            'activity_id' => $activity->id,
+                            'label' => $label,
+                            'type' => $type,
+                            'is_required' => $isRequired,
+                        ]);
+                    }
+
+                    // Log the creation of the form elements
+                    $log->createLog(auth()->user()->id, 2, 'Create activity form', 'agenda', 'Activity id: ' . $activity->id, 'Er is een inschrijfformulier aangemaakt.');
+                }
+
+                return redirect()->route('agenda.new')->with('success', 'Je agendapunt is opgeslagen!');
             } else {
                 throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
             }
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            // General exception handling for unexpected errors
             return redirect()->back()->with('error', 'Er is een fout opgetreden bij het opslaan van je agendapunt. Probeer het opnieuw.')->withInput();
         }
     }

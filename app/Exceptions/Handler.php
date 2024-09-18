@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Auth;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +27,19 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $exception)
+    {
+        if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
+            if (Auth::check()) {
+                Auth::logout();
+            }
+
+            // Redirect to login page
+            return redirect()->route('login')->with('error', 'Je moet wegens veiligheidsredenen opnieuw inloggen.');
+        }
+
+        return parent::render($request, $exception);
     }
 }

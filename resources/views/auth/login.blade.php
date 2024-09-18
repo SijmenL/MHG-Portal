@@ -8,6 +8,11 @@
             </div>
             <div class="d-flex flex-column p-3 login-text justify-content-center">
                 <h1>Log In</h1>
+                @if(session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('error') }}
+                    </div>
+                @endif
                 <p>Log in met je MHG Account.</p>
                 <p> Heb je nog geen account of ben je je wachtwoord vergeten? Stuur een <a
                         href="mailto:administratie@waterscoutingmhg.nl">mailtje</a> naar team Admin!

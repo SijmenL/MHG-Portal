@@ -560,10 +560,16 @@ table, th, td, label {
 .forum-image {
     width: 100%;
     cursor: zoom-in;
+    transition: 0.2s;
 }
 
 .zoomable-image {
     cursor: zoom-in;
+    transition: 0.2s;
+}
+
+.zoomable-image:hover,.forum-image:hover {
+    transform: scale(102.5%) !important;
 }
 
 .overlay {
@@ -912,12 +918,11 @@ th .form-control, .form-select {
 .calendar-event {
     position: absolute;
     left: 0;
-    max-width: 20px;
+    width: 102%;
     min-width: 20px;
     height: 24px;
     transform: translateX(-1%);
     background-color: var(--accent-color);
-    border-radius: 50%;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -925,20 +930,39 @@ th .form-control, .form-select {
     border-top: 2px white solid;
     border-bottom: 2px white solid;
     margin: 0;
+    overflow: scroll;
+
+    text-decoration: none;
+    color: unset;
 }
 
-@media screen and (max-width: 992px) {
-    .calendar-event {
-        top: unset !important;
-        position: relative;
-    }
-    .calendar-cell {
-        height: unset !important;
-    }
-    .calendar-cell-text {
-        margin-bottom: 1px;
-        width: 100%;
-    }
+
+.calendar-event::-webkit-scrollbar {
+    display: none;
+}
+
+.calendar-event-last {
+    border-radius: 0 8px 8px 0;
+    width: 95% !important;
+    border-right: white 2px solid;
+}
+
+.calendar-event-single {
+    border-radius: 4px !important;
+    width: 90% !important;
+    transform: translateX(5%);
+    border: white 2px solid;
+}
+
+.calendar-event-first {
+    border-radius: 8px 0 0 8px;
+    margin-left: 10px;
+    z-index: 100;
+    border-left: white 2px solid;
+}
+
+.calendar-event-highlight {
+    background-color: #ffb3af;
 }
 
 .calendar-cell-text {
@@ -969,6 +993,16 @@ th .form-control, .form-select {
     background-color: var(--primary-color);
     color: white;
     cursor: pointer;
+}
+
+.calendar-event-hovered.calendar-event-highlight {
+    background-color: #e89691;
+    color: black;
+}
+
+.required-form {
+    color: red;
+    font-weight: bold;
 }
 
 #event-popup {
@@ -1006,7 +1040,7 @@ th .form-control, .form-select {
     z-index: 200;
     margin-left: -1px; /* Adjust as necessary */
     margin-right: -5px; /* Adjust as necessary */
-    font-size: 0
+    font-size: 8pt;
 }
 
 .calendar-cell:hover {
@@ -1379,25 +1413,14 @@ th .form-control, .form-select {
         max-width: unset;
         min-width: unset;
         border-radius: 4px;
-    }
-    .calendar-event-last {
-        border-radius: 0 8px 8px 0;
-        width: 95%;
-        border-right: white 2px solid;
+        overflow: unset;
     }
 
-    .calendar-event-single {
-        border-radius: 8px !important;
-        width: 90%;
-        transform: translateX(5%);
-        border: white 2px solid;
+
+    .calendar-event-single::-webkit-scrollbar {
+        display: unset;
     }
-    .calendar-event-first {
-        border-radius: 8px 0 0 8px;
-        margin-left: 10px;
-        z-index: 100;
-        border-left: white 2px solid;
-    }
+
 
     .calendar-event:not(.calendar-event-first):not(.calendar-event-last) {
         border-radius: 0;
@@ -1424,7 +1447,13 @@ th .form-control, .form-select {
         max-width: unset;
         min-width: unset;
         border-radius: 4px;
+        overflow: unset;
     }
+
+    .calendar-event-single::-webkit-scrollbar {
+        display: unset;
+    }
+
     .calendar-event-first {
         border-radius: 8px 0 0 8px;
         margin-left: 10px;
@@ -1450,10 +1479,11 @@ th .form-control, .form-select {
     }
 
     .calendar-cell {
-        padding: 1px;
-        flex-direction: column;
+        min-height: 150px;
         align-items: flex-start;
+        padding: 5px;
         justify-content: unset;
+        flex-direction: column;
         gap: 0;
     }
 

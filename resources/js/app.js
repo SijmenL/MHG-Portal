@@ -101,6 +101,7 @@ function editRoles() {
         const autoSubmit = document.getElementById("auto-submit");
         button.title = option.getAttribute('data-description');
         button.textContent = option.textContent;
+        button.textContent = option.textContent;
         button.classList.add('btn', 'btn-secondary');
         button.dataset.value = option.value;
 
@@ -169,7 +170,8 @@ function setupImageZoom() {
     overlay.addEventListener('click', discardOverlay);
     enlargedImageContainer.addEventListener('click', discardOverlay);
 
-    function discardOverlay() {
+    function discardOverlay(e) {
+        e.preventDefault();
         // Hide the enlarged image and overlay
         enlargedImageContainer.style.display = 'none';
         overlay.style.opacity = '0';

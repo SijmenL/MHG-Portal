@@ -18,7 +18,6 @@
 
         <div class="bg-light rounded-2 p-3">
             <h2>Notificaties</h2>
-            <p>Notificaties ouder dan een week worden automatisch verwijderd.</p>
             @if($notifications->count() > 0)
             <div class="settings-container">
                 <div class="d-flex flex-column gap-3 justify-content-center">

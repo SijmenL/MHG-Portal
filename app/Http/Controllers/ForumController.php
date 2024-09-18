@@ -250,9 +250,6 @@ class ForumController extends Controller
 
         $firstNineUsers = $selectedUsers->merge($remainingUsers)->splice(0, 7);
 
-
-
-
         foreach ($firstNineUsers as $user) {
             if ($user->profile_picture) {
                 $user->profile_picture_url = asset('profile_pictures/' . $user->profile_picture);

@@ -36,7 +36,7 @@ const initializer = () => {
     highlighter(scriptButtons, true);
 
     if (characters) {
-        characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+        characters.innerHTML = `${textInput.innerHTML.toString().length}/60000`;
     }
 
     if (textInput) {
@@ -822,9 +822,9 @@ const highlighterRemover = (className) => {
 function editText() {
     message.value = textInput.innerHTML.toString()
 
-    characters.innerHTML = `${textInput.innerHTML.toString().length}/65535`;
+    characters.innerHTML = `${textInput.innerHTML.toString().length}/60000`;
 
-    if (textInput.innerHTML.toString().length > 65535) {
+    if (textInput.innerHTML.toString().length > 60000) {
         characters.style.color = 'red';
     } else {
         characters.style.color = 'black';

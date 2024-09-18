@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CalendarItem extends Model
+class Activity extends Model
 {
     protected $fillable = [
         'content',
@@ -16,7 +16,12 @@ class CalendarItem extends Model
         'image',
         'title',
         'roles',
-        'users'
+        'users',
+        'price',
+        'location',
+        'organisator',
+        'repeat',
+        'presence',
     ];
 
     protected $casts = [
@@ -27,5 +32,10 @@ class CalendarItem extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function formElements()
+    {
+        return $this->hasMany(ActivityFormElement::class);
     }
 }

@@ -26,14 +26,56 @@
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
                 <h1 class="">Mijn Agenda</h1>
+
+                @if($user &&
+                  ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                  $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                  $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                  $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                  $user->roles->contains('role', 'Administratie') ||
+                  $user->roles->contains('role', 'Bestuur') ||
+                  $user->roles->contains('role', 'Praktijkbegeleider') ||
+                  $user->roles->contains('role', 'Loodsen Mentor') ||
+                  $user->roles->contains('role', 'Ouderraad'))
+                  )
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Mijn agenda</li>
+                        </ol>
+                    </nav>
+
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="show-all"
+                               @if($wantViewAll === 'true') checked @endif>
+                        <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging zien</label>
+                    </div>
+                @endif
+
                 <p>Welkom in jouw MHG Agenda! Hier vind je de komende activiteiten die voor jouw relevant zijn!</p>
+
+                <script>
+                    let showAll = document.getElementById('show-all');
+                    showAll.addEventListener('change', function () {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('all', this.checked ? 'true' : 'false');
+                        window.location.href = url.toString();
+                        console.log("New URL:", url.toString());
+                    });
+                </script>
+
                 <div id="nav">
                     <ul class="nav nav-tabs flex-row-reverse mb-4">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page"><span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_view_month</span> Maand</a>
+                            <a class="nav-link active" aria-current="page"><span class="material-symbols-rounded"
+                                                                                 style="transform: translateY(5px)">calendar_view_month</span>
+                                Maand</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('agenda.schedule', ['month' => $monthOffset, 'day' => $dayOffset]) }}#nav"><span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_today</span> Planning</a>
+                            <a class="nav-link"
+                               href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll]) }}#nav"><span
+                                    class="material-symbols-rounded"
+                                    style="transform: translateY(5px)">calendar_today</span> Planning</a>
                         </li>
                     </ul>
                 </div>
@@ -43,19 +85,18 @@
         <div id="agenda">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex flex-row gap-0">
-                    <a href="{{ route('agenda.month', ['month' => $monthOffset - 1, 'day' => $dayOffset]) }}#agenda"
+                    <a href="{{ route('agenda.month', ['month' => $monthOffset - 1, 'all' => $wantViewAll]) }}#nav"
                        class="btn d-flex align-items-center justify-content-center">
                         <span class="material-symbols-rounded">arrow_back_ios</span>
                     </a>
-                    <a href="{{ route('agenda.month', ['month' => 0, 'day' => 0]) }}#agenda"
+                    <a href="{{ route('agenda.month', ['month' => 0, 'all' => $wantViewAll]) }}#nav"
                        class="btn d-flex align-items-center justify-content-center">
                         <span class="material-symbols-rounded">home</span>
                     </a>
-                    <a href="{{ route('agenda.month', ['month' => $monthOffset + 1, 'day' => $dayOffset]) }}#agenda"
+                    <a href="{{ route('agenda.month', ['month' => $monthOffset + 1, 'all' => $wantViewAll]) }}#nav"
                        class="btn d-flex align-items-center justify-content-center">
                         <span class="material-symbols-rounded">arrow_forward_ios</span>
                     </a>
-
                 </div>
                 <div>
                     <h2>{{$monthName}} {{$year}}</h2>
@@ -71,20 +112,20 @@
                 <div class="calendar-day">ZO</div>
 
                 @php
+                    $globalRowTracker = [];
                     $weekEventCounts = [];
                     $currentWeek = 0;
 
-                    // Step 1: Calculate the maximum number of events per week
                     for ($i = 1 - $firstDayOfWeek; $i <= $daysInMonth; $i++) {
                         if ($i > 0) {
                             $today = Carbon::create($year, $month, $i)->startOfDay();
-                            $eventsForDay = $events->filter(function ($event) use ($today) {
-                                $start = Carbon::parse($event->date_start)->startOfDay();
-                                $end = Carbon::parse($event->date_end)->endOfDay();
+                            $activitiesForDay = $activities->filter(function ($activity) use ($today) {
+                                $start = Carbon::parse($activity->date_start)->startOfDay();
+                                $end = Carbon::parse($activity->date_end)->endOfDay();
                                 return $today->between($start, $end);
                             });
 
-                            $weekEventCounts[$currentWeek] = max($weekEventCounts[$currentWeek] ?? 0, $eventsForDay->count());
+                            $weekEventCounts[$currentWeek] = max($weekEventCounts[$currentWeek] ?? 0, $activitiesForDay->count());
                         }
 
                         if (($i + $firstDayOfWeek) % 7 === 0) {
@@ -100,15 +141,15 @@
                 @endfor
 
                 @php
-                    $eventPositions = []; // Initialize an array to keep track of event positions
+                    $rowPositions = [];
                 @endphp
 
                 @for ($i = 1; $i <= $daysInMonth; $i++)
                     @php
                         $today = Carbon::create($year, $month, $i)->startOfDay();
-                        $eventsForDay = $events->filter(function ($event) use ($today) {
-                            $start = Carbon::parse($event->date_start)->startOfDay();
-                            $end = Carbon::parse($event->date_end)->endOfDay();
+                        $activitiesForDay = $activities->filter(function ($activity) use ($today) {
+                            $start = Carbon::parse($activity->date_start)->startOfDay();
+                            $end = Carbon::parse($activity->date_end)->endOfDay();
                             return $today->between($start, $end);
                         });
 
@@ -125,79 +166,68 @@
                         style="height: {{ $totalHeight }}px;">
                         <p class="calendar-cell-text">{{ $i }}</p>
 
-                        @if ($eventsForDay->isNotEmpty())
-                            @foreach ($eventsForDay as $event)
+                        @if ($activitiesForDay->isNotEmpty())
+                            @foreach ($activitiesForDay as $activity)
                                 @php
-                                    $start = Carbon::parse($event->date_start)->startOfDay();
-                                    $end = Carbon::parse($event->date_end)->endOfDay();
+                                    $start = Carbon::parse($activity->date_start)->startOfDay();
+                                    $end = Carbon::parse($activity->date_end)->endOfDay();
                                     $isFirstDay = $today->isSameDay($start);
                                     $isLastDay = $today->isSameDay($end);
 
-                                    // Find the position of the event in the eventPositions array
-                                    if (!isset($eventPositions[$event->id])) {
-                                        $position = 0;
-                                        foreach ($eventPositions as $eventId => $pos) {
-                                            $stackEnd = Carbon::parse($events->find($eventId)->date_end)->endOfDay();
-                                            if ($today->gt($stackEnd)) {
-                                                $position = $pos;
-                                                break;
-                                            } else {
-                                                $position++;
-                                            }
-                                        }
-                                        $eventPositions[$event->id] = $position;
-                                    } else {
-                                        $position = $eventPositions[$event->id];
-                                    }
-
-                                    $eventClass = 'calendar-event';
+                                    $activityClass = 'calendar-event';
                                     if ($isFirstDay && $isLastDay) {
-                                        $eventClass .= ' calendar-event-single';
+                                        $activityClass .= ' calendar-event-single';
                                     } else {
                                         if ($isFirstDay) {
-                                            $eventClass .= ' calendar-event-first';
+                                            $activityClass .= ' calendar-event-first';
                                         }
                                         if ($isLastDay) {
-                                            $eventClass .= ' calendar-event-last';
+                                            $activityClass .= ' calendar-event-last';
                                         }
                                         if ($isMonday) {
-                                            $eventClass .= ' calendar-event-monday';
+                                            $activityClass .= ' calendar-event-monday';
                                         }
                                     }
 
-                                    $eventImage = $event->image;
-                                    $eventContent = $event->content;
-                                    $eventTitle = $event->title;
+                                    if ($activity->should_highlight) {
+                                        $activityClass .= ' calendar-event-highlight';
+                                    }
 
-                                    $eventStart = Carbon::parse($event->date_start);
-                                    $eventEnd = Carbon::parse($event->date_end);
+                                    $activityImage = $activity->image;
+                                    $activityContent = $activity->content;
+                                    $activityTitle = $activity->title;
 
-                                    if ($eventStart->isSameDay($eventEnd)) {
-                                        $formattedStart = $eventStart->format('H:i');
-                                        $formattedEnd = $eventEnd->format('H:i');
+                                    $activitiestart = Carbon::parse($activity->date_start);
+                                    $activityEnd = Carbon::parse($activity->date_end);
+
+                                    if ($activitiestart->isSameDay($activityEnd)) {
+                                        $formattedStart = $activitiestart->format('H:i');
+                                        $formattedEnd = $activityEnd->format('H:i');
                                     } else {
-                                        $formattedStart = $eventStart->format('d-m H:i');
-                                        $formattedEnd = $eventEnd->format('d-m H:i');
+                                        $formattedStart = $activitiestart->format('d-m H:i');
+                                        $formattedEnd = $activityEnd->format('d-m H:i');
                                     }
                                 @endphp
-                                <div
-                                    data-event-id="{{ $event->id }}"
-                                    data-event-start="{{ $formattedStart }}"
-                                    data-event-end="{{ $formattedEnd }}"
-                                    @if(isset($eventImage))
-                                        data-image="{{ asset('files/agenda/agenda_images/'.$eventImage) }}"
-                                    @endif
-                                    data-content="{{ \Str::limit(strip_tags(html_entity_decode($eventContent)), 200, '...') }}"
-                                    data-title="{{ $eventTitle }}"
-                                    class="{{ $eventClass }}"
-                                    style="top: {{ 40 + $position * 35 }}px;"
+
+                                <a href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'month', $activity->id]) }}"
+                                   style="top: {{ 40 + ($activityPositions[$activity->id] ?? 0) * 35 }}px;"
+
+                                   data-event-id="{{ $activity->id }}"
+                                   data-event-start="{{ $formattedStart }}"
+                                   data-event-end="{{ $formattedEnd }}"
+                                   @if(isset($activityImage))
+                                       data-image="{{ asset('files/agenda/agenda_images/'.$activityImage) }}"
+                                   @endif
+                                   data-content="{{ \Str::limit(strip_tags(html_entity_decode($activityContent)), 200, '...') }}"
+                                   data-title="{{ $activityTitle }}"
+                                   class="{{ $activityClass }}"
                                 >
                                     @if ($isFirstDay || ($isMonday && !$isLastDay))
                                         <div class="calendar-event-title">
-                                            {{ $eventTitle }}
+                                            {{ $activityTitle }}
                                         </div>
                                     @endif
-                                </div>
+                                </a>
                             @endforeach
                         @endif
                     </div>
@@ -205,14 +235,6 @@
                     @php
                         if (($i + $firstDayOfWeek) % 7 === 0) {
                             $currentWeek++;
-                        }
-
-                        // After processing the day's events, remove events that have ended on this day
-                        foreach ($eventPositions as $eventId => $pos) {
-                            $eventItem = $events->find($eventId);
-                            if ($eventItem && Carbon::parse($eventItem->date_end)->isSameDay($today)) {
-                                unset($eventPositions[$eventId]);
-                            }
                         }
                     @endphp
                 @endfor
@@ -223,7 +245,6 @@
                 @endwhile
             </div>
 
-            <div id="popup-overlay" class="popup"></div>
             <div id="event-popup">
                 <p><span id="date-start"></span> - <span id="date-end"></span></p>
                 <h3 id="popup-title"></h3>
