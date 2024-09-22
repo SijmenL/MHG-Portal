@@ -126,6 +126,9 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
     Route::get('/agenda/aanwezigheid', [AgendaController::class, 'agendaPresence'])->name('agenda.presence');
     Route::get('/agenda/aanwezigheid/{id}', [AgendaController::class, 'agendaPresenceActivity'])->name('agenda.presence.activity');
     Route::post('/agenda/aanwezigheid/export', [AgendaController::class, 'exportPresenceData'])->name('agenda.presence.export');
+
+    Route::get('/agenda/inschrijvingen', [AgendaController::class, 'agendaSubmissions'])->name('agenda.submissions');
+    Route::get('/agenda/inschrijvingen/{id}', [AgendaController::class, 'agendaSubmissionsActivity'])->name('agenda.submissions.activity');
 });
 
 

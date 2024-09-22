@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ActivityFormResponse extends Model
+class ActivityFormResponses extends Model
 {
 
     protected $fillable = ['activity_id', 'activity_form_element_id', 'response', 'submitted_id'];
@@ -21,4 +21,10 @@ class ActivityFormResponse extends Model
     {
         return $this->belongsTo(ActivityFormElement::class);
     }
+
+    public function formElement()
+    {
+        return $this->belongsTo(ActivityFormElement::class, 'activity_form_element_id');
+    }
+
 }

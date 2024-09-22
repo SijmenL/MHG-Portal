@@ -38,4 +38,10 @@ class Activity extends Model
     {
         return $this->hasMany(ActivityFormElement::class);
     }
+
+    public function activityFormElements()
+    {
+        return $this->hasMany(ActivityFormElement::class, 'activity_id');
+    }
+
 }

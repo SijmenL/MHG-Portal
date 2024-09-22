@@ -404,7 +404,7 @@
                             <select id="presence" type="text" class="form-select @error('presence') is-invalid @enderror"
                                     name="presence">
                                 <option value="0">Nee</option>
-                                <option value="1">Ja</option>
+                                <option value="1" selected>Ja</option>
                             </select>
                             @error('presence')
                             <span class="invalid-feedback" role="alert">

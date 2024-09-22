@@ -19,6 +19,6 @@ class ActivityFormElement extends Model
     // A form element can have many responses
     public function activityFormResponses()
     {
-        return $this->hasMany(ActivityFormResponse::class);
+        return $this->hasMany(ActivityFormResponses::class);
     }
 }

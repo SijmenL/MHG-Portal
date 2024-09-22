@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\AgendaExport;
 use App\Models\Activity;
 use App\Models\ActivityFormElement;
-use App\Models\ActivityFormResponse;
+use App\Models\ActivityFormResponses;
 use App\Models\Log;
 use App\Models\News;
 use App\Models\Presence;
@@ -28,6 +28,99 @@ class AgendaController extends Controller
 
         return view('agenda.home', ['user' => $user, 'roles' => $roles]);
     }
+
+    public function agendaSubmissions(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = $request->query('search', '');
+        $currentDate = now();
+
+        $activities = Activity::query()
+            ->with('activityFormElements') // Eager load the formElements relationship
+            ->whereHas('activityFormElements') // Ensure activities have related form elements
+            ->when(empty($search), function ($query) use ($currentDate) {
+                // Exclude activities with date_start in the past when not searching
+                $query->where('date_start', '>=', $currentDate);
+            })
+            ->when($search, function ($query, $search) {
+                // Include past activities when searching
+                $query->where(function ($query) use ($search) {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhere('date_start', 'like', "%{$search}%")
+                        ->orWhere('date_end', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhere('price', 'like', "%{$search}%")
+                        ->orWhere('organisator', 'like', "%{$search}%");
+                });
+            })
+            ->orderByRaw(
+                'CASE
+            WHEN date_start >= ? THEN date_start
+            ELSE NULL
+        END ASC,
+        date_start ASC',
+                [$currentDate]
+            )
+            ->paginate(10);
+
+        return view('agenda.submissions', [
+            'user' => $user,
+            'roles' => $roles,
+            'search' => $search,
+            'activities' => $activities
+        ]);
+    }
+
+    public function agendaSubmissionsActivity(Request $request, $id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        // Get search term from query parameters, default to empty string
+        $search = $request->query('search', '');
+
+        // Retrieve the activity by its ID
+        $activity = Activity::find($id);
+
+        if (!$activity) {
+            return redirect()->route('agenda.submissions')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        // Retrieve all form submissions for this activity
+        $formSubmissions = ActivityFormResponses::where('activity_id', $id)
+            ->with('formElement') // Eager-load the related form elements
+            ->get()
+            ->groupBy('submitted_id');
+
+        if ($formSubmissions->count() < 1) {
+            return redirect()->route('agenda.submissions')->with('error', 'Activiteit niet gevonden.');
+        }
+
+
+        // Apply search filter to the grouped form submissions
+        if (!empty($search)) {
+            $formSubmissions = $formSubmissions->filter(function ($group) use ($search) {
+                // Keep the group if any entry within the group matches the search term
+                return $group->contains(function ($entry) use ($search) {
+                    return stripos($entry->response, $search) !== false;
+                });
+            });
+        }
+
+        // Return view with activity and grouped form submission data
+        return view('agenda.submissions-activity', [
+            'activity' => $activity,
+            'formSubmissions' => $formSubmissions, // This is now grouped by submitted_id
+            'user' => $user,
+            'roles' => $roles,
+            'search' => $search,
+        ]);
+    }
+
+
 
     public function agendaPresence(Request $request)
     {
@@ -83,6 +176,10 @@ class AgendaController extends Controller
             return redirect()->route('agenda.presence')->with('error', 'Activiteit niet gevonden.');
         }
 
+        if (!$activity->presence) {
+            return redirect()->route('agenda.presence')->with('error', 'Activiteit niet gevonden.');
+        }
+
         $activityRoleIds = !empty($activity->roles)
             ? array_map('trim', explode(',', $activity->roles))
             : [];
@@ -93,15 +190,13 @@ class AgendaController extends Controller
 
         $all_roles = Role::whereIn('id', $activityRoleIds)->get();
 
-
         if (isset($selected_role) && !in_array($selected_role, Role::whereIn('id', $activityRoleIds)->pluck('role')->toArray())) {
             $selected_role = 'none';
         }
 
         if (isset($selected_role) && $selected_role !== 'none') {
-            // Use where for a single role, not whereIn, and order by last_name
             $usersWithRoles = User::whereHas('roles', function ($query) use ($selected_role) {
-                $query->where('role', $selected_role); // Assuming `role` is the name of the field
+                $query->where('role', $selected_role);
             })
                 ->where(function ($query) use ($search) {
                     $query->where('name', 'like', '%' . $search . '%')
@@ -119,11 +214,27 @@ class AgendaController extends Controller
                 })
                 ->orderBy('last_name', 'asc')->get();
         } else {
-            // Fetch users with roles from activityRoleIds, and order by last_name
-            $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds) {
-                $query->whereIn('role_id', $activityRoleIds); // Assuming `role_id` is used here
-            })
-                ->where(function ($query) use ($search) {
+            if (!empty($activityRoleIds)) {
+                $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds) {
+                    $query->whereIn('role_id', $activityRoleIds);
+                })
+                    ->where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('last_name', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('sex', 'like', '%' . $search . '%')
+                            ->orWhere('infix', 'like', '%' . $search . '%')
+                            ->orWhere('birth_date', 'like', '%' . $search . '%')
+                            ->orWhere('street', 'like', '%' . $search . '%')
+                            ->orWhere('postal_code', 'like', '%' . $search . '%')
+                            ->orWhere('city', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%')
+                            ->orWhere('id', 'like', '%' . $search . '%')
+                            ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                    })
+                    ->orderBy('last_name', 'asc')->get();
+            } else {
+                $usersWithRoles = User::where(function ($query) use ($search) {
                     $query->where('name', 'like', '%' . $search . '%')
                         ->orWhere('last_name', 'like', '%' . $search . '%')
                         ->orWhere('email', 'like', '%' . $search . '%')
@@ -137,17 +248,14 @@ class AgendaController extends Controller
                         ->orWhere('id', 'like', '%' . $search . '%')
                         ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
                 })
-                ->orderBy('last_name', 'asc')->get();
+                    ->orderBy('last_name', 'asc')->get();
+            }
         }
 
-
-        // Get specific users mentioned in the activity
         $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
 
-        // Merge both collections and remove duplicates
         $users = $usersWithRoles->merge($mentionedUsers)->unique('id');
 
-        // Check presence status and set it in a new array
         $userPresenceArray = $users->mapWithKeys(function ($user) use ($activity) {
             $presenceRecord = Presence::where('activity_id', $activity->id)
                 ->where('user_id', $user->id)
@@ -158,21 +266,34 @@ class AgendaController extends Controller
             return [$user->id => $status];
         });
 
-        // Attach presence status to each user
         $users->each(function ($user) use ($userPresenceArray) {
             $user->presence = $userPresenceArray->get($user->id, 'null');
+        });
+
+        // Sort users by presence status and then by last name
+        $sortedUsers = $users->sort(function ($a, $b) {
+            $presenceOrder = ['present' => 1, 'absent' => 2, 'null' => 3];
+            $aPresence = $presenceOrder[$a->presence] ?? 3;
+            $bPresence = $presenceOrder[$b->presence] ?? 3;
+
+            if ($aPresence === $bPresence) {
+                return strcmp($a->last_name, $b->last_name);
+            }
+
+            return $aPresence <=> $bPresence;
         });
 
         return view('agenda.presence-activity', [
             'user' => $user,
             'roles' => $roles,
             'activity' => $activity,
-            'users' => $users,
+            'users' => $sortedUsers,
             'all_roles' => $all_roles,
             'selected_role' => $selected_role,
             'search' => $search
         ]);
     }
+
 
     public function exportPresenceData(Request $request)
     {
@@ -563,7 +684,7 @@ class AgendaController extends Controller
             $activity = Activity::findOrFail($id);
 
             // Retrieve the highest current submitted_id for this activity
-            $maxSubmittedId = ActivityFormResponse::where('activity_id', $activity->id)->max('submitted_id');
+            $maxSubmittedId = ActivityFormResponses::where('activity_id', $activity->id)->max('submitted_id');
             $nextSubmittedId = $maxSubmittedId ? $maxSubmittedId + 1 : 1;
 
 
@@ -574,7 +695,7 @@ class AgendaController extends Controller
                 // Handle checkbox inputs which are arrays
                 if ($formElement->type === 'checkbox' && is_array($response)) {
                     foreach ($response as $checkboxValue) {
-                        ActivityFormResponse::create([
+                        ActivityFormResponses::create([
                             'activity_id' => $activity->id,
                             'activity_form_element_id' => $formElementId,
                             'response' => $checkboxValue,
@@ -583,7 +704,7 @@ class AgendaController extends Controller
                     }
                 } else {
                     // For other input types, store the response directly
-                    ActivityFormResponse::create([
+                    ActivityFormResponses::create([
                         'activity_id' => $activity->id,
                         'activity_form_element_id' => $formElementId,
                         'response' => $response,
