@@ -46,10 +46,10 @@
 
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page">Aanwezigheid</a>
+                        <a class="nav-link" href="{{ route('agenda.presence', ['search' => $search]) }}" aria-current="page">Aanwezigheid</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('agenda.submissions', ['search' => $search]) }}">Inschrijvingen</a>
+                        <a class="nav-link active" >Inschrijvingen</a>
                     </li>
                 </ul>
 
@@ -77,7 +77,7 @@
                             </div>
                         @endif
 
-                        <a href="{{ route('agenda.presence.activity', [$activity->id]) }}" class="text-decoration-none"
+                        <a href="{{ route('agenda.submissions.activity', [$activity->id]) }}" class="text-decoration-none"
                            style="color: unset">
                             <div class="d-flex flex-row">
                                 <div style="width: 50px"
@@ -124,7 +124,7 @@
                     {{ $activities->links() }}
                 @else
                     <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
-                        <span class="material-symbols-rounded me-2">event_busy</span>Geen activiteiten gevonden waar aanwezigheid voor opgegeven kan worden...
+                        <span class="material-symbols-rounded me-2">event_busy</span>Geen activiteiten gevonden waar op ingeschreven kan worden...
                     </div>
                 @endif
 

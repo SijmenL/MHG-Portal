@@ -41,7 +41,10 @@
                                        placeholder="Zoeken op naam, email, adres etc."
                                        aria-label="Zoeken" aria-describedby="basic-addon1" value="{{ $search }}"
                                        onchange="this.form.submit();">
+                                @if($all_roles->count() > 0)
                             </div>
+
+
                             <div class="input-group">
                                 <label for="role" class="input-group-text" id="basic-addon1">
                                     <span class="material-symbols-rounded">account_circle</span></label>
@@ -54,10 +57,10 @@
                                             @if($selected_role === $role->role) selected @endif>{{ $role->role }}</option>
                                     @endforeach
                                 </select>
-
+                                @endif
                                 <a @if($users->count() > 0) id="submit-export"
-                                        @endif class="input-group-text @if($users->count() < 1)disabled @endif"
-                                        style="text-decoration: none; cursor: pointer">
+                                   @endif class="input-group-text @if($users->count() < 1)disabled @endif"
+                                   style="text-decoration: none; cursor: pointer">
                                     <span class="material-symbols-rounded">ios_share</span></a>
                             </div>
                         </div>
@@ -113,7 +116,7 @@
                 </script>
 
 
-            @if($users->count() > 0)
+                @if($users->count() > 0)
                     <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
                         <table class="table table-striped">
                             <thead class="thead-dark table-bordered table-hover">
