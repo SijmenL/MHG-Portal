@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
 //Non logged in
 Route::get('/contact', [NonLoggedInController::class, 'contact'])->name('contact');
 Route::post('/contact', [NonLoggedInController::class, 'contactSubmit'])->name('contact.submit');
@@ -37,6 +38,15 @@ Route::post('/inschrijven', [NonLoggedInController::class, 'inschrijvenSubmit'])
 
 Route::get('/nieuws/item/{id}', [NewsController::class, 'viewNewsItem'])->name('news.item');
 Route::get('/nieuws/overzicht', [NewsController::class, 'viewNewsPage'])->name('news.list');
+
+Route::get('/agenda/public/maand', [AgendaController::class, 'agendaMonthPublic'])->name('agenda.public.month');
+Route::get('/agenda/public/overzicht', [AgendaController::class, 'agendaSchedulePublic'])->name('agenda.public.schedule');
+Route::get('/agenda/public/activiteit/{id}', [AgendaController::class, 'agendaActivityPublic'])->name('agenda.public.activity');
+
+
+Route::post('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'handleActivityForm'])
+    ->name('agenda.activity.submit');
+
 
 Auth::routes(['register' => false, 'password.request' => false,]);
 
@@ -111,7 +121,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/agenda/overzicht', [AgendaController::class, 'agendaSchedule'])->name('agenda.schedule');
 
     Route::get('/agenda/activiteit/{id}', [AgendaController::class, 'agendaActivity'])->name('agenda.activity');
-    Route::post('/agenda/activiteit/{id}', [AgendaController::class, 'handleActivityForm'])->name('agenda.activity.submit');
 
     Route::get('/agenda/activiteit/aanwezig/{id}', [AgendaController::class, 'agendaPresent'])->name('agenda.activity.present');
     Route::get('/agenda/activiteit/niet-aanwezig/{id}', [AgendaController::class, 'agendaAbsent'])->name('agenda.activity.absent');
@@ -122,6 +131,10 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
 
     Route::get('/agenda', [AgendaController::class, 'home'])->name('agenda');
+
+    Route::get('/agenda/bewerken', [AgendaController::class, 'edit'])->name('agenda.edit');
+    Route::get('/agenda/bewerken/{id}', [AgendaController::class, 'editActivity'])->name('agenda.edit.activity');
+    Route::post('/agenda/bewerken/{id}', [AgendaController::class, 'editActivitySave'])->name('agenda.edit.activity.save');
 
     Route::get('/agenda/aanwezigheid', [AgendaController::class, 'agendaPresence'])->name('agenda.presence');
     Route::get('/agenda/aanwezigheid/{id}', [AgendaController::class, 'agendaPresenceActivity'])->name('agenda.presence.activity');
@@ -368,6 +381,7 @@ Route::post('/comments/{id}', [ForumController::class, 'updateComment'])->name('
 
 Route::post('/user-search', [ForumController::class, 'searchUser'])->name('search-user');
 
+Route::post('/dismiss-alert', [HomeController::class, 'dismissAlert'])->name('alert.dismiss');
 
 
 //Insignes

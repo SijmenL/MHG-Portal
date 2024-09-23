@@ -115,6 +115,35 @@
                     }
                 </script>
 
+                @if(empty($search))
+                    @php
+                        // Filter users to get only those who are present
+                        $presentUsers = $users->filter(function ($user) {
+                            return $user->presence === 'present';
+                        });
+
+                        $absentUsers = $users->filter(function ($user) {
+                            return $user->presence === 'absent';
+                        });
+                    @endphp
+
+                    <p>
+
+                        @if($presentUsers->count() === 1)
+                            <span>Er is {{ $presentUsers->count() }} iemand aanwezig en</span>
+                        @else
+                            <span>Er zijn {{ $presentUsers->count() }} mensen aanwezig en</span>
+                        @endif
+
+
+                        @if($absentUsers->count() === 1)
+                            <span>er is {{ $absentUsers->count() }} iemand afwezig.</span>
+                        @elseif($absentUsers->count() === 0)
+                            <span>er zijn {{ $absentUsers->count() }} mensen afwezig.</span>
+                        @endif
+
+                    </p>
+                @endif
 
                 @if($users->count() > 0)
                     <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
