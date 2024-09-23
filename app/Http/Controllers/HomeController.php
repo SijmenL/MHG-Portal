@@ -11,6 +11,7 @@ use DateTime;
 use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class HomeController extends Controller
 {
@@ -24,7 +25,17 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
+    public function dismissAlert(Request $request)
+    {
+        $request->validate([
+            'dismissed' => 'required|boolean',
+        ]);
 
+        // Save the dismissal status in the session
+        Session::put('alert.dismissed', $request->input('dismissed'));
+
+        return response()->json(['success' => true]);
+    }
     public function index()
     {
         $user = Auth::user();

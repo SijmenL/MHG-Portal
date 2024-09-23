@@ -108,6 +108,7 @@
                     </div>
                 </div>
             @endif
+
             <div class="page" style="display: none">
                 <h2>Leiding & Organisatie</h2>
                 @if($user &&
@@ -178,6 +179,41 @@
         </div>
     </div>
     <div class="container col-md-11">
+
+        @if(session('alert.dismissed') !== true)
+            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                <h4 class="alert-heading">Welkom op Portal versie 2.0!</h4>
+                <p>Het is vanaf nu mogelijk om je aan- of af te melden voor bijvoorbeeld groepsdraaien of een andere activiteit! Kijk bij agenda voor meer informatie!</p>
+                <p>Bekijk de <a href="{{ route('changelog') }}">changelog</a> voor wat er nog meer allemaal nieuw is! Wanneer je iets tegenkomt dat niet lekker werkt of buggy is, zijn we altijd te mailen!</p>
+                <hr>
+                <p class="mb-0">Wanneer je er niet uitkomt, kun je altijd op het vraagteken <span style="transform: translateY(5px)" class="material-symbols-rounded">help</span> drukken of een mailtje sturen naar <a href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="dismissAlert()"></button>
+            </div>
+            <script>
+                function dismissAlert() {
+                    // Make an AJAX request to dismiss the alert
+                    fetch('/dismiss-alert', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}', // Ensure CSRF token is included
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ dismissed: true })
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                // Alert dismissed successfully, nothing else to do
+                            } else {
+                                console.error('Failed to dismiss alert.');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                }
+            </script>
+
+        @endif
+
+
         <div class="d-flex flex-row justify-content-between align-items-center">
             <div style="max-width: 75vw">
                 <h1>Welkom, {{ $user->name }}</h1>

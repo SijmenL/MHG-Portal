@@ -74,6 +74,179 @@ class AgendaController extends Controller
         ]);
     }
 
+    public function edit(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = $request->query('search', '');
+        $currentDate = now();
+
+        $activities = Activity::query()
+            ->when(empty($search), function ($query) use ($currentDate) {
+                // Exclude activities with date_start in the past when not searching
+                $query->where('date_start', '>=', $currentDate);
+            })
+            ->when($search, function ($query, $search) {
+                // Include past activities when searching
+                $query->where(function ($query) use ($search) {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhere('date_start', 'like', "%{$search}%")
+                        ->orWhere('date_end', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhere('price', 'like', "%{$search}%")
+                        ->orWhere('organisator', 'like', "%{$search}%");
+                });
+            })
+            ->where('user_id', Auth::id())
+            ->orderByRaw(
+                'CASE
+            WHEN date_start >= ? THEN date_start
+            ELSE NULL
+        END ASC,
+        date_start ASC',
+                [$currentDate]
+            )
+            ->paginate(10);
+
+        return view('agenda.edit', [
+            'user' => $user,
+            'roles' => $roles,
+            'search' => $search,
+            'activities' => $activities
+        ]);
+    }
+
+    public function editActivity($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $all_roles = Role::all();
+
+        $activity = Activity::with('formElements')->findOrFail($id);
+
+        if (!$activity) {
+            return redirect()->route('agenda.edit')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        if ($activity->user_id !== Auth::id()) {
+            return redirect()->route('agenda.edit')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        return view('agenda.edit-activity', [
+            'user' => $user,
+            'roles' => $roles,
+            'activity' => $activity,
+            'all_roles' => $all_roles
+        ]);
+    }
+
+    public function editActivitySave(Request $request, $id)
+    {
+        // Validate the request inputs
+        $validatedData = $request->validate([
+            'title' => 'string|required',
+            'content' => 'string|max:65535|required',
+            'date_start' => 'date|required',
+            'date_end' => 'date|required',
+            'roles' => 'array|nullable',
+            'users' => 'string|nullable',
+            'public' => 'boolean|required',
+            'presence' => 'boolean|required',
+            'price' => 'numeric|nullable',
+            'location' => 'string|nullable',
+            'organisator' => 'string|nullable',
+            'image' => 'mimes:jpeg,png,jpg,gif,webp|max:6000',
+            'form_labels' => 'nullable|array',
+            'form_types' => 'nullable|array',
+            'form_options' => 'nullable|array',
+            'is_required' => 'nullable|array',
+        ]);
+
+        try {
+            // Find the activity to update
+            $activity = Activity::findOrFail($id);
+
+            // Process image upload
+            $newPictureName = $activity->image; // Keep the existing image by default
+            if ($request->hasFile('image')) {
+                // If a new image is uploaded, generate a new file name
+                $newPictureName = time() . '.' . $request->file('image')->extension();
+                $destinationPath = 'files/agenda/agenda_images';
+                $request->file('image')->move(public_path($destinationPath), $newPictureName);
+            }
+
+            // Handle roles and users input
+            $roles = $request->input('roles') ? implode(', ', $request->input('roles')) : null;
+            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : Auth::id();
+
+            // Validate content for disallowed elements or styles
+            if (ForumController::validatePostData($request->input('content'))) {
+                // Update the activity
+                $activity->update([
+                    'content' => $request->input('content'),
+                    'price' => $request->input('price'),
+                    'organisator' => $request->input('organisator'),
+                    'location' => $request->input('location'),
+                    'date_start' => $request->input('date_start'),
+                    'date_end' => $request->input('date_end'),
+                    'title' => $request->input('title'),
+                    'user_id' => Auth::id(),
+                    'roles' => $roles,
+                    'users' => $users,
+                    'image' => $newPictureName,
+                    'public' => $request->input('public'),
+                    'presence' => $request->input('presence'),
+                ]);
+
+                // Log the update of the activity
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 2, 'Update activity', 'agenda', 'Activity id: ' . $activity->id, '');
+
+                // Handle form elements (if provided)
+                if (isset($validatedData['form_labels'])) {
+                    // Clear existing form elements associated with the activity
+                    ActivityFormElement::where('activity_id', $activity->id)->delete();
+
+                    foreach ($validatedData['form_labels'] as $index => $label) {
+                        $type = $validatedData['form_types'][$index];
+                        $isRequired = isset($validatedData['is_required'][$index]);
+
+                        $optionsString = null;
+                        // If the field type is select, radio, or checkbox, save options
+                        if (in_array($type, ['select', 'radio', 'checkbox']) && isset($validatedData['form_options'][$index])) {
+                            $optionsString = implode(',', $validatedData['form_options'][$index]);
+                        }
+
+                        // Create new form element
+                        ActivityFormElement::create([
+                            'option_value' => $optionsString,
+                            'activity_id' => $activity->id,
+                            'label' => $label,
+                            'type' => $type,
+                            'is_required' => $isRequired,
+                        ]);
+                    }
+
+                    // Log the creation of the form elements
+                    $log->createLog(auth()->user()->id, 2, 'Update activity form', 'agenda', 'Activity id: ' . $activity->id, 'Er is een inschrijfformulier bijgewerkt.');
+                }
+
+                return redirect()->route('agenda.edit', $activity->id)->with('success', 'Je agendapunt is bijgewerkt!');
+            } else {
+                throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
+            }
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            dd($e);
+            return redirect()->back()->with('error', 'Er is een fout opgetreden bij het opslaan van je agendapunt. Probeer het opnieuw.')->withInput();
+        }
+    }
+
+
     public function agendaSubmissionsActivity(Request $request, $id)
     {
         $user = Auth::user();
@@ -119,7 +292,6 @@ class AgendaController extends Controller
             'search' => $search,
         ]);
     }
-
 
 
     public function agendaPresence(Request $request)
@@ -431,6 +603,73 @@ class AgendaController extends Controller
         ]);
     }
 
+    public function agendaMonthPublic(Request $request)
+    {
+        $monthOffset = $request->query('month', 0);
+
+        Carbon::setLocale('nl');
+        $baseDate = Carbon::now();
+        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+        $calculatedDay = $calculatedDate->day;
+        $calculatedMonth = $calculatedDate->month;
+        $calculatedYear = $calculatedDate->year;
+
+        $firstDayOfMonth = Carbon::create($calculatedYear, $calculatedMonth, 1);
+        $daysInMonth = $firstDayOfMonth->daysInMonth;
+        $firstDayOfWeek = ($firstDayOfMonth->dayOfWeek + 6) % 7;
+
+        $monthName = $calculatedDate->translatedFormat('F');
+
+        // Fetch activities for the calculated month and year
+        $activities = Activity::where(function ($query) use ($calculatedYear, $calculatedMonth) {
+            $query->whereYear('date_start', $calculatedYear)
+                ->whereMonth('date_start', $calculatedMonth)
+                ->orWhere(function ($query) use ($calculatedYear, $calculatedMonth) {
+                    $query->whereYear('date_end', $calculatedYear)
+                        ->whereMonth('date_end', $calculatedMonth);
+                });
+        })
+            ->where('public', true)
+            ->get();
+
+
+        $globalRowTracker = [];
+        $activityPositions = [];
+
+        foreach ($activities as $activity) {
+            $startDate = Carbon::parse($activity->date_start)->startOfDay();
+            $endDate = Carbon::parse($activity->date_end)->endOfDay();
+            $position = 0; // Initialize position
+
+            $conflictFound = true;
+
+            // Find a non-conflicting position
+            while ($conflictFound) {
+                $conflictFound = !$this->trackEventPosition($activity->id, $startDate, $endDate, $position, $globalRowTracker);
+                if ($conflictFound) {
+                    $position++;
+                }
+            }
+
+            $activityPositions[$activity->id] = $position;
+        }
+
+        return view('agenda.public.month', [
+            'day' => $calculatedDay,
+            'month' => $calculatedMonth,
+            'year' => $calculatedYear,
+            'daysInMonth' => $daysInMonth,
+            'firstDayOfWeek' => $firstDayOfWeek,
+            'currentDay' => now()->day,
+            'currentMonth' => now()->month,
+            'currentYear' => now()->year,
+            'monthOffset' => $monthOffset,
+            'monthName' => $monthName,
+            'activities' => $activities,
+            'activityPositions' => $activityPositions,
+        ]);
+    }
+
     // Function to track event positions and detect conflicts
     private function trackEventPosition($eventId, $startDate, $endDate, $position, &$globalRowTracker)
     {
@@ -597,6 +836,40 @@ class AgendaController extends Controller
         ]);
     }
 
+    public function agendaSchedulePublic(Request $request)
+    {
+        // Retrieve query parameters for offsets, default to 0 if not set
+        $monthOffset = $request->query('month', 0);
+
+        // Set locale to Dutch
+        Carbon::setLocale('nl');
+
+        // Calculate the date based on the offsets
+        $baseDate = Carbon::now();
+        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+
+        // Get the month name and year for display
+        $monthName = $calculatedDate->translatedFormat('F');
+        $calculatedYear = $calculatedDate->year;
+
+        // Calculate the start and end date for the 3-month period
+        $startDate = $calculatedDate->copy()->startOfMonth()->startOfDay();
+        $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
+
+        // Retrieve activities between the start of the calculated month and 3 months later
+        $activities = Activity::whereBetween('date_start', [$startDate, $endDate])
+            ->orderBy('date_start')
+            ->where('public', true)
+            ->get();
+
+        // Return view with activities data
+        return view('agenda.public.schedule', [
+            'activities' => $activities,
+            'monthOffset' => $monthOffset,
+            'monthName' => $monthName,
+            'year' => $calculatedYear,
+        ]);
+    }
 
     public function agendaActivity(Request $request, $id)
     {
@@ -671,53 +944,27 @@ class AgendaController extends Controller
         }
     }
 
-    public function handleActivityForm(Request $request, $id)
+
+    public function agendaActivityPublic(Request $request, $id)
     {
-        // Validate the request
-        $validatedData = $request->validate([
-            'form_elements' => 'required|array',
-        ]);
+        $month = $request->query('month', '0');
+        $view = $request->query('view', 'month');
 
+        // Fetch the activity with the provided id, but only if it's public
+        $activity = Activity::where('id', $id)
+            ->where('public', true)  // Check if the activity is public
+            ->first();  // Get the first matching record or null
 
-        try {
-            // Retrieve the activity to ensure it exists
-            $activity = Activity::findOrFail($id);
-
-            // Retrieve the highest current submitted_id for this activity
-            $maxSubmittedId = ActivityFormResponses::where('activity_id', $activity->id)->max('submitted_id');
-            $nextSubmittedId = $maxSubmittedId ? $maxSubmittedId + 1 : 1;
-
-
-            // Loop through each form element and save the response
-            foreach ($validatedData['form_elements'] as $formElementId => $response) {
-                $formElement = ActivityFormElement::findOrFail($formElementId);
-
-                // Handle checkbox inputs which are arrays
-                if ($formElement->type === 'checkbox' && is_array($response)) {
-                    foreach ($response as $checkboxValue) {
-                        ActivityFormResponses::create([
-                            'activity_id' => $activity->id,
-                            'activity_form_element_id' => $formElementId,
-                            'response' => $checkboxValue,
-                            'submitted_id' => $nextSubmittedId,
-                        ]);
-                    }
-                } else {
-                    // For other input types, store the response directly
-                    ActivityFormResponses::create([
-                        'activity_id' => $activity->id,
-                        'activity_form_element_id' => $formElementId,
-                        'response' => $response,
-                        'submitted_id' => $nextSubmittedId,
-                    ]);
-                }
-            }
-
-
-            return redirect()->route('agenda.activity', $activity->id)->with('success', 'Je inzending was succesvol!!');
-        } catch (\Exception $e) {
-            return redirect()->route('agenda.activity', $activity->id)->with('success', 'Je inzending was succesvol!!');
+        // If the activity is not found or not public, set it to null
+        if (!$activity) {
+            $activity = null;
         }
+
+        return view('agenda.public.event', [
+            'activity' => $activity,
+            'month' => $month,
+            'view' => $view
+        ]);
     }
 
 

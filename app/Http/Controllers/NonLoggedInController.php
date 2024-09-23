@@ -2,19 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
+use App\Models\ActivityFormElement;
+use App\Models\ActivityFormResponses;
 use App\Models\Contact;
 use App\Models\Log;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 
 
 class NonLoggedInController extends Controller
 {
+    public function __construct()
+    {
+
+    }
+
     public function contact() {
 
         return view('forms.contact.contact');
@@ -118,6 +125,53 @@ class NonLoggedInController extends Controller
 
             return view('forms.inschrijven.succes');
 
+        }
+    }
+
+    public function handleActivityForm(Request $request, $id)
+    {
+        // Validate the request
+        $validatedData = $request->validate([
+            'form_elements' => 'required|array',
+        ]);
+
+        try {
+            // Retrieve the activity to ensure it exists
+            $activity = Activity::findOrFail($id);
+
+            // Retrieve the highest current submitted_id for this activity
+            $maxSubmittedId = ActivityFormResponses::where('activity_id', $activity->id)->max('submitted_id');
+            $nextSubmittedId = $maxSubmittedId ? $maxSubmittedId + 1 : 1;
+
+
+            // Loop through each form element and save the response
+            foreach ($validatedData['form_elements'] as $formElementId => $response) {
+                $formElement = ActivityFormElement::findOrFail($formElementId);
+
+                // Handle checkbox inputs which are arrays
+                if ($formElement->type === 'checkbox' && is_array($response)) {
+                    foreach ($response as $checkboxValue) {
+                        ActivityFormResponses::create([
+                            'activity_id' => $activity->id,
+                            'activity_form_element_id' => $formElementId,
+                            'response' => $checkboxValue,
+                            'submitted_id' => $nextSubmittedId,
+                        ]);
+                    }
+                } else {
+                    // For other input types, store the response directly
+                    ActivityFormResponses::create([
+                        'activity_id' => $activity->id,
+                        'activity_form_element_id' => $formElementId,
+                        'response' => $response,
+                        'submitted_id' => $nextSubmittedId,
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Je inzending was succesvol!!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('success', 'Je inzending was succesvol!!');
         }
     }
 }

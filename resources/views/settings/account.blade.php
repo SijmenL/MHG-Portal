@@ -34,7 +34,7 @@
                         <div class="d-flex flex-row-responsive">
                             <div class="m-4 d-flex align-items-center justify-content-center">
                                 @if($user->profile_picture)
-                                    <img alt="profielfoto" style="width: 100%; min-width: 25px; max-width: 250px"
+                                    <img class="zoomable-image" alt="profielfoto" style="width: 100%; min-width: 25px; max-width: 250px"
                                          src="{{ asset('/profile_pictures/' .$user->profile_picture) }}">
                                 @else
                                     <img alt="profielfoto" style="width: 100%; min-width: 25px; max-width: 250px"

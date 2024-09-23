@@ -52,19 +52,6 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6 offset-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="remember"
-                                       id="remember" {{ old('remember') ? 'checked' : '' }}>
-
-                                <label class="form-check-label" for="remember">
-                                    {{ __('Aangemeld blijven') }}
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="mb-0">
                         <div class="d-flex flex-row-responsive gap-2 justify-content-center">
                             <button type="submit" class="btn btn-primary text-white">

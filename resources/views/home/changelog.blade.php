@@ -19,12 +19,13 @@
             <li class="added">Activiteiten zijn aan te maken per gebruiker en speltak</li>
                 <li class="added">Openbare activiteiten zijn via portal te maken en op de openbare website te zetten</li>
                 <li class="added">Maand weergave en planning weergave</li>
+                <li class="added">Aanwezigheid kan worden bijgehouden per activiteit, leden kunnen op aan- of afwezig drukken en de leiding krijgt een net overzicht.</li>
+                <li class="added">Inschrijfformulieren kunnen worden aangemaakt en mensen van buitenaf kunnen zich inschrijven</li>
             </ul>
             <li class="added">Verschillende QOL updates:</li>
             <ul>
                 <li class="added">De tekst editor werkt soepeler en is fijner in gebruik</li>
                 <li class="added">De pagina voor het aanpassen van persoonsgegevens is opnieuw vormgegeven</li>
-                <li class="added">Notificaties die op portal binnenkomen worden ook per mail naar de gebruiker verstuurd</li>
                 <li class="added">Verschillende bugs zijn eruit gehaald</li>
             </ul>
         </ul>
