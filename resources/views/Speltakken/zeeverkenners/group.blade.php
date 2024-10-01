@@ -106,7 +106,7 @@
                         <tr id="{{ $all_user->id }}">
                             <th class="no-mobile">
                                 @if($all_user->profile_picture)
-                                    <img alt="profielfoto" class="profle-picture"
+                                    <img alt="profielfoto" class="profle-picture zoomable-image"
                                          src="{{ asset('/profile_pictures/' .$all_user->profile_picture) }}">
                                 @else
                                     <img alt="profielfoto" class="profle-picture"

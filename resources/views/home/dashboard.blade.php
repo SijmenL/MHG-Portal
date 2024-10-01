@@ -373,6 +373,7 @@
                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                     $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                    $user->roles->contains('role', 'Loods') ||
                     $user->roles->contains('role', 'Afterloodsen Organisator') ||
                     $user->roles->contains('role', 'Administratie') ||
                     $user->roles->contains('role', 'Bestuur') ||

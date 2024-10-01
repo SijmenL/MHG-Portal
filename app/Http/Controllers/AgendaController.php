@@ -841,6 +841,9 @@ class AgendaController extends Controller
         // Retrieve query parameters for offsets, default to 0 if not set
         $monthOffset = $request->query('month', 0);
 
+        // Retrieve the limit parameter, default to null
+        $limit = $request->query('limit', null);
+
         // Set locale to Dutch
         Carbon::setLocale('nl');
 
@@ -857,10 +860,16 @@ class AgendaController extends Controller
         $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
 
         // Retrieve activities between the start of the calculated month and 3 months later
-        $activities = Activity::whereBetween('date_start', [$startDate, $endDate])
+        $query = Activity::whereBetween('date_start', [$startDate, $endDate])
             ->orderBy('date_start')
-            ->where('public', true)
-            ->get();
+            ->where('public', true);
+
+        // Apply limit only if it's not null
+        if ($limit !== null) {
+            $query->limit($limit);
+        }
+
+        $activities = $query->get();
 
         // Return view with activities data
         return view('agenda.public.schedule', [
@@ -868,8 +877,10 @@ class AgendaController extends Controller
             'monthOffset' => $monthOffset,
             'monthName' => $monthName,
             'year' => $calculatedYear,
+            'limit' => $limit
         ]);
     }
+
 
     public function agendaActivity(Request $request, $id)
     {
@@ -985,8 +996,8 @@ class AgendaController extends Controller
         $validatedData = $request->validate([
             'title' => 'string|required',
             'content' => 'string|max:65535|required',
-            'date_start' => 'date|required',
-            'date_end' => 'date|required',
+            'date_start' => ['date', 'required', 'before_or_equal:date_end'],
+            'date_end' => ['date', 'required', 'after_or_equal:date_start'],
             'roles' => 'array|nullable',
             'users' => 'string|nullable',
             'public' => 'boolean|required',
@@ -1014,7 +1025,7 @@ class AgendaController extends Controller
 
             // Handle roles and users input
             $roles = $request->input('roles') ? implode(', ', $request->input('roles')) : null;
-            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : Auth::id();
+            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : null;
 
             // Validate content for disallowed elements or styles
             if (ForumController::validatePostData($request->input('content'))) {

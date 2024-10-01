@@ -49,7 +49,7 @@ class ZeeverkennerController extends Controller
             ]);
 
             $users = User::whereHas('roles', function ($query) {
-                $query->whereIn('role', ['Loods', 'zeeverkenners Stamoudste']);
+                $query->whereIn('role', ['Zeeverkenner', 'Zeeverkenners Leiding']);
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
@@ -473,32 +473,40 @@ class ZeeverkennerController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-            $account = User::with(['roles' => function ($query) {
-                $query->orderBy('role', 'asc');
-            }])
-                ->whereHas('roles', function ($query) {
-                    $query->where('role', 'Zeeverkenner');
-                })
-                // TODO: Fix this
-                // ->orWhereHas('children.roles', function ($query) {
-                //     $query->where('role', 'Zeeverkenner');
-                // })
-                ->find($id);
+            // Find the user by their ID, along with their roles, children, and parents
+            $account = User::with([
+                'roles' => function ($query) {
+                    $query->orderBy('role', 'asc');
+                },
+                'children.roles', // Load roles for children
+                'parents.roles'   // Load roles for parents
+            ])->findOrFail($id);  // Ensure we always find the user or fail
+
         } catch (ModelNotFoundException $exception) {
-            $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
-            return redirect()->route('zeeverkenners')->with('error', 'Dit account bestaat niet.');
-        }
-        if ($account === null) {
+            // Log and return if the user does not exist
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('zeeverkenners')->with('error', 'Dit account bestaat niet.');
         }
 
+        // Check if the user or their parents/children have the role 'Zeeverkenner'
+        $hasZeeverkennerRole = $account->roles->contains('role', 'Zeeverkenner') ||
+            $account->children->pluck('roles')->flatten()->contains('role', 'Zeeverkenner') ||
+            $account->parents->pluck('roles')->flatten()->contains('role', 'Zeeverkenner');
+
+        // Log if no 'Zeeverkenner' role is found
+        if (!$hasZeeverkennerRole) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View account', 'Zeeverkenners', $account->name.' '.$account->infix.' '.$account->last_name, 'Geen Zeeverkenner rol gevonden');
+            return redirect()->route('zeeverkenners')->with('error', 'Je hebt geen toegang tot dit account.');
+        }
+
+        // Log successful view
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'View account', 'Zeeverkenners', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
-
+        // Return the view with the necessary data
         return view('speltakken.zeeverkenners.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
+
 }

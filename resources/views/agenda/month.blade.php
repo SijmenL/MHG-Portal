@@ -224,7 +224,7 @@
                                 >
                                     @if ($isFirstDay || ($isMonday && !$isLastDay))
                                         <div class="calendar-event-title">
-                                            {{ $activityTitle }}
+                                            <p>{{ $activityTitle }} </p>
                                         </div>
                                     @endif
                                 </a>

@@ -113,8 +113,7 @@
                         </div>
 
                         <div class="">
-                            <label for="image" class="col-md-4 col-form-label ">Coverafbeelding <span
-                                    class="required-form">*</span></label>
+                            <label for="image" class="col-md-4 col-form-label ">Coverafbeelding</label>
                             <div class="d-flex flex-row-responsive gap-4 align-items-center justify-content-center">
                                 <input class="form-control mt-2 col" id="image" type="file" name="image"
                                        accept="image/*">

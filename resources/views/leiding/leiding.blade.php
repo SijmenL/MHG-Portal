@@ -78,7 +78,13 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     @if($leiding_individual->roles->contains('role', 'Voorzitter'))
@@ -104,19 +110,19 @@
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="mailto:penningmeester@waterscoutingmhg.nl"><span
                                             class="material-symbols-rounded">email</span><span
-                                            >penningmeester@waterscoutingmhg.nl</span></a>
+                                        >penningmeester@waterscoutingmhg.nl</span></a>
                                 @endif
                                 @if($leiding_individual->roles->contains('role', 'Secretaris'))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="mailto:secretaris@waterscoutingmhg.nl"><span
                                             class="material-symbols-rounded">email</span><span
-                                            >secretaris@waterscoutingmhg.nl</span></a>
+                                        >secretaris@waterscoutingmhg.nl</span></a>
                                 @endif
                                 @if(!$leiding_individual->roles->contains('role', 'Penningmeester') && !$leiding_individual->roles->contains('role', 'Secretaris') && $leiding_individual->roles->contains('role', 'Bestuur'))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="mailto:bestuur@waterscoutingmhg.nl"><span
                                             class="material-symbols-rounded">email</span><span
-                                            >bestuur@waterscoutingmhg.nl</span></a>
+                                        >bestuur@waterscoutingmhg.nl</span></a>
                                 @endif
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
@@ -144,17 +150,22 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     <h4 class="m-0">Team Administratie</h4>
                                 </div>
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:administratie@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >administratie@waterscoutingmhg.nl</span></a>
+                                    >administratie@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -201,11 +212,11 @@
                                 </div>
 
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:dolfijnen@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >dolfijnen@waterscoutingmhg.nl</span></a>
+                                    >dolfijnen@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -232,7 +243,11 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
 
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
@@ -248,11 +263,11 @@
                                 </div>
 
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:zeeverkenners@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >zeeverkenners@waterscoutingmhg.nl</span></a>
+                                    >zeeverkenners@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -279,7 +294,12 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     @if($leiding_individual->roles->contains('role', 'Loodsen Mentor'))
@@ -293,11 +313,11 @@
                                     @endif
                                 </div>
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:loodsen@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >loodsen@waterscoutingmhg.nl</span></a>
+                                    >loodsen@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -324,7 +344,12 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     @if($leiding_individual->roles->contains('role', 'Afterloodsen Voorzitter'))
@@ -338,11 +363,11 @@
                                     @endif
                                 </div>
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:afterloodsen@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >afterloodsen@waterscoutingmhg.nl</span></a>
+                                    >afterloodsen@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -369,17 +394,22 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     <h4 class="m-0">Praktijkbegeleider</h4>
                                 </div>
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:praktijkbegeleider@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >praktijkbegeleider@waterscoutingmhg.nl</span></a>
+                                    >praktijkbegeleider@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -406,17 +436,22 @@
                             @endif
                             <div class="card-body card-body-leiding">
 
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     <h4 class="m-0">Ouderraad</h4>
                                 </div>
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                    href="mailto:ouderraad@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
-                                        >ouderraad@waterscoutingmhg.nl</span></a>
+                                    >ouderraad@waterscoutingmhg.nl</span></a>
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
@@ -442,13 +477,19 @@
                                      src="{{ asset('img/no_profile_picture.webp') }}">
                             @endif
                             <div class="card-body card-body-leiding">
-                                <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
                                 <div
                                     class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
                                     <h4 class="m-0">Vrijwilligers</h4>
                                 </div>
                             </div>
-                             <div class="card-footer d-flex flex-column gap-1">
+                            <div class="card-footer d-flex flex-column gap-1">
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span

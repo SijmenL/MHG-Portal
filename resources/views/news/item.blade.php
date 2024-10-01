@@ -118,7 +118,7 @@
 
         </div>
 
-        <img class="news-image-full zoomable-image p-4" src="{{ asset('files/news/news_images/' . $news->image) }}"
+        <img class="news-image-full p-4" src="{{ asset('files/news/news_images/' . $news->image) }}"
              alt="nieuws afbeelding">
         <div class="news-content">{!! $news->content !!}</div>
     </div>

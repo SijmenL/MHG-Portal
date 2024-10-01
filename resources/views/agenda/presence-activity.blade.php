@@ -138,7 +138,7 @@
 
                         @if($absentUsers->count() === 1)
                             <span>er is {{ $absentUsers->count() }} iemand afwezig.</span>
-                        @elseif($absentUsers->count() === 0)
+                        @else
                             <span>er zijn {{ $absentUsers->count() }} mensen afwezig.</span>
                         @endif
 

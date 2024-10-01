@@ -78,9 +78,11 @@
                     </a>
                 @endforeach
             </div>
+            @if($items > 3)
         <div class="d-flex flex-row w-100 align-items-center justify-content-center">
             {{ $news->appends(request()->query())->links() }}
         </div>
+            @endif
         @else
             <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
                 <span class="material-symbols-rounded me-2">unsubscribe</span>Geen nieuws gevonden...

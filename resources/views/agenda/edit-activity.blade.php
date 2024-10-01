@@ -498,14 +498,21 @@
                                              data-bs-parent="#accordionExample">
                                             <div class="accordion-body">
                                                 <div class="custom-select">
+                                                    @php
+                                                        $selectedRoles = explode(',', $activity->roles);
+                                                    @endphp
+
                                                     <select id="select-roles" class="d-none" name="roles[]" multiple>
                                                         @foreach($all_roles as $role)
                                                             <option data-description="{{ $role->description }}"
-                                                                    value="{{ $role->id }}">
+                                                                    value="{{ $role->id }}"
+                                                                    @if(in_array($role->id, $selectedRoles)) selected @endif>
                                                                 {{ $role->role }}
                                                             </option>
                                                         @endforeach
                                                     </select>
+
+
                                                 </div>
                                                 <div class="d-flex flex-wrap gap-1" id="button-container"></div>
                                             </div>
@@ -566,7 +573,6 @@
                         @enderror
 
                         @error('users')
-
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>

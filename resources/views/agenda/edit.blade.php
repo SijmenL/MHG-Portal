@@ -115,7 +115,7 @@
                     {{ $activities->links() }}
                 @else
                     <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
-                        <span class="material-symbols-rounded me-2">event_busy</span>Geen activiteiten gevonden waar aanwezigheid voor opgegeven kan worden...
+                        <span class="material-symbols-rounded me-2">event_busy</span>Geen activiteiten gevonden die je hebt aangemaakt...
                     </div>
                 @endif
 

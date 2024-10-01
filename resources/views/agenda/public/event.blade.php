@@ -66,9 +66,9 @@
             <div class="bg-white rounded-2 w-100 d-flex flex-column align-items-center">
                 <div class="bg-light w-100 p-4 rounded">
 
-                    <div class="p-5 w-100 d-flex align-items-center flex-column" style="transform: translateY(-50px)">
+                    <div class="p-3 w-100 d-flex align-items-center flex-column" style="transform: translateY(-50px)">
 
-                        <h1 class="text-center">{{ $activity->title }}</h1>
+                        <h1 class="text-center mt-5">{{ $activity->title }}</h1>
                         @if($eventStart->isSameDay($eventEnd))
                             <h2 class="text-center">{{ $eventStart->format('j') }} {{ $eventStart->translatedFormat('F') }}
                                 @ {{ $eventStart->format('H:i') }} - {{ $eventEnd->format('H:i') }}</h2>
@@ -90,7 +90,7 @@
                                  src="{{ asset('files/agenda/agenda_images/'.$activity->image) }}">
                         @endif
 
-                        <div class="mt-4 w-100" style="align-self: start">{!! $activity->content !!}</div>
+                        <div class="mt-4 w-100 agenda-content" style="align-self: start">{!! $activity->content !!}</div>
                     </div>
 
                 </div>
