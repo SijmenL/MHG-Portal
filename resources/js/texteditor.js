@@ -48,7 +48,7 @@ const initializer = () => {
 
     document.addEventListener('selectionchange', updateFormatBlock);
 
-    document.getElementById('clear').addEventListener('click', function() {
+    document.getElementById('clear').addEventListener('click', function () {
         document.execCommand('removeFormat', false, null);
         document.execCommand('formatBlock', false, 'p');
     });
@@ -154,36 +154,7 @@ const initializer = () => {
         }
 
         inputFields.forEach(function (field) {
-            // field.addEventListener('paste', function (event) {
-            //     console.log('Paste event detected');
-            //
-            //     // Prevent the default paste behavior
-            //     event.preventDefault();
-            //
-            //     // Check if clipboard data is available
-            //     const clipboardData = event.clipboardData || window.clipboardData;
-            //     if (!clipboardData) {
-            //         console.error('Clipboard data not available');
-            //         return;
-            //     }
-            //
-            //     // Get the plain text from the clipboard
-            //     const plainText = clipboardData.getData('text/plain');
-            //     if (!plainText) {
-            //         console.error('No plain text found in clipboard data');
-            //         return;
-            //     }
-            //
-            //     // Insert the plain text into the editable div at the current cursor position
-            //     document.execCommand('insertText', false, plainText);
-            //
-            //     console.log('Plain text pasted:', plainText);
-            //     editText()
-            // });
-
             field.addEventListener('paste', function (event) {
-                console.log('Paste event detected');
-
                 // Prevent the default paste behavior
                 event.preventDefault();
 
@@ -208,22 +179,26 @@ const initializer = () => {
 
                 // Function to clean unwanted styles
                 function cleanStyles(element) {
-                    if (element.style) {
-                        element.style = '';
+                    const tagsToKeep = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P'];  // Add any other tags you want to preserve
+
+                    // Skip cleaning styles if the tag is in the 'tagsToKeep' list
+                    if (!tagsToKeep.includes(element.tagName)) {
+                        if (element.style) {
+                            element.removeAttribute('style');  // Safely remove inline styles instead of resetting the style object
+                        }
                     }
+
+                    // Recursively clean the children
                     for (let i = 0; i < element.children.length; i++) {
                         cleanStyles(element.children[i]);
                     }
                 }
 
+
                 // Function to remove classes from elements
                 function removeClasses(element) {
                     if (element.classList) {
-                        if (element instanceof SVGElement) {
-                            element.setAttribute('class', ''); // For SVG elements
-                        } else {
-                            element.className = ''; // For regular HTML elements
-                        }
+                        element.className = ''; // For regular HTML elements
                     }
                     for (let i = 0; i < element.children.length; i++) {
                         removeClasses(element.children[i]);
@@ -281,7 +256,6 @@ const initializer = () => {
                 console.log('Cleaned HTML pasted:', cleanedHtml);
                 editText();
             });
-
 
 
             field.addEventListener('dragover', function (event) {
@@ -762,7 +736,6 @@ function addLink(userText, userLink) {
 }
 
 
-
 //Highlight clicked button
 const highlighter = (className, needsRemoval) => {
     className.forEach((button) => {
@@ -791,26 +764,38 @@ const highlighter = (className, needsRemoval) => {
 };
 
 function updateFormatBlock() {
-    const formatBlockSelect = document.getElementById('formatBlock');
     const selection = window.getSelection();
 
     if (selection.rangeCount > 0) {
         let selectedElement = selection.anchorNode.parentElement;
 
-        // Traverse up the DOM to find the first element that matches H1-H6 or p
-        while (selectedElement && !selectedElement.tagName.match(/^H[1-6]$/) && selectedElement.tagName !== 'P') {
-            selectedElement = selectedElement.parentElement; // Go up one level
-        }
+        // Check if the selected element is within the editor
+        if (textInput.contains(selectedElement)) {
+            // Traverse up the DOM to find the first element that matches H1-H6 or P
+            while (selectedElement && !selectedElement.tagName.match(/^H[1-6]$/) && selectedElement.tagName !== 'P') {
+                selectedElement = selectedElement.parentElement; // Go up one level
+            }
 
-        // If we find an H1-H6 or P, update the select value accordingly
-        if (selectedElement && selectedElement.tagName.match(/^H[1-6]$/)) {
-            formatBlockSelect.value = selectedElement.tagName;
-        } else {
-            formatBlockSelect.value = 'p'; // Default to 'p' if no heading is found
+            // Detect and update the select value to reflect the current format
+            if (selectedElement && selectedElement.tagName.match(/^H[1-6]$/)) {
+                formatBlock.value = selectedElement.tagName;
+            } else {
+                formatBlock.value = 'p'; // Default to 'p' if no heading is found
+            }
         }
     }
 }
 
+// Function to apply the selected block format (e.g., H1, H2, or P)
+function applyFormatBlock() {
+    const selectedFormat = formatBlock.value;
+
+    // Apply the new format block to the selection
+    document.execCommand('formatBlock', false, selectedFormat);
+}
+
+// Add event listener to the select dropdown to apply the selected format
+document.getElementById('formatBlock').addEventListener('change', applyFormatBlock);
 
 
 const highlighterRemover = (className) => {

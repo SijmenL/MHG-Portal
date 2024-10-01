@@ -126,7 +126,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/agenda/activiteit/niet-aanwezig/{id}', [AgendaController::class, 'agendaAbsent'])->name('agenda.activity.absent');
 });
 
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
     Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
 

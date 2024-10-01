@@ -149,7 +149,7 @@ function setupImageZoom() {
 
     // Handle clicks on images
     document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('forum-image') || event.target.classList.contains('zoomable-image')) {
+        if (event.target.classList.contains('zoomable-image')) {
             const image = event.target;
 
             // Set the source of the enlarged image to the clicked image's source

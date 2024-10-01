@@ -474,31 +474,39 @@ class DolfijnenController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         try {
-        $account = User::with(['roles' => function ($query) {
-            $query->orderBy('role', 'asc');
-        }])
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Dolfijn');
-            })
-            ->orWhereHas('children.roles', function ($query) {
-                $query->where('role', 'Dolfijn');
-            })
-            ->find($id);
+            // Find the user by their ID, along with their roles, children, and parents
+            $account = User::with([
+                'roles' => function ($query) {
+                    $query->orderBy('role', 'asc');
+                },
+                'children.roles', // Load roles for children
+                'parents.roles'   // Load roles for parents
+            ])->findOrFail($id);  // Ensure we always find the user or fail
+
         } catch (ModelNotFoundException $exception) {
-            $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View user', 'dolfijnen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
-            return redirect()->route('dolfijnen')->with('error', 'Dit account bestaat niet.');
-        }
-        if ($account === null) {
+            // Log and return if the user does not exist
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'dolfijnen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('dolfijnen')->with('error', 'Dit account bestaat niet.');
         }
 
+        // Check if the user or their parents/children have the role 'Dolfijn'
+        $hasDolfijnenRole = $account->roles->contains('role', 'Dolfijn') ||
+            $account->children->pluck('roles')->flatten()->contains('role', 'Dolfijn') ||
+            $account->parents->pluck('roles')->flatten()->contains('role', 'Dolfijn');
+
+        // Log if no 'Dolfijn' role is found
+        if (!$hasDolfijnenRole) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View account', 'Dolfijnen', $account->name.' '.$account->infix.' '.$account->last_name, 'Geen Dolfijn rol gevonden');
+            return redirect()->route('dolfijnen')->with('error', 'Je hebt geen toegang tot dit account.');
+        }
+
+        // Log successful view
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'View account', 'Dolfijnen', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
-
+        // Return the view with the necessary data
         return view('speltakken.dolfijnen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
 }

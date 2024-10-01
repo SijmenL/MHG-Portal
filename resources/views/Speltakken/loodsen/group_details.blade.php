@@ -43,7 +43,7 @@
                     <tr>
                         <th>Profielfoto</th>
                         <th>
-                            <img alt="profielfoto" class="w-25"
+                            <img alt="profielfoto" class="w-25 zoomable-image"
                                  src="{{ asset('/profile_pictures/' . $account->profile_picture) }}">
                         <th>
                     </tr>
@@ -105,7 +105,7 @@
                                         <img alt="profielfoto" class="profle-picture"
                                              src="{{ asset('img/no_profile_picture.webp') }}">
                                     @endif
-                                    <span>{{ $parent->name.' '.$parent->infic.' '.$parent->last_name }}</span>
+                                    <span>{{ $parent->name.' '.$parent->infix.' '.$parent->last_name }}</span>
                                     <span><a href="mailto:{{ $parent->email }}">{{ $parent->email }}</a></span>
                                     <span><a href="tel:{{ $parent->phone }}">{{ $parent->phone }}</a></span>
                                     {{--                                        <span>{{ $parent->street.' '.$parent->postal_code.' '.$parent->city }}</span>--}}

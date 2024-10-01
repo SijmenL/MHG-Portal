@@ -11,16 +11,29 @@
             </ol>
         </nav>
 
+        <div class="alert alert-primary">Als ergens bugfixes vermeld staan, zijn deze terug te vinden op <a target="_blank" href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>. Voeg hier vooral zelf ook nieuwe bugs aan toe!</div>
+
+        <h2>Update 2.0.1</h2>
+        <p class="fst-italic">01/10/2024</p>
+        <ul>
+            <li class="added">Bugfixes</li>
+        </ul>
+
         <h2>Update 2.0</h2>
         <p class="fst-italic">23/09/2024</p>
         <ul>
             <li class="added">De kalender is volledig over naar portal</li>
             <ul>
-            <li class="added">Activiteiten zijn aan te maken per gebruiker en speltak</li>
-                <li class="added">Openbare activiteiten zijn via portal te maken en op de openbare website te zetten</li>
+                <li class="added">Activiteiten zijn aan te maken per gebruiker en speltak</li>
+                <li class="added">Openbare activiteiten zijn via portal te maken en op de openbare website te zetten
+                </li>
                 <li class="added">Maand weergave en planning weergave</li>
-                <li class="added">Aanwezigheid kan worden bijgehouden per activiteit, leden kunnen op aan- of afwezig drukken en de leiding krijgt een net overzicht.</li>
-                <li class="added">Inschrijfformulieren kunnen worden aangemaakt en mensen van buitenaf kunnen zich inschrijven</li>
+                <li class="added">Aanwezigheid kan worden bijgehouden per activiteit, leden kunnen op aan- of afwezig
+                    drukken en de leiding krijgt een net overzicht.
+                </li>
+                <li class="added">Inschrijfformulieren kunnen worden aangemaakt en mensen van buitenaf kunnen zich
+                    inschrijven
+                </li>
             </ul>
             <li class="added">Verschillende QOL updates:</li>
             <ul>

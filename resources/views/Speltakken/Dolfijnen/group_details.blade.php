@@ -47,7 +47,7 @@
                         <tr>
                             <th>Profielfoto</th>
                             <th>
-                                <img alt="profielfoto" class="w-25"
+                                <img alt="profielfoto" class="w-25 zoomable-image"
                                      src="{{ asset('/profile_pictures/' . $account->profile_picture) }}">
                             <th>
                         </tr>
