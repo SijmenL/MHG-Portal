@@ -6,6 +6,7 @@ use App\Models\Log;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserNotificationSettings;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -117,6 +118,41 @@ class SettingsController extends Controller
 
 
         return back()->with("success", "Wachtwoord succesvol opgeslagen!");
+    }
+
+
+    public function notifications()
+    {        
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $notification_settings = UserNotificationSettings::all()->where('user_id', $user->id)->pluck('on_status', 'type')->toArray();
+        
+        return view('settings.edit-notifications', compact('user', 'roles', 'notification_settings'));
+    }
+
+    public function notificationsSave(Request $request)
+    {
+        $request->validate([
+            'hidden_form_field' => 'required',
+        ]);
+
+        // check if the notification setting already exists
+        $notification_setting = UserNotificationSettings::where('user_id', Auth::user()->id)->where('type', $request->hidden_form_field)->first();
+
+        // if exists, delete
+        if ($notification_setting) {
+            $notification_setting->delete();
+            return redirect()->route('settings.edit-notifications')->with("success", "Notificatie instelling succesvol opgeslagen.");
+        }
+    
+        UserNotificationSettings::create([
+            'user_id' => Auth::user()->id,
+            'type' => $request->hidden_form_field,
+            'on_status' => 0               
+        ]);
+
+        return redirect()->route('settings.edit-notifications')->with("success", "Notificatie instelling succesvol opgeslagen.");
     }
 
     public function parent()

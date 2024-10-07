@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
+use App\Mail\plainMail;
+use Illuminate\Support\Facades\Mail;
+
 class HomeController extends Controller
 {
     /**
@@ -101,6 +104,14 @@ class HomeController extends Controller
             $notification->seen = true;
             $notification->save();
         }
+
+        $adminMail = 'administratie@waterscoutingmhg.nl';
+        $data = [
+            'subject' => 'Notificaties bekeken',
+            'message' => 'Alle notificaties zijn bekeken door ' . $user->name . ' (' . $user->email . ')',
+        ];
+        // Mail::to($adminMail)
+        //     ->send(new plainMail($data));
 
         return view('home.notifications', ['user' => $user, 'roles' => $roles, 'notifications' => $notifications, 'notificationsUnseen' => $notificationsUnseen]);
     }

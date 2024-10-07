@@ -69,6 +69,9 @@ Route::post('/instellingen/account/bewerk', [SettingsController::class, 'editAcc
 Route::get('/instellingen/verander-wachtwoord', [SettingsController::class, 'changePassword'])->name('settings.change-password');
 Route::post('/instellingen/verander-wachtwoord', [SettingsController::class, 'updatePassword'])->name('settings.change-password.store');
 
+Route::get('/instellingen/notificaties', [SettingsController::class, 'notifications'])->name('settings.edit-notifications');
+Route::post('/instellingen/notificaties', [SettingsController::class, 'notificationsSave'])->name('settings.edit-notifications.store');
+
 Route::middleware(['checkAccepted'])->group(function () {
     Route::get('/instellingen/ouder-account', [SettingsController::class, 'parent'])->name('settings.parent');
 
