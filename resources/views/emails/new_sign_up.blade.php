@@ -5,7 +5,7 @@
 @endsection
 
 @section('greeting')
-    <p class="centered">Beste {{ $data->reciever_name }}, via portal is een nieuwe inschrijving binnen gekomen! Bekijk hieronder de details:</p>
+    <p class="centered">Beste {{ $reciever_name }}, via portal is een nieuwe inschrijving binnen gekomen! Bekijk hieronder de details:</p>
 @endsection
 
 
@@ -34,7 +34,7 @@
 @endsection
 
 @section('actions')
-    <a href="https://portal.waterscoutingmhg.nl/administratie/inschrijvingen" class="action-button">Ga naar inschrijving</a>
+    <a href="{{ $btnLink }}" class="action-button">Ga naar inschrijving</a>
 @endsection
 
 @section('main_footer')

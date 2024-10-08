@@ -43,7 +43,7 @@ class NonLoggedInController extends Controller
         $log->createLog(null, 2, 'Contact', 'Admin', $contact->id, 'Contact formulier opgeslagen');
 
         $notification = new NotificationController();
-        $notification->sendNotificationToRole('administratie', 'contact_message', $data);
+        $notification->sendNotificationToRole('Administratie', 'contact_message', $data);
 
         return view('forms.contact.succes');
     }
