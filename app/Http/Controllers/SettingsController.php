@@ -361,9 +361,9 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '', '', 'remove_parent');
+        $notification->sendNotification(auth()->user()->id, [$id], 'heeft de ouder-kind koppeling verbroken.', '', null, 'delete_parent');
 
-        return redirect()->route('settings.remove-parent-link')->with("success", "Ouder ontkoppeling succesvol!");
+        return redirect()->route('settings.remove-parent-link')->with("success", "Ouder-kind koppeling succesvol verbroken");
     }
 
     public function removeChildLink()
@@ -418,7 +418,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->name . ' ' . $child->infix . ' ' . $child->last_name, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '', '', 'delete_child');
+        $notification->sendNotification(auth()->user()->id, [$id], 'heeft de ouder-kind koppeling verbroken.', '', null, 'delete_child');
 
         return redirect()->route('settings.remove-child-link')->with("success", "Kind succesvol ontkoppeld!");
     }

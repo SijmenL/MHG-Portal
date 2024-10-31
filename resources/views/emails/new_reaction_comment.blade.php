@@ -21,7 +21,7 @@
             use Illuminate\Support\Str;
 
             $reaction = \App\Models\Comment::findOrFail($data['relevant_id']);
-            $comment = \App\Models\Post::findOrFail($reaction->comment_id);
+            $comment = \App\Models\Comment::findOrFail($reaction->comment_id);
 
         @endphp
 

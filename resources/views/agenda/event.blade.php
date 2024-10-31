@@ -15,31 +15,44 @@
 
 @section('content')
     <div class="container col-md-11">
-        <h1>Geplande activiteit</h1>
+        <div class="d-flex flex-row justify-content-between align-items-center">
+            <div class="d-flex flex-column gap-3">
+                <h1>Geplande activiteit</h1>
 
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                @if($user &&
-                  ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-                  $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                  $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                  $user->roles->contains('role', 'Loods') ||
-                  $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                  $user->roles->contains('role', 'Administratie') ||
-                  $user->roles->contains('role', 'Bestuur') ||
-                  $user->roles->contains('role', 'Praktijkbegeleider') ||
-                  $user->roles->contains('role', 'Loodsen Mentor') ||
-                  $user->roles->contains('role', 'Ouderraad'))
-                  )
-                    <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
+            </div>
+            <div>
+                @if($activity->user_id === \Illuminate\Support\Facades\Auth::id())
+                <a href="{{ route('agenda.edit.activity', $activity->id) }}"
+                   class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">edit</span>
+                    <span>Bewerk activiteit</span></a>
                 @endif
-                <li class="breadcrumb-item"><a
-                        @if($view === 'month') href="{{ route('agenda.month', ['month' => $month, 'all' => $wantViewAll]) }}"
-                        @else href="{{ route('agenda.schedule', ['month' => $month, 'all' => $wantViewAll]) }}" @endif>Mijn
-                        agenda</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Geplande activiteit</li>
-            </ol>
-        </nav>
+            </div>
+        </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @if($user &&
+                          ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                          $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                          $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                          $user->roles->contains('role', 'Loods') ||
+                          $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                          $user->roles->contains('role', 'Administratie') ||
+                          $user->roles->contains('role', 'Bestuur') ||
+                          $user->roles->contains('role', 'Praktijkbegeleider') ||
+                          $user->roles->contains('role', 'Loodsen Mentor') ||
+                          $user->roles->contains('role', 'Ouderraad'))
+                          )
+                            <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
+                        @endif
+                        <li class="breadcrumb-item"><a
+                                @if($view === 'month') href="{{ route('agenda.month', ['month' => $month, 'all' => $wantViewAll]) }}"
+                                @else href="{{ route('agenda.schedule', ['month' => $month, 'all' => $wantViewAll]) }}" @endif>Mijn
+                                agenda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Geplande activiteit</li>
+                    </ol>
+                </nav>
 
         @if(Session::has('error'))
             <div class="alert alert-danger" role="alert">
@@ -141,11 +154,13 @@
 
                     <div class="d-flex flex-row-responsive gap-2">
 
-                        <a @if($presenceStatus !== "1") href="{{ route('agenda.activity.present', $activity->id) }}" @endif class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "1") btn-success @else btn-outline-success @endif">
+                        <a @if($presenceStatus !== "1") href="{{ route('agenda.activity.present', $activity->id) }}"
+                           @endif class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "1") btn-success @else btn-outline-success @endif">
                             <span class="material-symbols-rounded me-2">event_available</span>
                             <span>Aanmelden</span>
                         </a>
-                        <a @if($presenceStatus !== "0") href="{{ route('agenda.activity.absent', $activity->id) }}" @endif class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "0") btn-danger @else btn-outline-danger @endif">
+                        <a @if($presenceStatus !== "0") href="{{ route('agenda.activity.absent', $activity->id) }}"
+                           @endif class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "0") btn-danger @else btn-outline-danger @endif">
                             <span
                                 class="material-symbols-rounded me-2">event_busy</span>
                             <span>Afmelden</span></a>
@@ -164,7 +179,8 @@
                  $user->roles->contains('role', 'Loodsen Mentor') ||
                  $user->roles->contains('role', 'Ouderraad'))
                  )
-                            <a href="{{ route('agenda.presence.activity', $activity->id) }}" class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <a href="{{ route('agenda.presence.activity', $activity->id) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
                             <span
                                 class="material-symbols-rounded me-2">free_cancellation</span>
                                 <span>Bekijk alle aan- of afmeldingen</span></a>

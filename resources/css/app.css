@@ -18,6 +18,21 @@ html.noscroll {
     width: 100%;
 }
 
+.tab-container {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent items from wrapping */
+}
+
+.nav-tabs .nav-item {
+    flex: 0 0 auto; /* Prevent the nav items from shrinking */
+}
+
+.nav-tabs {
+    padding: 0; /* Optional: remove padding for better spacing */
+    margin-bottom: 0; /* Optional: remove margin to align with content */
+}
+
+
 ::selection {
     background-color: var(--primary-color);
     color: white;

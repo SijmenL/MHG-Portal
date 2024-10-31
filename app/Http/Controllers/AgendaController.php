@@ -41,8 +41,11 @@ class AgendaController extends Controller
             ->with('activityFormElements') // Eager load the formElements relationship
             ->whereHas('activityFormElements') // Ensure activities have related form elements
             ->when(empty($search), function ($query) use ($currentDate) {
-                // Exclude activities with date_start in the past when not searching
-                $query->where('date_start', '>=', $currentDate);
+                // Include events that are starting today or in the future or that are ongoing
+                $query->where(function ($query) use ($currentDate) {
+                    $query->where('date_start', '>=', $currentDate->startOfDay())
+                        ->orWhere('date_end', '>=', $currentDate->startOfDay());
+                });
             })
             ->when($search, function ($query, $search) {
                 // Include past activities when searching
@@ -58,13 +61,16 @@ class AgendaController extends Controller
             })
             ->orderByRaw(
                 'CASE
+            WHEN date_end >= ? THEN date_end
             WHEN date_start >= ? THEN date_start
             ELSE NULL
         END ASC,
         date_start ASC',
-                [$currentDate]
+                [$currentDate->startOfDay(), $currentDate->startOfDay()]
             )
             ->paginate(10);
+
+
 
         return view('agenda.submissions', [
             'user' => $user,
@@ -84,8 +90,11 @@ class AgendaController extends Controller
 
         $activities = Activity::query()
             ->when(empty($search), function ($query) use ($currentDate) {
-                // Exclude activities with date_start in the past when not searching
-                $query->where('date_start', '>=', $currentDate);
+                // Include activities that are either upcoming or ongoing (date_end is in the future)
+                $query->where(function ($query) use ($currentDate) {
+                    $query->where('date_start', '>=', $currentDate->startOfDay())
+                        ->orWhere('date_end', '>=', $currentDate->startOfDay());
+                });
             })
             ->when($search, function ($query, $search) {
                 // Include past activities when searching
@@ -102,13 +111,16 @@ class AgendaController extends Controller
             ->where('user_id', Auth::id())
             ->orderByRaw(
                 'CASE
+            WHEN date_end >= ? THEN date_end
             WHEN date_start >= ? THEN date_start
             ELSE NULL
         END ASC,
         date_start ASC',
-                [$currentDate]
+                [$currentDate->startOfDay(), $currentDate->startOfDay()] // Ensure both parameters are passed
             )
             ->paginate(10);
+
+
 
         return view('agenda.edit', [
             'user' => $user,
@@ -241,7 +253,6 @@ class AgendaController extends Controller
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            dd($e);
             return redirect()->back()->with('error', 'Er is een fout opgetreden bij het opslaan van je agendapunt. Probeer het opnieuw.')->withInput();
         }
     }
@@ -305,8 +316,11 @@ class AgendaController extends Controller
         $activities = Activity::query()
             ->where('presence', 1)  // Filter by presence
             ->when(empty($search), function ($query) use ($currentDate) {
-                // Exclude activities with date_start in the past when not searching
-                $query->where('date_start', '>=', $currentDate);
+                // Include activities that are either upcoming or ongoing
+                $query->where(function ($query) use ($currentDate) {
+                    $query->where('date_start', '>=', $currentDate->startOfDay())
+                        ->orWhere('date_end', '>=', $currentDate->startOfDay());
+                });
             })
             ->when($search, function ($query, $search) {
                 // Include past activities when searching
@@ -322,13 +336,15 @@ class AgendaController extends Controller
             })
             ->orderByRaw(
                 'CASE
-                WHEN date_start >= ? THEN date_start
-                ELSE NULL
-            END ASC,
-            date_start ASC',
-                [$currentDate]
+            WHEN date_end >= ? THEN date_end
+            WHEN date_start >= ? THEN date_start
+            ELSE NULL
+        END ASC,
+        date_start ASC',
+                [$currentDate->startOfDay(), $currentDate->startOfDay()] // Ensure both parameters are passed
             )
             ->paginate(10);
+
 
         return view('agenda.presence', ['user' => $user, 'roles' => $roles, 'search' => $search, 'activities' => $activities]);
     }
