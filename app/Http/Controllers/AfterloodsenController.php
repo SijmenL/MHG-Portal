@@ -48,11 +48,11 @@ class AfterloodsenController extends Controller
             ]);
 
             $users = User::whereHas('roles', function ($query) {
-                $query->whereIn('role', ['Loods', 'afterloodsen Stamoudste']);
+                $query->whereIn('role', ['Afterloods', 'Afterloodsen Organisator']);
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/afterloodsen/post/' . $post->id, 'afterloodsen');
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/afterloodsen/post/' . $post->id, 'afterloodsen', 'new_post', $post->id);
 
 
             $log = new Log();
@@ -120,7 +120,7 @@ class AfterloodsenController extends Controller
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/afterloodsen/post/' . $post->id . '#' . $comment->id, 'afterloodsen');
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/afterloodsen/post/' . $post->id . '#' . $comment->id, 'afterloodsen', 'new_comment', $comment->id);
 
 
             $log = new Log();
@@ -159,7 +159,7 @@ class AfterloodsenController extends Controller
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/afterloodsen/post/' . $post->id . '#comment-' . $comment->id, 'afterloodsen');
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/afterloodsen/post/' . $post->id . '#comment-' . $comment->id, 'afterloodsen', 'new_reaction_comment', $comment->id);
 
 
             $log = new Log();
@@ -322,88 +322,54 @@ class AfterloodsenController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $search = '';
+        // Retrieve search and selected role from the GET request
+        $search = request('search');
+        $selected_role = request('role', 'Afterloods'); // Default to 'Afterloods'
 
-        $users = User::with(['roles' => function ($query) {
-            $query->where('role', 'Afterloods')->orderBy('role', 'asc');
-        }])
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Afterloods');
-            })
-            ->where('accepted', true)
-            ->orderBy('last_name')
-            ->paginate(25);
+        // Query for users based on selected role dynamically
+        $usersQuery = User::with('roles')
+            ->where('accepted', true);
 
-        $user_ids = User::with(['roles' => function ($query) {
-            $query->where('role', 'Afterloods')->orderBy('role', 'asc');
-        }])
-            ->where('accepted', true)
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Afterloods');
-            })
-            ->orderBy('last_name')
-            ->pluck('id');
-
-        $selected_role = '';
-
-        return view('speltakken.afterloodsen.group', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'selected_role' => $selected_role]);
-    }
-
-    public function groupSearch(Request $request)
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $selected_role = 'Afterloods';
+        // Otherwise, find users based on their selected role
+        $usersQuery->whereHas('roles', function ($query) use ($selected_role) {
+            $query->where('role', $selected_role); // Flexible match for roles
+        });
 
 
-        $search = $request->input('search');
-        $selected_role = $request->input('role');
+        // Apply search filters if there's a search query
+        if ($search) {
+            $usersQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('sex', 'like', '%' . $search . '%')
+                    ->orWhere('infix', 'like', '%' . $search . '%')
+                    ->orWhere('birth_date', 'like', '%' . $search . '%')
+                    ->orWhere('street', 'like', '%' . $search . '%')
+                    ->orWhere('postal_code', 'like', '%' . $search . '%')
+                    ->orWhere('city', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('id', 'like', '%' . $search . '%')
+                    ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+            });
+        }
 
-        $users = User::where(function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('last_name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%')
-                ->orWhere('sex', 'like', '%' . $search . '%')
-                ->orWhere('infix', 'like', '%' . $search . '%')
-                ->orWhere('birth_date', 'like', '%' . $search . '%')
-                ->orWhere('street', 'like', '%' . $search . '%')
-                ->orWhere('postal_code', 'like', '%' . $search . '%')
-                ->orWhere('city', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%')
-                ->orWhere('id', 'like', '%' . $search . '%')
-                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-        })
-            ->where('accepted', true)
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Afterloods');
-            })
-            ->orderBy('last_name')
-            ->paginate(25);
+        // Get paginated users
+        $users = $usersQuery->orderBy('last_name')->paginate(25);
 
-        $user_ids = User::where(function ($query) use ($search) {
-            $query->where('name', 'like', '%' . $search . '%')
-                ->orWhere('last_name', 'like', '%' . $search . '%')
-                ->orWhere('email', 'like', '%' . $search . '%')
-                ->orWhere('sex', 'like', '%' . $search . '%')
-                ->orWhere('infix', 'like', '%' . $search . '%')
-                ->orWhere('birth_date', 'like', '%' . $search . '%')
-                ->orWhere('street', 'like', '%' . $search . '%')
-                ->orWhere('postal_code', 'like', '%' . $search . '%')
-                ->orWhere('city', 'like', '%' . $search . '%')
-                ->orWhere('phone', 'like', '%' . $search . '%')
-                ->orWhere('id', 'like', '%' . $search . '%')
-                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-        })
-            ->where('accepted', true)
-            ->whereHas('roles', function ($query) {
-                $query->where('role', 'Afterloods');
-            })
-            ->orderBy('last_name')
-            ->pluck('id');
+        // Collect user IDs
+        $user_ids = $users->pluck('id');
 
-
-        $all_roles = Role::orderBy('role')->get();
-
-        return view('speltakken.afterloodsen.group', ['user' => $user, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+        // Pass data to the view
+        return view('speltakken.afterloodsen.group', [
+            'user' => $user,
+            'roles' => $roles,
+            'users' => $users,
+            'user_ids' => $user_ids,
+            'search' => $search,
+            'selected_role' => $selected_role,
+        ]);
     }
 
     public function groupDetails($id)

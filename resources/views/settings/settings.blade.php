@@ -23,7 +23,7 @@
         @endif
 
         <div class="bg-light rounded-2 p-3">
-            <h2 class="text-center">Instellingen</h2>
+            <h2 class="">Instellingen</h2>
             <div class="settings-container">
                 <a class="setting" href="{{ route('settings.account.edit') }}">
                     <div class="setting-text">

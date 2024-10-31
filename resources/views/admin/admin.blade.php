@@ -89,5 +89,15 @@
             </div>
         </div>
 
+        <div class="bg-light rounded-2 p-3 mt-4">
+            <h2>Debug</h2>
+            <div class="quick-action-bar">
+                <a class="btn btn-secondary quick-action" href="{{ route('admin.debug.mail') }}">
+                    <span class="material-symbols-rounded">email</span>
+                    <p>Mail</p>
+                </a>
+            </div>
+        </div>
+
     </div>
 @endsection

@@ -145,6 +145,11 @@
                     </p>
                 @endif
 
+                <a href="{{ route('agenda.activity', $activity->id) }}" class="m-4 d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">event</span>
+                    <span>Bekijk de activiteit</span></a>
+
                 @if($users->count() > 0)
                     <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
                         <table class="table table-striped">

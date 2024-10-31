@@ -105,14 +105,6 @@ class HomeController extends Controller
             $notification->save();
         }
 
-        $adminMail = 'administratie@waterscoutingmhg.nl';
-        $data = [
-            'subject' => 'Notificaties bekeken',
-            'message' => 'Alle notificaties zijn bekeken door ' . $user->name . ' (' . $user->email . ')',
-        ];
-        // Mail::to($adminMail)
-        //     ->send(new plainMail($data));
-
         return view('home.notifications', ['user' => $user, 'roles' => $roles, 'notifications' => $notifications, 'notificationsUnseen' => $notificationsUnseen]);
     }
 }

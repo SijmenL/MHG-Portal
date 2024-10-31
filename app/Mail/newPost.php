@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class adminMail extends Mailable
+class newPost extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -28,11 +28,8 @@ class adminMail extends Mailable
      */
     public function build()
     {
-        return $this->subject($this->data['message'])
-            ->markdown('emails.new_sign_up')
+        return $this->subject('Er is een nieuwe '.$this->data["location"].' post geplaatst')
+            ->markdown('emails.new_post')
             ->with(['data' => $this->data]);
-
-        // return redirect()->route('maintenance.MeldingOverzicht')->with('success','werkbon has been created successfully.');
-
     }
 }

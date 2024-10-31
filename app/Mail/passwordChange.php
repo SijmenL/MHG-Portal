@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class adminMail extends Mailable
+class passwordChange extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -28,11 +28,8 @@ class adminMail extends Mailable
      */
     public function build()
     {
-        return $this->subject($this->data['message'])
-            ->markdown('emails.new_sign_up')
+        return $this->subject('Je MHG wachtwoord is gewijzigd')
+            ->markdown('emails.password_change')
             ->with(['data' => $this->data]);
-
-        // return redirect()->route('maintenance.MeldingOverzicht')->with('success','werkbon has been created successfully.');
-
     }
 }

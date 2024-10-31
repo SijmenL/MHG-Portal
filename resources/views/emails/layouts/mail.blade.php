@@ -2,7 +2,7 @@
 <html>
     <head>
         <title></title>
-        
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="x-apple-disable-message-reformatting" content="">
@@ -47,25 +47,37 @@
             margin: 0;
             padding: 0;
         }
-        h1 {
-            font-size: 34px;
+        h1, .h1 {
+            color: #1C244BFF;
             font-weight: 600;
-            color: #1e202b;
+            font-size: 40px;
+            line-height: 1.2em;
         }
         h2 {
-            font-size: 24px;
-            font-weight: 400;
-            color: #333;
+            font-size: 1.8rem;
         }
         h3 {
-            font-size: 20px;
-            font-weight: 400;
-            color: #333;
+            font-size: 1.75rem
+        }
+        h4 {
+            font-size: 1.5rem;
+        }
+        h5 {
+            font-size: 1.25rem;
+        }
+        h6 {
+            font-size: 1rem;
+        }
+        h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
+               margin-top: 0;
+               margin-bottom: 0.5rem;
+               font-weight: 500;
+               line-height: 1.2;
+               color: inherit;
         }
         p {
             font-size: 15px;
             line-height: 22px;
-            color: #0e1e3b;
         }
         /* Container Styling */
         .container {
@@ -76,7 +88,7 @@
         }
         /* Box Styling */
         .box {
-            background-color: #a8a9a9;
+            background-color: #d5e7f7;
             border-radius: 12px;
             padding: 30px;
             text-align: left;
@@ -115,8 +127,11 @@
             font-size: 14px;
             line-height: 40px;
             text-decoration: none;
+            text-align: center;
             padding: 0 20px;
             display: inline-block;
+            width: 100%;
+            margin-top: 15px;
         }
         /* Footer */
         .footer-text {
@@ -126,9 +141,84 @@
             font-weight: 300;
             text-align: left;
         }
+        .center-div {
+            margin: 0 auto;
+        }
         .footer-bold {
             font-weight: bold;
             color: #0f1f3d;
+        }
+
+        .email-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .email-greeting {
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .sender-name {
+            font-weight: bold;
+        }
+
+        .location-text {
+            font-weight: normal;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .message-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .footer-bold {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .post {
+            width: 100%;
+            background-color: rgba(213, 231, 247, 0.25);
+            padding: 10px;
+            border-radius: 15px;
+        }
+        .comment {
+            width: 100%;
+
+        }
+        .no-link {
+            color: unset;
+            text-decoration: unset;
+        }
+        .forum-image {
+            width: 100%;
+        }
+        .reaction {
+            margin-left: 50px;
+            margin-top: 25px;
+        }
+        .own-comment {
+            background-color: #e1e1e1;
+            border-radius: 5px;
+            padding: 2px 5px;
+        }
+        .table-info {
+            text-align: start;
+            padding-right: 10px;
         }
         </style>
     </head>
@@ -146,7 +236,7 @@
                                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                         <tbody><tr class="centered">
                                             <td>
-                                            <img src="https://waterscoutingmhg.nl/wp-content/uploads/2023/07/MHGlogoalgemeen.png" width="auto" height="100" alt="" style="display:block; margin:auto;">
+                                                <a href="https://portal.waterscoutingmhg.nl/"><img src="https://waterscoutingmhg.nl/wp-content/uploads/2023/07/MHGlogoalgemeen.png" width="auto" height="100" alt="" style="display:block; margin:auto;"></a>
                                             </td>
                                         </tr>
                                         <tr>
@@ -161,14 +251,12 @@
                                         </tr>
                                         <tr>
                                             <td style="padding-top: 20px;">
-                                            <div class="box">
                                                 @yield('info')
-                                            </div>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td style="padding-top: 30px;" class="centered">
-                                                @yield('action')	
+                                                @yield('action')
                                             </td>
                                         </tr>
                                         <tr>
@@ -176,7 +264,7 @@
                                         </tr>
                                         <tr>
                                             <td style="padding-top: 20px;">
-                                            <p class="footer-text">All rights reserved | Portal MHG © 2024</p>
+                                            <p class="footer-text">Alle rechten voorbehouden | Waterscouting MHG © 2024</p>
                                             </td>
                                         </tr>
                                     </tbody></table>

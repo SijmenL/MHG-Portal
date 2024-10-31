@@ -15,15 +15,5 @@ class UserNotificationSettings extends Model
         'on_status'
     ];
 
-    public function getUserNotifications(int $userId)
-    {
-        // return array of notification_types where userid = $userId and on_status == true
-        return $this->where('user_id', $userId)->where('on_status', true)->pluck('type')->toArray();
-    }
-
-    public function checkNotificationOff(int $userId, string $type)
-    {
-        return $this->where('user_id', $userId)->where('type', $type)->where('on_status', 0)->exists();
-    }
 
 }

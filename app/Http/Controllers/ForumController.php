@@ -148,9 +148,9 @@ class ForumController extends Controller
             if ($post->user_id !== Auth::id()) {
                 $notification = new Notification();
                 if ($postType === '0') {
-                    $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je post geliket!', '/' . $location . '/post/' . $post->id, $location);
+                    $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je post geliket!', '/' . $location . '/post/' . $post->id, $location, 'liked_post');
                 } else {
-                    $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je reactie geliket!', '/' . $location . '/post/' . $post->id, $location);
+                    $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je reactie geliket!', '/' . $location . '/post/' . $post->id, $location, 'liked_comment');
                 }
             }
 

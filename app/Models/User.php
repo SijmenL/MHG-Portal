@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-
 use App\Models\Role;
+use App\Models\UserNotificationSettings;
 
 class User extends Authenticatable
 {
@@ -33,6 +32,18 @@ class User extends Authenticatable
     public function parents()
     {
         return $this->belongsToMany(User::class, 'parent_child', 'child_id', 'parent_id');
+    }
+
+    public function notificationSettings()
+    {
+        return $this->hasMany(UserNotificationSettings::class);
+    }
+
+// Custom method to get notification preference by type
+    public function getNotificationSetting($type)
+    {
+        $setting = $this->notificationSettings()->where('type', $type)->first();
+        return $setting ? false : true;
     }
 
     /**

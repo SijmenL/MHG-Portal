@@ -104,7 +104,7 @@ class ParentController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Edit child', 'Ouder/kind', $user->name.' '.$user->infix.' '.$user->last_name, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je gegevens aangepast.', '', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je gegevens aangepast.', '', '', 'account_change');
 
         return redirect()->route('children.edit', ['id' => $id])->with('success', 'Kind succesvol bijgewerkt');
     }

@@ -148,7 +148,7 @@ class AgendaController extends Controller
         // Validate the request inputs
         $validatedData = $request->validate([
             'title' => 'string|required',
-            'content' => 'string|max:65535|required',
+            'content' => 'string|max:65535|nullable',
             'date_start' => 'date|required',
             'date_end' => 'date|required',
             'roles' => 'array|nullable',
@@ -271,7 +271,6 @@ class AgendaController extends Controller
         if ($formSubmissions->count() < 1) {
             return redirect()->route('agenda.submissions')->with('error', 'Activiteit niet gevonden.');
         }
-
 
         // Apply search filter to the grouped form submissions
         if (!empty($search)) {
@@ -513,7 +512,7 @@ class AgendaController extends Controller
 
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset)->addDays($dayOffset);
+        $calculatedDate = $baseDate->copy()->addMonthsNoOverflow($monthOffset);
         $calculatedDay = $calculatedDate->day;
         $calculatedMonth = $calculatedDate->month;
         $calculatedYear = $calculatedDate->year;
@@ -609,7 +608,7 @@ class AgendaController extends Controller
 
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+        $calculatedDate = $baseDate->copy()->addMonthsNoOverflow($monthOffset);
         $calculatedDay = $calculatedDate->day;
         $calculatedMonth = $calculatedDate->month;
         $calculatedYear = $calculatedDate->year;
@@ -764,7 +763,6 @@ class AgendaController extends Controller
         }
 
         $wantViewAll = $request->query('all', 'false');
-
 
         if ($wantViewAll === 'false') {
             $canViewAll = false;
@@ -995,7 +993,7 @@ class AgendaController extends Controller
         // Validate the request inputs
         $validatedData = $request->validate([
             'title' => 'string|required',
-            'content' => 'string|max:65535|required',
+            'content' => 'string|max:65535|nullable',
             'date_start' => ['date', 'required', 'before_or_equal:date_end'],
             'date_end' => ['date', 'required', 'after_or_equal:date_start'],
             'roles' => 'array|nullable',

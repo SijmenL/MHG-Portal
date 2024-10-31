@@ -13,6 +13,17 @@
 
         <div class="alert alert-primary">Als ergens bugfixes vermeld staan, zijn deze terug te vinden op <a target="_blank" href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>. Voeg hier vooral zelf ook nieuwe bugs aan toe!</div>
 
+        <h2>Update 2.1</h2>
+        <p class="fst-italic">01/10/2024</p>
+        <ul>
+            <li class="added">Nieuw notificatie systeem</li>
+            <ul>
+                <li class="added">Notificaties worden per e-mail verstuurd</li>
+            </ul>
+            <li class="added">Verschillende formulieren veranderd naar GET request in plaats van POST voor gebruiksgemak</li>
+            <li class="added">QOL fixes in de agenda, zoals snellere navigatie</li>
+        </ul>
+
         <h2>Update 2.0.1</h2>
         <p class="fst-italic">01/10/2024</p>
         <ul>

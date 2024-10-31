@@ -122,13 +122,13 @@ class SettingsController extends Controller
 
 
     public function notifications()
-    {        
+    {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         $notification_settings = UserNotificationSettings::all()->where('user_id', $user->id)->pluck('on_status', 'type')->toArray();
-        
-        return view('settings.edit-notifications', compact('user', 'roles', 'notification_settings'));
+
+        return view('settings.edit_notifications', compact('user', 'roles', 'notification_settings'));
     }
 
     public function notificationsSave(Request $request)
@@ -145,11 +145,11 @@ class SettingsController extends Controller
             $notification_setting->delete();
             return redirect()->route('settings.edit-notifications')->with("success", "Notificatie instelling succesvol opgeslagen.");
         }
-    
+
         UserNotificationSettings::create([
             'user_id' => Auth::user()->id,
             'type' => $request->hidden_form_field,
-            'on_status' => 0               
+            'on_status' => 0
         ]);
 
         return redirect()->route('settings.edit-notifications')->with("success", "Notificatie instelling succesvol opgeslagen.");
@@ -228,7 +228,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, 'Bestaand ouder account gekoppeld');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder toegevoegd.', '', '', 'add_parent');
 
         return redirect()->route('settings.parent')->with("success", "Ouderkoppeling succesvol!");
     }
@@ -302,7 +302,7 @@ class SettingsController extends Controller
             $log->createLog(auth()->user()->id, 2, 'Link parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, 'Nieuw ouder account aangemaakt');
 
             $notification = new Notification();
-            $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '', '');
+            $notification->sendNotification(auth()->user()->id, [$parent->id], 'Heeft je als ouder toegevoegd.', '', '', 'add_parent');
 
             return redirect()->route('settings.parent')->with("success", "Ouder koppeling succesvol!");
 
@@ -361,7 +361,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Remove parent', 'Settings', $parent->name . ' ' . $parent->infix . ' ' . $parent->last_name, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als ouder verwijderd.', '', '', 'remove_parent');
 
         return redirect()->route('settings.remove-parent-link')->with("success", "Ouder ontkoppeling succesvol!");
     }
@@ -418,7 +418,7 @@ class SettingsController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Remove child', 'Settings', $child->name . ' ' . $child->infix . ' ' . $child->last_name, '');
 
         $notification = new Notification();
-        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '', '');
+        $notification->sendNotification(auth()->user()->id, [$id], 'Heeft je als kind verwijderd.', '', '', 'delete_child');
 
         return redirect()->route('settings.remove-child-link')->with("success", "Kind succesvol ontkoppeld!");
     }

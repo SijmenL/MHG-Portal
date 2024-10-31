@@ -49,8 +49,13 @@ class NonLoggedInController extends Controller
         $log = new Log();
         $log->createLog(null, 2, 'Contact', 'Admin', $contact->id, 'Contact formulier opgeslagen');
 
-        $notification = new NotificationController();
-        $notification->sendNotificationToRole('administratie', 'contact_message', $data);
+        $userIds = User::whereHas('roles', function ($query) {
+            $query->whereIn('role', ['Administratie', 'Secretaris']);
+        })->pluck('id');
+
+
+        $notification = new Notification();
+        $notification->sendNotification(null, $userIds, 'Er is een nieuw contactformulier ingevuld door'.$contact->name, '/administratie/contact/details/'.$contact->id, '','contact_message', $contact->id);
 
         return view('forms.contact.succes');
     }
@@ -103,7 +108,7 @@ class NonLoggedInController extends Controller
                 'avg' => $avg,
                 'accepted' => false,
                 'member_date' => Date::now(),
-            ]
+            ];
 
             $account = User::create($data);
 
@@ -128,10 +133,15 @@ class NonLoggedInController extends Controller
             $log->createLog(null, 2, 'Inschrijven', 'Inschrijven', $account->name.' '.$account->infix.' '.$account->last_name, 'Nieuw account aangemaakt en rol toegevoegd');
 
             $notification = new Notification();
-            $notification->sendNotification(null, [$account->id], 'Welkom bij de MHG! Je account is succesvol aangemaakt!.', '', '');
+            $notification->sendNotification(null, [$account->id], 'Welkom bij de MHG! Je account is succesvol aangemaakt!', '', '','new_account', $account->id);
 
-            $NotificationController = new NotificationController();
-            $NotificationController->sendNotificationToRole('administratie', 'new_registration', $data);
+            $userIds = User::whereHas('roles', function ($query) {
+                $query->whereIn('role', ['Administratie', 'Secretaris']);
+            })->pluck('id');
+
+            $notification = new Notification();
+            $notification->sendNotification($account->id, $userIds, 'Heeft zich ingeschreven', 'administratie/inschrijvingen/details/'.$account->id, '','new_registration', $account->id);
+
 
 
             return view('forms.inschrijven.succes');
@@ -179,6 +189,11 @@ class NonLoggedInController extends Controller
                     ]);
                 }
             }
+
+
+            $notification = new Notification();
+            $notification->sendNotification(null, [$activity->user_id], 'Er heeft zich iemand ingeschreven op '.$activity->title, '/agenda/inschrijvingen/' .$activity->id, '', 'new_activity_registration', $nextSubmittedId);
+
 
             return redirect()->back()->with('success', 'Je inzending was succesvol!!');
         } catch (\Exception $e) {
