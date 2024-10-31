@@ -17,7 +17,7 @@
         </nav>
 
         <div class="bg-light rounded-2 p-3">
-            <h2>Notificaties</h2>
+            <h2 class="d-flex align-items-center flex-row gap-1 mb-3"><span class="material-symbols-rounded me-2">notifications_active</span>Notificaties</h2>
             @if($notifications->count() > 0)
             <div class="settings-container">
                 <div class="d-flex flex-column gap-3 justify-content-center">

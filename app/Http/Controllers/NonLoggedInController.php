@@ -10,6 +10,7 @@ use App\Models\Log;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Role;
+use App\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
@@ -35,16 +36,26 @@ class NonLoggedInController extends Controller
             'message' => 'required|string'
         ]);
 
-        $contact = Contact::create([
-            'email' => $request->input('email'),
+        $data = [
             'name' => $request->input('name'),
+            'email' => $request->input('email'),
             'phone' => $request->input('phone'),
             'message' => $request->input('message'),
-            'done' => false,
-        ]);
+            'done' => false
+        ];
+
+        $contact = Contact::create($data);
 
         $log = new Log();
         $log->createLog(null, 2, 'Contact', 'Admin', $contact->id, 'Contact formulier opgeslagen');
+
+        $userIds = User::whereHas('roles', function ($query) {
+            $query->whereIn('role', ['Administratie', 'Secretaris']);
+        })->pluck('id');
+
+
+        $notification = new Notification();
+        $notification->sendNotification(null, $userIds, 'Er is een nieuw contactformulier ingevuld door'.$contact->name, '/administratie/contact/details/'.$contact->id, '','contact_message', $contact->id);
 
         return view('forms.contact.succes');
     }
@@ -82,7 +93,7 @@ class NonLoggedInController extends Controller
                 $avg = true;
             }
 
-            $account = User::create([
+            $data = [
                 'email' => $request->input('email'),
                 'password' => Hash::make($request->input('new_password')),
                 'sex' => $request->input('sex'),
@@ -97,7 +108,9 @@ class NonLoggedInController extends Controller
                 'avg' => $avg,
                 'accepted' => false,
                 'member_date' => Date::now(),
-            ]);
+            ];
+
+            $account = User::create($data);
 
             if ($request->input('speltak') === 'dolfijnen') {
                 $role = Role::where('role', 'Dolfijn')->first();
@@ -120,7 +133,15 @@ class NonLoggedInController extends Controller
             $log->createLog(null, 2, 'Inschrijven', 'Inschrijven', $account->name.' '.$account->infix.' '.$account->last_name, 'Nieuw account aangemaakt en rol toegevoegd');
 
             $notification = new Notification();
-            $notification->sendNotification(null, [$account->id], 'Welkom bij de MHG! Je account is succesvol aangemaakt!.', '', '');
+            $notification->sendNotification(null, [$account->id], 'Welkom bij de MHG! Je account is succesvol aangemaakt!', '', '','new_account', $account->id);
+
+            $userIds = User::whereHas('roles', function ($query) {
+                $query->whereIn('role', ['Administratie', 'Secretaris']);
+            })->pluck('id');
+
+            $notification = new Notification();
+            $notification->sendNotification($account->id, $userIds, 'Heeft zich ingeschreven', 'administratie/inschrijvingen/details/'.$account->id, '','new_registration', $account->id);
+
 
 
             return view('forms.inschrijven.succes');
@@ -168,6 +189,11 @@ class NonLoggedInController extends Controller
                     ]);
                 }
             }
+
+
+            $notification = new Notification();
+            $notification->sendNotification(null, [$activity->user_id], 'Er heeft zich iemand ingeschreven op '.$activity->title, '/agenda/inschrijvingen/' .$activity->id, '', 'new_activity_registration', $nextSubmittedId);
+
 
             return redirect()->back()->with('success', 'Je inzending was succesvol!!');
         } catch (\Exception $e) {

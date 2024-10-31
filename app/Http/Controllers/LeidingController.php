@@ -50,11 +50,11 @@ class LeidingController extends Controller
             ]);
 
             $users = User::whereHas('roles', function ($query) {
-                $query->whereIn('role', ['Loods', 'leiding Stamoudste']);
+                $query->whereIn('role', ['Dolfijnen Leiding','Zeeverkenners Leiding','Loodsen Stamoudste','Afterloodsen Organisator','Vrijwilliger','Administratie','Bestuur','Ouderraad','Praktijkbegeleider','Loodsen Mentor']);
             })->where('id', '!=', $user->id)->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/leiding/post/' . $post->id, 'leiding');
+            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/leiding/post/' . $post->id, 'leiding', 'new_post', $post->id);
 
 
             $log = new Log();
@@ -122,7 +122,7 @@ class LeidingController extends Controller
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/leiding/post/' . $post->id . '#' . $comment->id, 'leiding');
+            $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft een reactie geplaatst: ' . $displayText, '/leiding/post/' . $post->id . '#' . $comment->id, 'leiding', 'new_comment', $post->id);
 
 
             $log = new Log();
@@ -161,7 +161,7 @@ class LeidingController extends Controller
             $displayText = trim(mb_substr(strip_tags(html_entity_decode($request->input('content'))), 0, 100));
 
             $notification = new Notification();
-            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/leiding/post/' . $post->id . '#comment-' . $comment->id, 'leiding');
+            $notification->sendNotification(Auth::id(), [$originalComment->user_id], 'Heeft op je gereageerd: ' . $displayText, '/leiding/post/' . $post->id . '#comment-' . $comment->id, 'leiding', 'new_reaction_comment', $post->id);
 
 
             $log = new Log();

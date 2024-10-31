@@ -23,8 +23,7 @@
             </div>
         @endif
 
-        <form id="auto-submit" method="POST" action="{{ route('admin.role-management.search') }}">
-            @csrf
+        <form id="auto-submit" method="GET">
             <div class="d-flex">
                 <div class="d-flex flex-row-responsive justify-content-between gap-2 mb-3 w-100">
                     <div class="input-group">

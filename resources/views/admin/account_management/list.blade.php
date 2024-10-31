@@ -55,8 +55,7 @@
             </div>
         @endif
 
-        <form id="auto-submit" method="POST" action="{{ route('admin.account-management.search') }}">
-            @csrf
+        <form id="auto-submit" method="GET">
             <div class="d-flex">
                 <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100"
                      style="justify-items: stretch">

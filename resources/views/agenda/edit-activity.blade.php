@@ -135,8 +135,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <label for="text-input">De content van je activiteit <span
-                                    class="required-form">*</span></label>
+                            <label for="text-input">De content van je activiteit</label>
                             <div class="editor-parent">
                                 @yield('editor')
                                 <div id="text-input" contenteditable="true" name="text-input"

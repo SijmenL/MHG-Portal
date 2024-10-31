@@ -23,7 +23,7 @@
         @endif
 
         <div class="bg-light rounded-2 p-3">
-            <h2>Instellingen</h2>
+            <h2 class="">Instellingen</h2>
             <div class="settings-container">
                 <a class="setting" href="{{ route('settings.account.edit') }}">
                     <div class="setting-text">
@@ -40,6 +40,16 @@
                         <div>
                             <h3>Verander wachtwoord</h3>
                             <small>Pas je wachtwoord aan</small>
+                        </div>
+                        <span class="material-symbols-rounded">arrow_forward_ios</span>
+                    </div>
+                </a>
+                <div class="devider"></div>
+                <a class="setting" href="{{ route('settings.edit-notifications') }}">
+                    <div class="setting-text">
+                        <div>
+                            <h3>Notificaties</h3>
+                            <small>Pas aan welke notificaties je via de mail en de app wilt krijgen</small>
                         </div>
                         <span class="material-symbols-rounded">arrow_forward_ios</span>
                     </div>

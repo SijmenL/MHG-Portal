@@ -23,6 +23,7 @@
                   ($user->roles->contains('role', 'Dolfijnen Leiding') ||
                   $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                   $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                  $user->roles->contains('role', 'Loods') ||
                   $user->roles->contains('role', 'Afterloodsen Organisator') ||
                   $user->roles->contains('role', 'Administratie') ||
                   $user->roles->contains('role', 'Bestuur') ||
@@ -148,6 +149,26 @@
                             <span
                                 class="material-symbols-rounded me-2">event_busy</span>
                             <span>Afmelden</span></a>
+
+                    </div>
+                    <div class="d-flex flex-row-responsive mt-4">
+                        @if($user &&
+                 ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                 $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                 $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                 $user->roles->contains('role', 'Loods') ||
+                 $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                 $user->roles->contains('role', 'Administratie') ||
+                 $user->roles->contains('role', 'Bestuur') ||
+                 $user->roles->contains('role', 'Praktijkbegeleider') ||
+                 $user->roles->contains('role', 'Loodsen Mentor') ||
+                 $user->roles->contains('role', 'Ouderraad'))
+                 )
+                            <a href="{{ route('agenda.presence.activity', $activity->id) }}" class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">free_cancellation</span>
+                                <span>Bekijk alle aan- of afmeldingen</span></a>
+                        @endif
                     </div>
                 </div>
             @endif

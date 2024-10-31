@@ -54,8 +54,7 @@
             </div>
         @endif
 
-        <form id="auto-submit" method="POST" action="{{ route('zeeverkenners.group.search') }}">
-            @csrf
+        <form id="auto-submit" method="GET">
             <div class="d-flex">
                 <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100"
                      style="justify-items: stretch">
@@ -72,7 +71,7 @@
                             <span class="material-symbols-rounded">diversity_3</span></label>
                         <select id="role" name="role" class="form-select"
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
-                            <option @if($selected_role === 'Zeeverkenners') selected @endif>Zeeverkenners</option>
+                            <option @if($selected_role === 'Zeeverkenner') selected @endif>Zeeverkenners</option>
                             <option @if($selected_role === 'Ouders') selected @endif>Ouders</option>
                         </select>
 
@@ -92,7 +91,7 @@
                         <th scope="col">Naam</th>
                         <th class="no-mobile" scope="col">Email</th>
                         <th class="no-mobile" scope="col">Telefoonnummer</th>
-                        @if ($selected_role !== 'Zeeverkenners')
+                        @if ($selected_role !== 'Zeeverkenner')
                             <th scope="col">Kinderen</th>
                         @endif
                         @if(auth()->user() && (auth()->user()->roles->contains('role', 'Zeeverkenners Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')))
@@ -116,7 +115,7 @@
                             <th>{{ $all_user->name .' '. $all_user->infix.' '. $all_user->last_name }}</th>
                             <th class="no-mobile"><a href="mailto:{{ $all_user->email }}">{{ $all_user->email }}</a></th>
                             <th class="no-mobile"><a href="tel:{{ $all_user->phone }}">{{ $all_user->phone }}</a></th>
-                            @if ($selected_role !== 'Zeeverkenners')
+                            @if ($selected_role !== 'Zeeverkenner')
                                 <th class="d-flex flex-row gap-2 flex-wrap">
                                     @foreach ($all_user->children as $child)
                                         <div

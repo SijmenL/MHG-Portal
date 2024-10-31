@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
+use App\Mail\plainMail;
+use Illuminate\Support\Facades\Mail;
+
 class HomeController extends Controller
 {
     /**

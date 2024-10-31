@@ -44,8 +44,7 @@ Route::get('/agenda/public/overzicht', [AgendaController::class, 'agendaSchedule
 Route::get('/agenda/public/activiteit/{id}', [AgendaController::class, 'agendaActivityPublic'])->name('agenda.public.activity');
 
 
-Route::post('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'handleActivityForm'])
-    ->name('agenda.activity.submit');
+Route::post('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'handleActivityForm'])->name('agenda.activity.submit');
 
 
 Auth::routes(['register' => false, 'password.request' => false,]);
@@ -68,6 +67,9 @@ Route::post('/instellingen/account/bewerk', [SettingsController::class, 'editAcc
 
 Route::get('/instellingen/verander-wachtwoord', [SettingsController::class, 'changePassword'])->name('settings.change-password');
 Route::post('/instellingen/verander-wachtwoord', [SettingsController::class, 'updatePassword'])->name('settings.change-password.store');
+
+Route::get('/instellingen/notificaties', [SettingsController::class, 'notifications'])->name('settings.edit-notifications');
+Route::post('/instellingen/notificaties', [SettingsController::class, 'notificationsSave'])->name('settings.edit-notifications.store');
 
 Route::middleware(['checkAccepted'])->group(function () {
     Route::get('/instellingen/ouder-account', [SettingsController::class, 'parent'])->name('settings.parent');
@@ -149,6 +151,10 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
 
+
+    Route::get('/administratie/debug/mail', [AdminController::class, 'debugMail'])->name('admin.debug.mail');
+    Route::get('/administratie/debug/mail/{id}', [AdminController::class, 'mail'])->name('admin.debug.mail.view');
+
     // Content
     Route::get('/administratie/contact', [AdminController::class, 'contact'])->name('admin.contact');
     Route::get('/administratie/contact/details/{id}', [AdminController::class, 'contactDetails'])->name('admin.contact.details');
@@ -172,7 +178,6 @@ Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
 
     // Account management
     Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
-    Route::post('/administratie/account-beheer', [AdminController::class, 'accountManagementSearch'])->name('admin.account-management.search');
 
     Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
 
@@ -194,8 +199,6 @@ Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
 
     // Role management
     Route::get('/administratie/rol-beheer', [AdminController::class, 'roleManagement'])->name('admin.role-management');
-    Route::post('/administratie/rol-beheer', [AdminController::class, 'roleManagementSearch'])->name('admin.role-management.search');
-
 
     Route::get('/administratie/rol-beheer/bewerk/{id}', [AdminController::class, 'editRole'])->name('admin.role-management.edit');
     Route::post('/administratie/rol-beheer/bewerk/{id}', [AdminController::class, 'storeRole'])->name('admin.role-management.store');
@@ -258,7 +261,6 @@ Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ou
 
 Route::middleware(['checkRole:Administratie,Dolfijnen Leiding,Bestuur,Ouderraad'])->group(function () {
     Route::get('/dolfijnen/groep', [DolfijnenController::class, 'group'])->name('dolfijnen.groep');
-    Route::post('/dolfijnen/groep', [DolfijnenController::class, 'groupSearch'])->name('dolfijnen.group.search');
     Route::post('/dolfijnen/groep/export', [DolfijnenController::class, 'exportData'])->name('dolfijnen.groep.export');
 });
 
