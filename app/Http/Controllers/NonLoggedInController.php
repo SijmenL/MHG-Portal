@@ -53,9 +53,8 @@ class NonLoggedInController extends Controller
             $query->whereIn('role', ['Administratie', 'Secretaris']);
         })->pluck('id');
 
-
         $notification = new Notification();
-        $notification->sendNotification(null, $userIds, 'Er is een nieuw contactformulier ingevuld door'.$contact->name, '/administratie/contact/details/'.$contact->id, '','contact_message', $contact->id);
+        $notification->sendNotification(null, $userIds, 'Er is een nieuw contactformulier ingevuld door '.$contact->name, '/administratie/contact/details/'.$contact->id, '','contact_message', $contact->id);
 
         return view('forms.contact.succes');
     }
@@ -140,7 +139,7 @@ class NonLoggedInController extends Controller
             })->pluck('id');
 
             $notification = new Notification();
-            $notification->sendNotification($account->id, $userIds, 'Heeft zich ingeschreven', 'administratie/inschrijvingen/details/'.$account->id, '','new_registration', $account->id);
+            $notification->sendNotification($account->id, $userIds, 'heeft zich ingeschreven', 'administratie/inschrijvingen/details/'.$account->id, null,'new_registration', $account->id);
 
 
 
@@ -192,7 +191,7 @@ class NonLoggedInController extends Controller
 
 
             $notification = new Notification();
-            $notification->sendNotification(null, [$activity->user_id], 'Er heeft zich iemand ingeschreven op '.$activity->title, '/agenda/inschrijvingen/' .$activity->id, '', 'new_activity_registration', $nextSubmittedId);
+            $notification->sendNotification(null, [$activity->user_id], 'Er heeft zich iemand ingeschreven op '.$activity->title, '/agenda/inschrijvingen/' .$activity->id, '', 'new_activity_registration', $activity->id);
 
 
             return redirect()->back()->with('success', 'Je inzending was succesvol!!');

@@ -37,6 +37,7 @@ class AdminController extends Controller
         return view('admin.admin', ['user' => $user, 'roles' => $roles, 'contact' => $contact, 'news' => $news, 'signup' => $signup]);
     }
 
+    // Debug
     public function debugMail()
     {
         $user = Auth::user();
@@ -53,44 +54,14 @@ class AdminController extends Controller
             'reciever_name' => $user->name,
             'message' => 'John heeft je post geliked',
             'link' => '/dolfijnen/post/15',
-            'relevant_id' => 3,
+            'relevant_id' => 40,
             'location' => 'dolfijnen',
             'sender_full_name' => 'John Doe',
             'sender_dolfijnen_name' => 'Balder',
             'reciever_is_dolfijn' => false,
             'email' => 'lokerssijmen@gmail.com', // Using the user's email
         ];
-
-        switch ($id) {
-            case 'account_change':
-                return view('emails.account_change', ['data' => $data]);
-            case 'password_change':
-                return view('emails.password_change', ['data' => $data]);
-            case 'new_post':
-                return view('emails.new_post', ['data' => $data]);
-            case 'new_comment':
-                return view('emails.new_comment', ['data' => $data]);
-            case 'new_reaction_comment':
-                return view('emails.new_reaction_comment', ['data' => $data]);
-            case 'news_accepted':
-                return view('emails.news_accepted', ['data' => $data]);
-            case 'new_activity_registration':
-                return view('emails.new_activity_registration', ['data' => $data]);
-            case 'contact_message':
-                return view('emails.contact_message', ['data' => $data]);
-            case 'new_registration':
-                return view('emails.new_registration', ['data' => $data]);
-            case 'new_account':
-                return view('emails.new_account', ['data' => $data]);
-            case 'account_activated':
-                return view('emails.account_activated', ['data' => $data]);
-            case 'add_parent':
-                return view('emails.add_parent', ['data' => $data]);
-            case 'delete_parent':
-                return view('emails.delete_parent', ['data' => $data]);
-            case 'add_child':
-                return view('emails.add_child', ['data' => $data]);
-        }
+        return view('emails.'.$id, ['data' => $data]);
     }
 
     // Logs
@@ -310,7 +281,7 @@ class AdminController extends Controller
         $log->createLog(auth()->user()->id, 2, 'Accept signup', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
         $notification = new Notification();
-        $notification->sendNotification(null, [$id], 'Je account is officieel geactiveerd! Welkom bij de Matthijs Heldt Groep!', '', '', 'account_activated');
+        $notification->sendNotification(null, [$id], 'Je account is officieel geactiveerd! Welkom bij de Matthijs Heldt Groep!', '', '', 'account_activated', $account->id);
 
         return redirect()->route('admin.signup')->with('success', 'Inschrijving geaccepteerd');
     }
@@ -450,7 +421,7 @@ class AdminController extends Controller
 
         if ($news->accepted === true) {
             $notification = new Notification();
-            $notification->sendNotification(null, [$news->user_id], 'Je nieuwsitem ' . $news->title . ' is gepubliceerd!', route('news.item', $news->id), '', 'news_accepted');
+            $notification->sendNotification(null, [$news->user_id], 'Je nieuwsitem ' . $news->title . ' is gepubliceerd!', route('news.item', $news->id), '', 'news_accepted', $news->id);
         }
 
         $news->save();

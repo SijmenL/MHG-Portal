@@ -3,6 +3,56 @@
 @vite('resources/js/home.js')
 
 @section('content')
+    {{-- Blade file, e.g., home/dashboard.blade.php --}}
+    <div id="newPopUp" class="popup" style="margin-top: -122px; display: flex">
+        <div class="popup-body overflow-hidden">
+            <h2>Wat is er nieuw in versie 2.1?</h2>
+
+            <!-- Nav tabs -->
+            <div class="tab-container" style="overflow-x: auto; white-space: nowrap;">
+                <ul class="nav nav-tabs flex-nowrap" style="max-width: calc(100vw - 40px)" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="tab1-tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Notificaties</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="tab2-tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Agenda</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="tab3-tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">Overig</a>
+                    </li>
+                    <!-- Add more tabs as needed -->
+                </ul>
+            </div>
+
+            <!-- Tab content -->
+            <div class="tab-content w-100 mb-4">
+                <div class="mt-2 p-2 text-start tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+                    <h4>Notificaties zijn uitgebreid!</h4>
+                    <p>Er is een nieuw notificatie systeem die je ook e-mailtjes stuurt! Je kunt nu ook in de instellingen je voorkeuren meegeven welke notificaties je waar wilt ontvangen.</p>
+                    <p>Standaard krijg je alle notificaties ook per mail binnen, zorg er dus voor dat je mailadres klopt!</p>
+                </div>
+                <div class="mt-2 p-2 text-start tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                    <h4>Kleine aanpassingen in de agenda</h4>
+                    <ul>
+                        <li>Betere navigatie, als je op de verkeerde pagina zit zal je een knop kunnen vinden naar de juiste pagina</li>
+                        <li>Activiteiten worden pas uit het overzicht gehaald als ze voorbij zijn, niet wanneer ze beginnen</li>
+                        <li>De maand weergave is verbeterd</li>
+                    </ul>
+                </div>
+                <div class="mt-2 p-2 text-start tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
+                    <h4>Bugs & QOL</h4>
+                    <p>De code is hier en daar opgepoetst en portal zal dus beter werken! Kijk voor de volledige bugtracker op <a href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>.</p>
+                    <p>Wanneer je een foutje tegenkomt zijn we nog steeds altijd bereikbaar!</p>
+                </div>
+            </div>
+
+            <button id="close-new-popup" class="btn btn-outline-danger" style="float: right;">
+                <span class="material-symbols-rounded">close</span>
+            </button>
+        </div>
+    </div>
+
+
     <div id="popUp" class="popup" style="margin-top: -122px; display: none">
         <div class="popup-body">
             <div class="page">
@@ -171,7 +221,6 @@
         </div>
     </div>
 
-
     <div class="header" style="background-image: url({{ asset('img/general/MHG_vloot.jpg') }})">
         <div>
             <p class="header-title">Ledenportaal</p>
@@ -180,49 +229,21 @@
     </div>
     <div class="container col-md-11">
 
-        @if(session('alert.dismissed') !== true)
-            <div class="alert alert-primary alert-dismissible fade show" role="alert">
-                <h4 class="alert-heading">Welkom op Portal versie 2.0!</h4>
-                <p>Het is vanaf nu mogelijk om je aan- of af te melden voor bijvoorbeeld groepsdraaien of een andere activiteit! Kijk bij agenda voor meer informatie!</p>
-                <p>Bekijk de <a href="{{ route('changelog') }}">changelog</a> voor wat er nog meer allemaal nieuw is! Wanneer je iets tegenkomt dat niet lekker werkt of buggy is, zijn we altijd te mailen!</p>
-                <hr>
-                <p class="mb-0">Wanneer je er niet uitkomt, kun je altijd op het vraagteken <span style="transform: translateY(5px)" class="material-symbols-rounded">help</span> drukken of een mailtje sturen naar <a href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>.</p>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="dismissAlert()"></button>
-            </div>
-            <script>
-                function dismissAlert() {
-                    // Make an AJAX request to dismiss the alert
-                    fetch('/dismiss-alert', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}', // Ensure CSRF token is included
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ dismissed: true })
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                // Alert dismissed successfully, nothing else to do
-                            } else {
-                                console.error('Failed to dismiss alert.');
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                }
-            </script>
-
-        @endif
-
-
         <div class="d-flex flex-row justify-content-between align-items-center">
             <div style="max-width: 75vw">
                 <h1>Welkom, {{ $user->name }}</h1>
                 <p>{{ $date }}</p>
             </div>
-            <a id="help-button" class="btn btn-outline-dark d-flex align-items-center justify-content-center"
-               style="border: none">
-                <span class="material-symbols-rounded" style="font-size: xx-large">help</span>
-            </a>
+            <div class="d-flex flex-row gap-2">
+                <a id="new-button" class="btn btn-outline-dark d-flex align-items-center justify-content-center"
+                   style="border: none">
+                    <span class="material-symbols-rounded" style="font-size: xx-large">autorenew</span>
+                </a>
+                <a id="help-button" class="btn btn-outline-dark d-flex align-items-center justify-content-center"
+                   style="border: none">
+                    <span class="material-symbols-rounded" style="font-size: xx-large">help</span>
+                </a>
+            </div>
         </div>
 
         @if(session('error'))
@@ -386,10 +407,10 @@
                         <p>Agenda</p>
                     </a>
                 @else
-                        <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
-                            <span class="material-symbols-rounded">event</span>
-                            <p>Agenda</p>
-                        </a>
+                    <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
+                        <span class="material-symbols-rounded">event</span>
+                        <p>Agenda</p>
+                    </a>
                 @endif
             </div>
         </div>

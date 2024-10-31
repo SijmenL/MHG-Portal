@@ -24,21 +24,7 @@
             </div>
         @endif
         @php
-            // NOTIFICATIES VOOR IEDEREEN:
-            // jou account gegevens zijn aangepast --DONE
-            // jouw wachtwoord is aangepast --DONE
 
-            // iemand heeft een post geplaatst --DONE
-            // jou nieuws item is goedgekeurd --DONE
-            // heeft je post geliked --DONE
-            // heeft je reactie geliked --DONE
-            // heeft op je post gereageerd --DONE
-            // heeft op jou reactie gereageerd --DONE
-
-            // NOTIFICATIES VOOR ROL ADMINISTRATIE:
-            // nieuw contactformulier is ingevuld --DONE
-            // nieuwe aanmelding is binnen --DONE
-            // nieuw nieuws item is geplaatst --DONE
         @endphp
 
         <style>
@@ -304,21 +290,42 @@
     </div>
 
     <script>
-        // onchange of the checkbox, submit the form
         document.querySelectorAll('.form-check-input').forEach(item => {
-            item.addEventListener('change', event => {
-                // get closest form
+            item.addEventListener('change', async event => {
+                // Get the closest form
                 let form = item.closest('form');
-                // get id from the checkbox
+                // Get id from the checkbox
                 let id = item.getAttribute('id');
-                // get the hidden input field
-                let hidden = form.querySelector('input[name="hidden_form_field"]');
-                // set the value of the hidden input field to the id of the checkbox
-                hidden.value = id;
-                // submit the form
-                form.submit();
+                // Set the hidden input field's value to the checkbox id
+                form.querySelector('input[name="hidden_form_field"]').value = id;
+
+                // Create FormData object from the form
+                let formData = new FormData(form);
+
+                // Send the form data with fetch
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest', // Indicate AJAX request
+                            'X-CSRF-Token': form.querySelector('input[name="_token"]').value // CSRF token
+                        }
+                    });
+
+                    if (response.ok) {
+                        console.log("Form submitted successfully");
+                        // Optional: Add any success handling here
+                    } else {
+                        console.error("Error submitting form");
+                        // Optional: Handle error feedback here
+                    }
+                } catch (error) {
+                    console.error("Fetch error: ", error);
+                }
             });
         });
     </script>
+
 
 @endsection

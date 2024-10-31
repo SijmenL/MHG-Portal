@@ -42,7 +42,7 @@
             <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'account_activated') }}">account_activated</a>
             <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'add_parent') }}">add_parent</a>
             <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'delete_parent') }}">delete_parent</a>
-            <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'add_child') }}">add_child</a>
+            <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'delete_child') }}">delete_child</a>
 
         </div>
     </div>
