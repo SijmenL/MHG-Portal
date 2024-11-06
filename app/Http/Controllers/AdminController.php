@@ -54,7 +54,7 @@ class AdminController extends Controller
             'reciever_name' => $user->name,
             'message' => 'John heeft je post geliked',
             'link' => '/dolfijnen/post/15',
-            'relevant_id' => 40,
+            'relevant_id' => 10,
             'location' => 'dolfijnen',
             'sender_full_name' => 'John Doe',
             'sender_dolfijnen_name' => 'Balder',

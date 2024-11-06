@@ -124,8 +124,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/agenda/activiteit/{id}', [AgendaController::class, 'agendaActivity'])->name('agenda.activity');
 
-    Route::get('/agenda/activiteit/aanwezig/{id}', [AgendaController::class, 'agendaPresent'])->name('agenda.activity.present');
-    Route::get('/agenda/activiteit/niet-aanwezig/{id}', [AgendaController::class, 'agendaAbsent'])->name('agenda.activity.absent');
+    Route::get('/agenda/activiteit/aanwezig/{id}/{user}', [AgendaController::class, 'agendaPresent'])->name('agenda.activity.present');
+    Route::get('/agenda/activiteit/niet-aanwezig/{id}/{user}', [AgendaController::class, 'agendaAbsent'])->name('agenda.activity.absent');
 });
 
 Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
@@ -137,6 +137,8 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
     Route::get('/agenda/bewerken', [AgendaController::class, 'edit'])->name('agenda.edit');
     Route::get('/agenda/bewerken/{id}', [AgendaController::class, 'editActivity'])->name('agenda.edit.activity');
     Route::post('/agenda/bewerken/{id}', [AgendaController::class, 'editActivitySave'])->name('agenda.edit.activity.save');
+
+    Route::get('/agenda/delete/{id}', [AgendaController::class, 'deleteActivity'])->name('agenda.delete');
 
     Route::get('/agenda/aanwezigheid', [AgendaController::class, 'agendaPresence'])->name('agenda.presence');
     Route::get('/agenda/aanwezigheid/{id}', [AgendaController::class, 'agendaPresenceActivity'])->name('agenda.presence.activity');
@@ -382,8 +384,6 @@ Route::post('/posts/{postId}/{likeType}/toggle-like', [ForumController::class, '
 Route::post('/comments/{id}', [ForumController::class, 'updateComment'])->name('forum.comments.update');
 
 Route::post('/user-search', [ForumController::class, 'searchUser'])->name('search-user');
-
-Route::post('/dismiss-alert', [HomeController::class, 'dismissAlert'])->name('alert.dismiss');
 
 
 //Insignes

@@ -11,6 +11,7 @@ use App\Models\News;
 use App\Models\Presence;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -71,7 +72,6 @@ class AgendaController extends Controller
             ->paginate(10);
 
 
-
         return view('agenda.submissions', [
             'user' => $user,
             'roles' => $roles,
@@ -119,7 +119,6 @@ class AgendaController extends Controller
                 [$currentDate->startOfDay(), $currentDate->startOfDay()] // Ensure both parameters are passed
             )
             ->paginate(10);
-
 
 
         return view('agenda.edit', [
@@ -518,7 +517,6 @@ class AgendaController extends Controller
 
         $wantViewAll = $request->query('all', 'false');
 
-
         if ($wantViewAll === 'false') {
             $canViewAll = false;
         }
@@ -538,6 +536,7 @@ class AgendaController extends Controller
         $firstDayOfWeek = ($firstDayOfMonth->dayOfWeek + 6) % 7;
 
         $monthName = $calculatedDate->translatedFormat('F');
+
 
         // Fetch activities for the calculated month and year
         $activities = Activity::whereYear('date_start', $calculatedYear)
@@ -566,13 +565,27 @@ class AgendaController extends Controller
                     $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
                     $isUserListed = in_array($user->id, $activityUserIds);
 
+                    // Check if any child has role access
+                    $isChildHasAccess = false;
+
+                    foreach ($user->children as $child) {
+                        // Get the role IDs for the child
+                        $childRoleIds = $child->roles->pluck('id')->toArray();
+
+                        // Check if the child has access based on roles or user IDs
+                        if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+                            $isChildHasAccess = true;
+                            break; // Stop checking if any child has access
+                        }
+                    }
+
                     if ($canViewAll) {
                         // Highlight only if there are roles or users and the user doesn't have access
                         $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
                         return true; // Keep activity in the list
                     } else {
-                        // Hide activity if the user doesn't have access
-                        return $hasRoleAccess || $isUserListed;
+                        // Hide activity if the user doesn't have access, but allow visibility if their child has access
+                        return $hasRoleAccess || $isUserListed || $isChildHasAccess;
                     }
                 }
             });
@@ -617,6 +630,7 @@ class AgendaController extends Controller
             'activityPositions' => $activityPositions,
         ]);
     }
+
 
     public function agendaMonthPublic(Request $request)
     {
@@ -715,47 +729,68 @@ class AgendaController extends Controller
         return true;
     }
 
-    public function agendaPresent($id)
+    public function agendaPresent($activityId, $userId)
     {
-        $user = Auth::id();
+        // Retrieve the specified user
+        $user = User::findOrFail($userId);
 
-        $presence = Presence::where('user_id', $user)
-            ->where('activity_id', $id)
-            ->first();
+        // Check if the user is either the authenticated user or a child of the authenticated user
+        if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
+            $presence = Presence::where('user_id', $userId) // This will be the child ID if present
+            ->where('activity_id', $activityId)
+                ->first();
 
-        if ($presence) {
-            $presence->update(['presence' => 1]);
+            if ($presence) {
+                $presence->update(['presence' => 1]);
+            } else {
+                Presence::create([
+                    'user_id' => $userId, // This will be the child ID if present
+                    'activity_id' => $activityId,
+                    'presence' => 1,
+                ]);
+            }
+
+
+            if ($userId === Auth::id()) {
+                return redirect()->route('agenda.activity', $activityId)->with('success', 'Je bent aanwezig gemeld!');
+            } else {
+                return redirect()->route('agenda.activity', $activityId)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is aanwezig gemeld!');
+            }
         } else {
-            Presence::create([
-                'user_id' => $user,
-                'activity_id' => $id,
-                'presence' => 1,
-            ]);
+            return redirect()->route('agenda.activity', $activityId)->with('error', 'Dit account kan niet aanwezig gemeld worden');
         }
-
-        return redirect()->route('agenda.activity', $id)->with('success', 'Je bent aanwezig gemeld!');
     }
 
-    public function agendaAbsent($id)
+    public function agendaAbsent($activityId, $userId)
     {
-        $user = Auth::id();
+        // Retrieve the specified user
+        $user = User::findOrFail($userId);
 
-        $presence = Presence::where('user_id', $user)
-            ->where('activity_id', $id)
-            ->first();
+        // Check if the user is either the authenticated user or a child of the authenticated user
+        if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
+            $presence = Presence::where('user_id', $userId) // This will be the child ID if present
+            ->where('activity_id', $activityId)
+                ->first();
 
-        if ($presence) {
-            $presence->update(['presence' => 0]);
+            if ($presence) {
+                $presence->update(['presence' => 0]);
+            } else {
+                Presence::create([
+                    'user_id' => $userId, // This will be the child ID if present
+                    'activity_id' => $activityId,
+                    'presence' => 0,
+                ]);
+            }
+            if ($userId === Auth::id()) {
+                return redirect()->route('agenda.activity', $activityId)->with('success', 'Je bent afwezig gemeld, jammer dat je er niet bij bent!');
+            } else {
+                return redirect()->route('agenda.activity', $activityId)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is afwezig gemeld!');
+            }
         } else {
-            Presence::create([
-                'user_id' => $user,
-                'activity_id' => $id,
-                'presence' => 0,
-            ]);
+            return redirect()->route('agenda.activity', $activityId)->with('error', 'Dit account kan niet afwezig gemeld worden');
         }
-
-        return redirect()->route('agenda.activity', $id)->with('success', 'Je bent afwezig gemeld, jammer dat je er niet bij bent!');
     }
+
 
     public function agendaSchedule(Request $request)
     {
@@ -803,11 +838,14 @@ class AgendaController extends Controller
         $startDate = $calculatedDate->copy()->startOfMonth()->startOfDay();
         $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
 
+        // Fetch the IDs of the user's children
+        $childrenIds = $user->children->pluck('id')->toArray();
+
         // Retrieve activities between the start of the calculated month and 3 months later
         $activities = Activity::whereBetween('date_start', [$startDate, $endDate])
             ->orderBy('date_start')
             ->get()
-            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll) {
+            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds) {
                 // Check if activity has roles or users
                 $activityRoleIds = !empty($activity->roles)
                     ? array_map('trim', explode(',', $activity->roles))
@@ -825,14 +863,25 @@ class AgendaController extends Controller
                     // If the user can view all, check if it should be highlighted
                     $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
                     $isUserListed = in_array($user->id, $activityUserIds);
+                    $isChildListed = !empty(array_intersect($childrenIds, $activityUserIds)); // Check if any child is listed
+
+                    // Check if any child has role access
+                    $isChildHasAccess = false;
+                    foreach ($user->children as $child) {
+                        $childRoleIds = $child->roles->pluck('id')->toArray();
+                        if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+                            $isChildHasAccess = true;
+                            break; // Stop checking if any child has access
+                        }
+                    }
 
                     if ($canViewAll) {
                         // Highlight only if there are roles or users and the user doesn't have access
                         $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
                         return true; // Keep activity in the list
                     } else {
-                        // Hide activity if the user doesn't have access
-                        return $hasRoleAccess || $isUserListed;
+                        // Hide activity if the user doesn't have access, but allow visibility if their child has access
+                        return $hasRoleAccess || $isUserListed || $isChildListed || $isChildHasAccess;
                     }
                 }
             });
@@ -846,9 +895,10 @@ class AgendaController extends Controller
             'monthName' => $monthName,
             'year' => $calculatedYear,
             'dayOffset' => $dayOffset,
-            'wantViewAll' => $wantViewAll
+            'wantViewAll' => $wantViewAll,
         ]);
     }
+
 
     public function agendaSchedulePublic(Request $request)
     {
@@ -914,59 +964,94 @@ class AgendaController extends Controller
             return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
         }
 
-        $userPresence = Presence::where('user_id', Auth::id())
+        // Fetch user's presence status for the activity
+        $userPresence = Presence::where('user_id', $user->id)
             ->where('activity_id', $activity->id)
             ->first();
         $presenceStatus = $userPresence ? $userPresence->presence : null;
 
-        if (empty($activity->roles) && empty($activity->users)) {
-            return view('agenda.event', [
-                'user' => $user,
-                'roles' => $roles,
-                'activity' => $activity,
-                'presenceStatus' => $presenceStatus,
 
-                'month' => $month,
-                'wantViewAll' => $wantViewAll,
-                'view' => $view
-            ]);
-        } else {
+        // Fetch roles and users for the activity
+        $activityRoleIds = !empty($activity->roles)
+            ? array_map('trim', explode(',', $activity->roles))
+            : [];
 
-            if (!$user || !$user->roles->contains('role', 'Dolfijnen Leiding') && !$user->roles->contains('role', 'Zeeverkenners Leiding') && !$user->roles->contains('role', 'Loodsen Stamoudste') && !$user->roles->contains('role', 'Afterloodsen Organisator') && !$user->roles->contains('role', 'Administratie') && !$user->roles->contains('role', 'Bestuur') && !$user->roles->contains('role', 'Praktijkbegeleider') && !$user->roles->contains('role', 'Loodsen Mentor') && !$user->roles->contains('role', 'Ouderraad')
-            ) {
-                $activityRoleIds = !empty($activity->roles)
-                    ? array_map('trim', explode(',', $activity->roles))
-                    : [];
+        $activityUserIds = !empty($activity->users)
+            ? array_map('trim', explode(',', $activity->users))
+            : [];
 
-                $activityUserIds = !empty($activity->users)
-                    ? array_map('trim', explode(',', $activity->users))
-                    : [];
+        // Determine if the user has access to the activity
+        $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+        $isUserListed = in_array($user->id, $activityUserIds);
 
-                // Check if the users has the right roles or id
-                $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
-                $isUserListed = in_array($user->id, $activityUserIds);
 
-                if (!$hasRoleAccess && !$isUserListed) {
-                    $log = new Log();
-                    $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
+        // Check if any child has access (either through roles or being listed)
+        $isChildHasAccess = false;
+        foreach ($user->children as $child) {
+            // Check if the child has role access
+            $childRoles = $child->roles->pluck('id')->toArray();
 
-                    return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
-                }
+            $childHasRoleAccess = !empty(array_intersect($childRoles, $activityRoleIds));
+            $childIsListed = in_array($child->id, $activityUserIds);
 
+            if ($childHasRoleAccess || $childIsListed) {
+                $isChildHasAccess = true;
+                break; // No need to check further if at least one child has access
             }
-
-
-            return view('agenda.event', [
-                'user' => $user,
-                'roles' => $roles,
-                'activity' => $activity,
-                'presenceStatus' => $presenceStatus,
-
-                'month' => $month,
-                'wantViewAll' => $wantViewAll,
-                'view' => $view
-            ]);
         }
+
+        // Check if the user is included directly in the activity's user_id
+        $isDirectUserAccess = in_array($user->id, array_map('trim', explode(',', $activity->user_id)));
+
+        // alloww everyone to view when there are no roles or users connected
+        if (empty($activityRoleIds) && empty($activityUserIds)) {
+            $isDirectUserAccess = true;
+        }
+
+        // Allow parents to access if they have role access, are listed, or if any child has access, or if directly added
+        if (!$hasRoleAccess && !$isUserListed && !$isChildHasAccess && !$isDirectUserAccess) {
+            // Log access attempt if denied
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
+
+            return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
+        }
+
+        $allowedChildren = [];
+
+        foreach ($user->children as $child) {
+            // Get the role IDs for the child
+            $childRoleIds = $child->roles->pluck('id')->toArray();
+
+            // Check if the child has access based on roles or user IDs
+            if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+
+                // Fetch child's presence status for the activity
+                $childPresence = Presence::where('user_id', $child->id)
+                    ->where('activity_id', $activity->id)
+                    ->first();
+
+                // Set a 'presence_status' attribute on the child to store their presence status
+                $child->presence_status = $childPresence ? $childPresence->presence : null;
+
+                // Add child with presence status to the allowed children array
+                $allowedChildren[] = $child;
+            }
+        }
+
+
+        // Return the activity view if access is granted
+        return view('agenda.event', [
+            'user' => $user,
+            'roles' => $roles,
+            'activity' => $activity,
+            'presenceStatus' => $presenceStatus,
+            'month' => $month,
+            'wantViewAll' => $wantViewAll,
+            'view' => $view,
+            'allowedChildren' => $allowedChildren,
+            'isDirectUserAccess' => $isDirectUserAccess
+        ]);
     }
 
 
@@ -1101,5 +1186,30 @@ class AgendaController extends Controller
         }
     }
 
+    public function deleteActivity($id)
+    {
+        try {
+            $activity = Activity::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete activity', 'activity', 'Actvity id: ' . $id, 'Activiteit bestaat niet');
+            return redirect()->route('agenda.edit.activity', $id)->with('error', 'Deze activiteit bestaat niet.');
+        }
+        if ($activity === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete activity', 'activity', 'Actvity id: ' . $id, 'Activiteit bestaat niet');
+            return redirect()->route('agenda.edit.activity', $id)->with('error', 'Deze activiteit bestaat niet.');
+        }
+
+        Presence::where('activity_id', $activity->id)->delete();
+
+        $activity->delete();
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Delete activity', 'activity', $activity->title, '');
+
+        return redirect()->route('agenda.edit')->with('success', 'Je activiteit is verwijderd');
+
+    }
 
 }
