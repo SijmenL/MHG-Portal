@@ -4,12 +4,12 @@
 
 @section('content')
     {{-- Blade file, e.g., home/dashboard.blade.php --}}
-    <div id="newPopUp" class="popup" style="margin-top: -122px; display: flex">
+    <div id="newPopUp" class="popup" style="margin-top: -122px; display: none">
         <div class="popup-body overflow-hidden">
             <h2>Wat is er nieuw in versie 2.1?</h2>
 
             <!-- Nav tabs -->
-            <div class="tab-container" style="overflow-x: auto; white-space: nowrap;">
+            <div class="tab-container no-scrolbar" style="overflow-x: auto; white-space: nowrap;">
                 <ul class="nav nav-tabs flex-nowrap" style="max-width: calc(100vw - 40px)" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <a class="nav-link active" id="tab1-tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Notificaties</a>
@@ -25,30 +25,32 @@
             </div>
 
             <!-- Tab content -->
-            <div class="tab-content w-100 mb-4">
-                <div class="mt-2 p-2 text-start tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+            <div class="tab-content w-100 bg-light rounded p-4">
+                <div class="text-start tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
                     <h4>Notificaties zijn uitgebreid!</h4>
                     <p>Er is een nieuw notificatie systeem die je ook e-mailtjes stuurt! Je kunt nu ook in de instellingen je voorkeuren meegeven welke notificaties je waar wilt ontvangen.</p>
                     <p>Standaard krijg je alle notificaties ook per mail binnen, zorg er dus voor dat je mailadres klopt!</p>
                 </div>
-                <div class="mt-2 p-2 text-start tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                <div class="text-start tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
                     <h4>Kleine aanpassingen in de agenda</h4>
                     <ul>
                         <li>Betere navigatie, als je op de verkeerde pagina zit zal je een knop kunnen vinden naar de juiste pagina</li>
                         <li>Activiteiten worden pas uit het overzicht gehaald als ze voorbij zijn, niet wanneer ze beginnen</li>
                         <li>De maand weergave is verbeterd</li>
+                        <li>Ouders kunnen nu de activiteiten van hun kinderen zien en hun kinderen aan of afmelden</li>
                     </ul>
                 </div>
-                <div class="mt-2 p-2 text-start tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
+                <div class="text-start tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
                     <h4>Bugs & QOL</h4>
+                    <p>Dit menutje geeft aan wat er veranderd is na een update, net als de <a href="{{ route('changelog') }}">changelog</a>.</p>
                     <p>De code is hier en daar opgepoetst en portal zal dus beter werken! Kijk voor de volledige bugtracker op <a href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>.</p>
                     <p>Wanneer je een foutje tegenkomt zijn we nog steeds altijd bereikbaar!</p>
                 </div>
-            </div>
-
-            <button id="close-new-popup" class="btn btn-outline-danger" style="float: right;">
+            <button id="close-new-popup" class="btn btn-outline-danger mt-2" style="float: none;">
                 <span class="material-symbols-rounded">close</span>
             </button>
+            </div>
+
         </div>
     </div>
 
@@ -69,7 +71,7 @@
                 <p>Het portaal opent altijd op de beginpagina, oftewel het dashboard. Deze ziet er voor iedereen anders
                     uit, op basis van wat je binnen de club kan en mag. Er kunnen altijd knoppen bijkomen in toekomstige
                     updates.</p>
-                <img class="w-100" src="{{ asset('img/tutorial/dashboard.png') }}">
+                <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/dashboard.png') }}">
             </div>
             <div class="page" style="display: none">
                 <h2>Speltak</h2>
@@ -82,7 +84,7 @@
                         <p>Verder kun je ook de informatie van de leiding oproepen, zoals telefoonnummers en
                             verenigingsgebonden e-mailadressen.</p>
                     </div>
-                    <img class="w-50" src="{{ asset('img/tutorial/speltakpagina.png') }}">
+                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/speltakpagina.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -95,7 +97,7 @@
                             niemand anders je post aanpassen.</p>
                         <p>Posts worden in de gaten gehouden door team Admin en de leiding van de speltak.</p>
                     </div>
-                    <img class="w-50" src="{{ asset('img/tutorial/post.png') }}">
+                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/post.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -113,7 +115,7 @@
                             bijvoorbeeld Afterloods is geweest of in de ouderraad zit. Je kan ook een volledig nieuw
                             account aanmaken.</p>
                     </div>
-                    <img class="w-50" src="{{ asset('img/tutorial/settings.png') }}">
+                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/settings.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -125,7 +127,7 @@
                             Afterloodsen zit.</p>
                         <p>Een kindkoppeling kan altijd door de ouder verwijderd worden.</p>
                     </div>
-                    <img class="w-75" src="{{ asset('img/tutorial/delete-parent.png') }}">
+                    <img alt="tutorial"  class="w-75" src="{{ asset('img/tutorial/delete-parent.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -142,7 +144,18 @@
                         <p>Notificaties met een lichte kleur zijn nog ongelezen.</p>
                         <p>Alle notificaties die je hier ontvangt, ontvang je ook per mail.</p>
                     </div>
-                    <img class="w-75" src="{{ asset('img/tutorial/notificaties.png') }}">
+                    <img alt="tutorial"  class="w-75" src="{{ asset('img/tutorial/notificaties.png') }}">
+                </div>
+            </div>
+            <div class="page" style="display: none">
+                <h2>Agenda</h2>
+                <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
+                    <div style="text-align: start">
+                        <p>Op ons ledenportaal is een agenda te vinden waar we alle activiteiten in zetten die belangrijk zijn. Denk hierbij aan een kamp of een bijeenkomst.</p>
+                        <p>De aanwezigheid gaat ook via deze agenda. Je kunt je per activiteit aan of afmelden.</p>
+                        <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/aanwezigheid.png') }}">
+                    </div>
+                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/activiteit.png') }}">
                 </div>
             </div>
             @if($user->children()->count() > 0)
@@ -154,7 +167,17 @@
                                     href="{{ route('children') }}">Mijn Kinderen</a> pagina.</p>
                             <p>Op deze pagina kan je de persoonsgegevens van je kinderen aanpassen.</p>
                         </div>
-                        <img class="w-50" src="{{ asset('img/tutorial/kinderen.png') }}">
+                        <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/kinderen.png') }}">
+                    </div>
+                </div>
+
+                <div class="page" style="display: none">
+                    <h2>Kinderen</h2>
+                    <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
+                        <div style="text-align: start">
+                            <p>Als ouder kun je alle activiteiten van je kinderen ook bekijken en kun je ze aan- of afmelden.</p>
+                        <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/aanwezigheid-kinderen.png') }}">
+                        </div>
                     </div>
                 </div>
             @endif
@@ -178,12 +201,12 @@
                     <p>Op deze pagina valt ook een archief te vinden van de notules van de afgelopen groepsraden.</p>
 
                     <p>Ook is er een grote lijst te zien waar iedereen binnen de organisatie te vinden is.</p>
-                    <img class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
+                    <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
                 @else
                     <p>Op de pagina <a href="{{ route('leiding.leiding') }}">Leiding & Organisatie</a> is een overzicht
                         te vinden met alle belangrijke contactpersonen binnen de club. Je kan hier de telefoonnummers en
                         clubgebonden e-mailadressen opvragen.</p>
-                    <img class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
+                    <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
                 @endif
             </div>
             <div class="page" style="display: none">
@@ -195,7 +218,7 @@
                         <p>Als je een nieuwtje instuurt wordt deze eerst nagekeken voordat deze online komt te
                             staan.</p>
                     </div>
-                    <img class="w-50" src="{{ asset('img/tutorial/nieuws.png') }}">
+                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/nieuws.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">

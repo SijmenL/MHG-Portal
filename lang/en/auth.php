@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'failed' => 'Dit account bestaat niet',
+    'failed' => 'Het wachtwoord of e-mail adres is incorrect',
     'password' => 'Het wachtwoord is incorrect',
     'throttle' => 'Te veel pogingen gedaan, probeer het nog een keer in :seconds seconden.',
 

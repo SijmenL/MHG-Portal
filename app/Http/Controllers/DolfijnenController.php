@@ -51,10 +51,24 @@ class DolfijnenController extends Controller
 
             $users = User::whereHas('roles', function ($query) {
                 $query->whereIn('role', ['Dolfijn', 'Dolfijnen Leiding']);
-            })->where('id', '!=', $user->id)->pluck('id');
+            })->where('id', '!=', $user->id)
+                ->with('parents') // Eager load parents relationship
+                ->get();
+
+            $userIds = $users->pluck('id');
+
+            $parentIds = $users->filter(function ($user) {
+
+                return $user->hasRole('Dolfijn');
+            })->flatMap(function ($user) {
+                return $user->parents->pluck('id');
+            });
+
+            $notificationRecipients = $userIds->merge($parentIds)->unique();
+
 
             $notification = new Notification();
-            $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst!', '/dolfijnen/post/' . $post->id, 'dolfijnen', 'new_post', $post->id);
+            $notification->sendNotification($user->id, $notificationRecipients, 'heeft een post geplaatst!', '/dolfijnen/post/' . $post->id, 'dolfijnen', 'new_post', $post->id);
 
 
             $log = new Log();

@@ -580,8 +580,13 @@
 
                     <div class="d-flex align-items-center flex-row mt-3 gap-2">
                         <button type="submit" class="btn btn-success">Opslaan</button>
-                        <a class="btn btn-outline-danger" href="{{ route('agenda.edit') }}">Annuleren</a>
+                        <a class="btn btn-danger text-white" href="{{ route('agenda.edit') }}">Annuleren</a>
+                        <a class="delete-button btn btn-outline-danger"
+                           data-id="{{ $activity->id }}"
+                           data-name="{{ $activity->title }}"
+                           data-link="{{ route('agenda.delete', $activity->id) }}">Verwijderen</a>
                     </div>
+
                 </form>
             </div>
         </div>

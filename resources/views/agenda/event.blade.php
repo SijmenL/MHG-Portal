@@ -141,55 +141,82 @@
 
             @if($activity->presence)
                 <div class="bg-white w-100 p-4 rounded mt-3">
-                    <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">emoji_people</span>Aanwezigheid
+                    <h2 class="flex-row gap-3">
+                        <span class="material-symbols-rounded me-2">emoji_people</span>Aanwezigheid
                     </h2>
+
+                    @if($isDirectUserAccess)
                     <p>Meld je hier aan of af voor {{ $activity->title }}.</p>
 
-                    @if($presenceStatus === "0")
-                        <p style="font-weight: bolder">Je hebt je afgemeld!</p>
-                    @endif
-                    @if($presenceStatus === "1")
-                        <p style="font-weight: bolder">Je hebt je aangemeld!</p>
-                    @endif
+                    <!-- Parent's own presence status -->
+                    <div>
+                        <p><strong>Jouw aanwezigheid:</strong></p>
 
-                    <div class="d-flex flex-row-responsive gap-2">
-
-                        <a @if($presenceStatus !== "1") href="{{ route('agenda.activity.present', $activity->id) }}"
-                           @endif class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "1") btn-success @else btn-outline-success @endif">
-                            <span class="material-symbols-rounded me-2">event_available</span>
-                            <span>Aanmelden</span>
-                        </a>
-                        <a @if($presenceStatus !== "0") href="{{ route('agenda.activity.absent', $activity->id) }}"
-                           @endif class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "0") btn-danger @else btn-outline-danger @endif">
-                            <span
-                                class="material-symbols-rounded me-2">event_busy</span>
-                            <span>Afmelden</span></a>
-
+                        <div class="d-flex flex-row-responsive gap-2">
+                            <a @if($presenceStatus !== "1") href="{{ route('agenda.activity.present', [$activity->id, $user->id]) }}" @endif
+                            class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "1") btn-success @else btn-outline-success @endif">
+                                <span class="material-symbols-rounded me-2">event_available</span>
+                                <span>Aanmelden</span>
+                            </a>
+                            <a @if($presenceStatus !== "0") href="{{ route('agenda.activity.absent', [$activity->id, $user->id]) }}" @endif
+                            class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "0") btn-danger @else btn-outline-danger @endif">
+                                <span class="material-symbols-rounded me-2">event_busy</span>
+                                <span>Afmelden</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="d-flex flex-row-responsive mt-4">
-                        @if($user &&
-                 ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-                 $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                 $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                 $user->roles->contains('role', 'Loods') ||
-                 $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                 $user->roles->contains('role', 'Administratie') ||
-                 $user->roles->contains('role', 'Bestuur') ||
-                 $user->roles->contains('role', 'Praktijkbegeleider') ||
-                 $user->roles->contains('role', 'Loodsen Mentor') ||
-                 $user->roles->contains('role', 'Ouderraad'))
-                 )
-                            <a href="{{ route('agenda.presence.activity', $activity->id) }}"
-                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                    @endif
+
+                    @if(count($allowedChildren) > 0)
+                    <div class="bg-light-subtle rounded-2 p-2 mt-3">
+                        <p class="">Meldt hier je kind(eren) aan of af voor deze activiteit</p>
+                    @endif
+
+                    @foreach($allowedChildren as $child)
+                        <div class="mt-4 bg-light p-3 rounded-3">
+                            <p><strong>{{ $child->name }}'s aanwezigheid:</strong></p>
+
+                            <div class="d-flex flex-row-responsive gap-2">
+                                <a @if($child->presence_status !== "1") href="{{ route('agenda.activity.present', ['id' => $activity->id, 'user' => $child->id]) }}" @endif
+                                class="d-flex flex-row align-items-center justify-content-center btn @if($child->presence_status === "1") btn-success @else btn-outline-success @endif">
+                                    <span class="material-symbols-rounded me-2">event_available</span>
+                                    <span>Aanmelden</span>
+                                </a>
+                                <a @if($child->presence_status !== "0") href="{{ route('agenda.activity.absent', ['id' => $activity->id, 'user' => $child->id]) }}" @endif
+                                class="d-flex flex-row align-items-center justify-content-center btn @if($child->presence_status === "0") btn-danger @else btn-outline-danger @endif">
+                                    <span class="material-symbols-rounded me-2">event_busy</span>
+                                    <span>Afmelden</span>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                        <div class="d-flex flex-row-responsive mt-4">
+                            @if($user &&
+                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                     $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                     $user->roles->contains('role', 'Loods') ||
+                     $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                     $user->roles->contains('role', 'Administratie') ||
+                     $user->roles->contains('role', 'Bestuur') ||
+                     $user->roles->contains('role', 'Praktijkbegeleider') ||
+                     $user->roles->contains('role', 'Loodsen Mentor') ||
+                     $user->roles->contains('role', 'Ouderraad'))
+                     )
+                                <a href="{{ route('agenda.presence.activity', $activity->id) }}"
+                                   class="d-flex flex-row align-items-center justify-content-center btn btn-info">
                             <span
                                 class="material-symbols-rounded me-2">free_cancellation</span>
-                                <span>Bekijk alle aan- of afmeldingen</span></a>
-                        @endif
+                                    <span>Bekijk alle aan- of afmeldingen</span></a>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endif
 
-            @if($activity->formElements->count() > 0)
+
+
+        @if($activity->formElements->count() > 0)
                 <div class="bg-white w-100 p-4 rounded mt-3">
                     <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">app_registration</span>Inschrijfformulier
                     </h2>

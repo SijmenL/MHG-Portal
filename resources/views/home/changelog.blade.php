@@ -22,6 +22,7 @@
             </ul>
             <li class="added">Verschillende formulieren veranderd naar GET request in plaats van POST voor gebruiksgemak</li>
             <li class="added">QOL fixes in de agenda, zoals snellere navigatie</li>
+            <li class="added">Wat is er nieuw menu, waarin snel duidelijk wordt wat er veranderd is</li>
         </ul>
 
         <h2>Update 2.0.1</h2>
