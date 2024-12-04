@@ -85,8 +85,25 @@
                     @csrf
                     <input id="content" name="content" type="text" class="d-none">
 
-                    <button type="submit" class="btn d-flex align-items-center"><span
-                            class="material-symbols-rounded">save</span></button>
+                    <button
+                        onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                        class="btn d-flex align-items-center">
+                                    <span
+                                        class="button-text material-symbols-rounded">save</span>
+                        <span style="display: none; width: 20px; height: 20px;"
+                              class="loading-spinner spinner-border spinner-border-sm"
+                              aria-hidden="true"></span>
+                    </button>
                 </form>
                 <a href="{{ route('zeeverkenners.post', $post->id) }}" class="btn d-flex align-items-center"><span
                         class="material-symbols-rounded">cancel</span></a>

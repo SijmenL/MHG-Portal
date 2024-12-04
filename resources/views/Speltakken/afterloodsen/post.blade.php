@@ -115,8 +115,25 @@
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-center">
-                                <button type="submit" class="btn d-flex align-items-center"><span
-                                        class="save-button material-symbols-rounded" style="font-size: 30pt">send</span>
+                                <button
+                                    onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                                    class="btn d-flex align-items-center">
+                                    <span
+                                        class="button-text save-button material-symbols-rounded"
+                                        style="font-size: 30pt">send</span>
+                                    <span style="display: none; width: 30pt; height: 30pt;"
+                                          class="loading-spinner spinner-border spinner-border-sm"
+                                          aria-hidden="true"></span>
                                 </button>
                                 <small id="characters"></small>
                             </div>
@@ -200,11 +217,27 @@
                                           action="{{ route('afterloodsen.reaction-post', ['id' => $post->id, 'commentId' => $comment->id]) }}">
                                         @csrf
                                         <div class="d-flex flex-row gap-2 align-items-end comment-input">
-                                            <div class="text-input w-100" id="text-input" style="min-height: 75px"
+                                            <div class="text-input border border-1 border-info rounded w-100" id="text-input" style="min-height: 75px"
                                                  contenteditable="true"></div>
-                                            <button type="submit" class="btn d-flex align-items-center submit-button">
-                                                <span class="save-button material-symbols-rounded"
-                                                      style="font-size: 30pt">send</span>
+                                            <button
+                                                onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                                                class="btn d-flex align-items-center">
+                                    <span
+                                        class="button-text save-button material-symbols-rounded"
+                                        style="font-size: 30pt">send</span>
+                                                <span style="display: none; width: 30pt; height: 30pt;"
+                                                      class="loading-spinner spinner-border spinner-border-sm"
+                                                      aria-hidden="true"></span>
                                             </button>
                                         </div>
 
@@ -222,7 +255,7 @@
                                           onsubmit="e.preventDefault()">
                                         @csrf <!-- Add CSRF token field if not already present -->
                                         @method('PUT') <!-- Add method field if not already present -->
-                                        <div class="text-input" style="min-height: 75px" id="text-input"
+                                        <div class="text-input border border-1 border-info rounded" style="min-height: 75px" id="text-input"
                                              contenteditable="true">{!! $comment->content !!}</div>
                                         <small id="characters"></small>
 
@@ -308,7 +341,7 @@
                                                       onsubmit="e.preventDefault()">
                                                     @csrf <!-- Add CSRF token field if not already present -->
                                                     @method('PUT') <!-- Add method field if not already present -->
-                                                    <div class="text-input" style="min-height: 75px" id="text-input"
+                                                    <div class="text-input border border-1 border-info rounded" style="min-height: 75px" id="text-input"
                                                          contenteditable="true">{!! $reaction->content !!}</div>
                                                     <small id="characters"></small>
 

@@ -231,7 +231,24 @@
                                 </div>
                             @endforeach
 
-                            <button type="submit" class="btn btn-primary text-white mt-3">Opslaan</button>
+                            <button
+                                onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+                                button.querySelector('.loading-text').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                                class="btn btn-success mt-3 flex flex-row align-items-center justify-content-center">
+                                <span class="button-text">Opslaan</span>
+                                <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                <span style="display: none" class="loading-text" role="status">Laden...</span>
+                            </button>
                         </form>
                     </div>
                 @endif

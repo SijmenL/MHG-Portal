@@ -75,9 +75,26 @@
 
                     <div class="mb-0">
                         <div class="d-flex flex-row-responsive gap-2 justify-content-center">
-                            <button type="submit" class="btn btn-primary text-white">
-                                Versturen!
+
+                            <button
+                                onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+                                button.querySelector('.loading-text').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                                class="btn btn-primary text-white flex flex-row align-items-center justify-content-center">
+                                <span class="button-text">Versturen!</span>
+                                <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                <span style="display: none" class="loading-text" role="status">Laden...</span>
                             </button>
+
                         </div>
                     </div>
                 </form>

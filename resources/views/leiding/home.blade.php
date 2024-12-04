@@ -24,7 +24,8 @@
         <div class="d-flex flex-row-responsive justify-content-center align-items-center gap-5">
             <div class="">
                 <h1 class="">Opties</h1>
-                <p>Voor de leiding & organisatie zijn er nu een aantal opties beschikbaar, zo kun je basis gegevens zoals telefoonnummer van elkaar opvragen en kun je posts maken op het prikbord.</p>
+                <p>Voor de leiding & organisatie zijn er nu een aantal opties beschikbaar, zo kun je basis gegevens
+                    zoals telefoonnummer van elkaar opvragen en kun je posts maken op het prikbord.</p>
                 <div class="bg-light rounded-2 p-3">
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
@@ -35,7 +36,8 @@
                         </a>
 
 
-                        <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EqidloTtwghPjAJeAib9T6oBucznxbtgtT7J_0hIQY8Sjw?e=JSdTsl">
+                        <a class="btn btn-info quick-action" target="_blank"
+                           href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EqidloTtwghPjAJeAib9T6oBucznxbtgtT7J_0hIQY8Sjw?e=JSdTsl">
                             <span class="material-symbols-rounded">description</span>
                             <p>Notules Groepsraad</p>
                         </a>
@@ -54,10 +56,10 @@
             <div class="bg-light rounded-2 p-3">
                 <div class="container">
                     <div class="editor-parent">
-                    @yield('editor')
+                        @yield('editor')
 
-                    <div id="text-input" contenteditable="true" class="text-input">{!! old('content') !!}</div>
-                    <small id="characters"></small>
+                        <div id="text-input" contenteditable="true" class="text-input">{!! old('content') !!}</div>
+                        <small id="characters"></small>
                     </div>
 
                     @error('content')
@@ -70,7 +72,25 @@
                         @csrf
                         <input id="content" name="content" type="text" class="d-none">
 
-                        <button type="submit" class="btn btn-dark mt-3">Plaatsen</button>
+                        <button
+                            onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+                                button.querySelector('.loading-text').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                            class="btn btn-dark mt-3 flex flex-row align-items-center justify-content-center">
+                            <span class="button-text">Plaatsen</span>
+                            <span style="display: none" class="loading-spinner spinner-border spinner-border-sm"
+                                  aria-hidden="true"></span>
+                            <span style="display: none" class="loading-text" role="status">Laden...</span>
+                        </button>
                     </form>
                 </div>
             </div>

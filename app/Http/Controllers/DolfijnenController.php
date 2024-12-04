@@ -59,7 +59,7 @@ class DolfijnenController extends Controller
 
             $parentIds = $users->filter(function ($user) {
 
-                return $user->hasRole('Dolfijn');
+                return $user->roles->contains('role', 'Dolfijn');
             })->flatMap(function ($user) {
                 return $user->parents->pluck('id');
             });
@@ -443,13 +443,13 @@ class DolfijnenController extends Controller
         // Log if no 'Dolfijn' role is found
         if (!$hasDolfijnenRole) {
             $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View account', 'Dolfijnen', $account->name.' '.$account->infix.' '.$account->last_name, 'Geen Dolfijn rol gevonden');
+            $log->createLog(auth()->user()->id, 1, 'View account', 'Dolfijnen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, 'Geen Dolfijn rol gevonden');
             return redirect()->route('dolfijnen')->with('error', 'Je hebt geen toegang tot dit account.');
         }
 
         // Log successful view
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'View account', 'Dolfijnen', $account->name.' '.$account->infix.' '.$account->last_name, '');
+        $log->createLog(auth()->user()->id, 2, 'View account', 'Dolfijnen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
         // Return the view with the necessary data
         return view('speltakken.dolfijnen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);

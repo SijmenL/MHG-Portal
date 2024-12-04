@@ -78,7 +78,24 @@
                     @endif
 
                     <div class="d-flex flex-row flex-wrap gap-2 mt-3">
-                        <button type="submit" class="btn btn-success">Volgende</button>
+                        <button
+                            onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+                                button.querySelector('.loading-text').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                            class="btn btn-success flex flex-row align-items-center justify-content-center">
+                            <span class="button-text">Volgende</span>
+                            <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                            <span style="display: none" class="loading-text" role="status">Laden...</span>
+                        </button>
                         <a href="{{ route('settings.parent') }}"
                            class="btn btn-danger text-white">Annuleren</a>
                     </div>

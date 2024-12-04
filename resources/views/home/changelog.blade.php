@@ -11,7 +11,19 @@
             </ol>
         </nav>
 
-        <div class="alert alert-primary">Als ergens bugfixes vermeld staan, zijn deze terug te vinden op <a target="_blank" href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>. Voeg hier vooral zelf ook nieuwe bugs aan toe!</div>
+        <div class="alert alert-primary">Als ergens bugfixes vermeld staan, zijn deze terug te vinden op <a
+                target="_blank" href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>. Voeg hier vooral
+            zelf ook nieuwe bugs aan toe!
+        </div>
+
+        <h2>Update 2.2</h2>
+        <p class="fst-italic">04/12/2024</p>
+        <ul>
+            <li class="added">Als de mailtjes verstuurd worden heeft het systeem even nodig achter de schermen. Alle
+                opslaan knoppen hebben nu een animatie om dit aan te geven en worden uitgezet om meerdere posts te
+                voorkomen.
+            </li>
+        </ul>
 
         <h2>Update 2.1</h2>
         <p class="fst-italic">01/10/2024</p>
@@ -20,8 +32,11 @@
             <ul>
                 <li class="added">Notificaties worden per e-mail verstuurd</li>
             </ul>
-            <li class="added">Verschillende formulieren veranderd naar GET request in plaats van POST voor gebruiksgemak</li>
+            <li class="added">Verschillende formulieren veranderd naar GET request in plaats van POST voor
+                gebruiksgemak
+            </li>
             <li class="added">QOL fixes in de agenda, zoals snellere navigatie</li>
+            <li class="added">Ouders kunnen de activiteiten van de kinderen zien en kinderen aanwezig melden</li>
             <li class="added">Wat is er nieuw menu, waarin snel duidelijk wordt wat er veranderd is</li>
         </ul>
 

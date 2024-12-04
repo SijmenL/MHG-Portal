@@ -4,7 +4,7 @@
     <div class="d-flex justify-content-center align-items-center" style="height: 100vh; width: 100vw">
         <div class="login d-flex gap-4 shadow m-4">
             <div class="login-image" style="background-image: url({{ asset('img/general/MHG_vloot.jpg') }})">
-{{--                <img class="login-logo" alt="logo" src="{{ asset('img/logo/MHGlogoalgemeen.png') }}">--}}
+                {{--                <img class="login-logo" alt="logo" src="{{ asset('img/logo/MHGlogoalgemeen.png') }}">--}}
             </div>
             <div class="d-flex flex-column p-3 login-text justify-content-center">
                 <h1>Log In</h1>
@@ -54,11 +54,28 @@
 
                     <div class="mb-0">
                         <div class="d-flex flex-row-responsive gap-2 justify-content-center">
-                            <button type="submit" class="btn btn-primary text-white">
-                                {{ __('Inloggen') }}
+                            <button
+                                onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+                                button.querySelector('.loading-text').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                                class="btn btn-primary text-white flex flex-row align-items-center justify-content-center">
+                                <span class="button-text">Inloggen</span>
+                                <span style="display: none" class="loading-spinner spinner-border spinner-border-sm"
+                                      aria-hidden="true"></span>
+                                <span style="display: none" class="loading-text" role="status">Laden...</span>
                             </button>
+
                             <a href="https://waterscoutingmhg.nl/" class="btn btn-outline-dark">
-                               Annuleren
+                                Annuleren
                             </a>
                         </div>
                     </div>
