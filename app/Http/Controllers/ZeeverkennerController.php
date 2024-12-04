@@ -58,7 +58,7 @@ class ZeeverkennerController extends Controller
 
             $parentIds = $users->filter(function ($user) {
 
-                return $user->hasRole('Zeeverkenner');
+                return $user->roles->contains('role', 'Zeeverkenner');
             })->flatMap(function ($user) {
                 return $user->parents->pluck('id');
             });

@@ -6,45 +6,22 @@
     {{-- Blade file, e.g., home/dashboard.blade.php --}}
     <div id="newPopUp" class="popup" style="margin-top: -122px; display: none">
         <div class="popup-body overflow-hidden">
-            <h2>Wat is er nieuw in versie 2.1?</h2>
+            <h2>Wat is er nieuw in versie 2.2?</h2>
 
-            <!-- Nav tabs -->
             <div class="tab-container no-scrolbar" style="overflow-x: auto; white-space: nowrap;">
                 <ul class="nav nav-tabs flex-nowrap" style="max-width: calc(100vw - 40px)" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <a class="nav-link active" id="tab1-tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Notificaties</a>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="tab2-tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Agenda</a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="tab3-tab" href="#tab3" role="tab" aria-controls="tab3" aria-selected="false">Overig</a>
-                    </li>
-                    <!-- Add more tabs as needed -->
                 </ul>
             </div>
 
-            <!-- Tab content -->
             <div class="tab-content w-100 bg-light rounded p-4">
                 <div class="text-start tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
-                    <h4>Notificaties zijn uitgebreid!</h4>
-                    <p>Er is een nieuw notificatie systeem die je ook e-mailtjes stuurt! Je kunt nu ook in de instellingen je voorkeuren meegeven welke notificaties je waar wilt ontvangen.</p>
-                    <p>Standaard krijg je alle notificaties ook per mail binnen, zorg er dus voor dat je mailadres klopt!</p>
-                </div>
-                <div class="text-start tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
-                    <h4>Kleine aanpassingen in de agenda</h4>
-                    <ul>
-                        <li>Betere navigatie, als je op de verkeerde pagina zit zal je een knop kunnen vinden naar de juiste pagina</li>
-                        <li>Activiteiten worden pas uit het overzicht gehaald als ze voorbij zijn, niet wanneer ze beginnen</li>
-                        <li>De maand weergave is verbeterd</li>
-                        <li>Ouders kunnen nu de activiteiten van hun kinderen zien en hun kinderen aan of afmelden</li>
-                    </ul>
-                </div>
-                <div class="text-start tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
-                    <h4>Bugs & QOL</h4>
-                    <p>Dit menutje geeft aan wat er veranderd is na een update, net als de <a href="{{ route('changelog') }}">changelog</a>.</p>
-                    <p>De code is hier en daar opgepoetst en portal zal dus beter werken! Kijk voor de volledige bugtracker op <a href="https://github.com/SijmenL/MHG-Portal/issues">de bugtracker</a>.</p>
-                    <p>Wanneer je een foutje tegenkomt zijn we nog steeds altijd bereikbaar!</p>
+                    <h4>Posts werden te vaak verstuurd</h4>
+                    <p>Als de mailtjes verstuurd worden heeft het systeem even nodig achter de schermen. Alle
+                        opslaan knoppen hebben nu een animatie om dit aan te geven en worden uitgezet om meerdere posts te
+                        voorkomen doordat de gebruiker te vaak op de knop klikt.</p>
                 </div>
             <button id="close-new-popup" class="btn btn-outline-danger mt-2" style="float: none;">
                 <span class="material-symbols-rounded">close</span>

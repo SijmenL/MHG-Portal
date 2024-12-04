@@ -61,7 +61,7 @@ class Notification extends Model
             }
 
 
-            if ($user->getNotificationSetting('mail_' . $notificationType)) {
+            if ($user->getNotificationSetting('mail_' . $notificationType) && !config('app.debug')) {
                 if (isset($senderId)) {
                     $sender = User::find($senderId);
                 }

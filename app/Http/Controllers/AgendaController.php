@@ -1017,6 +1017,8 @@ class AgendaController extends Controller
             return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
         }
 
+        $canAlwaysView = $hasRoleAccess || $isUserListed || $isDirectUserAccess;
+
         $allowedChildren = [];
 
         foreach ($user->children as $child) {
@@ -1050,7 +1052,7 @@ class AgendaController extends Controller
             'wantViewAll' => $wantViewAll,
             'view' => $view,
             'allowedChildren' => $allowedChildren,
-            'isDirectUserAccess' => $isDirectUserAccess
+            'canAlwaysView' => $canAlwaysView
         ]);
     }
 

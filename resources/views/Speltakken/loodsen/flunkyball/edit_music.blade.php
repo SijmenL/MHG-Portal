@@ -99,7 +99,24 @@
                 </div>
 
                 <div class="d-flex flex-row flex-wrap gap-2 align-items-center mt-4">
-                    <button class="btn btn-dark " type="submit">Opslaan</button>
+                    <button
+                        onclick="function handleButtonClick(button) {
+                                 button.disabled = true;
+                                button.classList.add('loading');
+
+                                // Show the spinner and hide the text
+                                button.querySelector('.button-text').style.display = 'none';
+                                button.querySelector('.loading-spinner').style.display = 'inline-block';
+                                button.querySelector('.loading-text').style.display = 'inline-block';
+
+                                button.closest('form').submit();
+                            }
+                            handleButtonClick(this)"
+                        class="btn btn-success flex flex-row align-items-center justify-content-center">
+                        <span class="button-text">Opslaan</span>
+                        <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span style="display: none" class="loading-text" role="status">Laden...</span>
+                    </button>
                     <a href="{{ route('loodsen.flunkyball.music') }}"
                        class="btn btn-danger text-white">Annuleren</a>
                     <a class="delete-button btn btn-outline-danger"
