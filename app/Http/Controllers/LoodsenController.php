@@ -244,7 +244,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -278,7 +278,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();

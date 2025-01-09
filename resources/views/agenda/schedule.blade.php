@@ -6,11 +6,13 @@
 @endphp
 
 @section('content')
+    @if(!isset($lesson))
     <div class="header" style="background-image: url({{ asset('files/agenda/banner.jpg') }})">
         <div>
             <p class="header-title">Agenda</p>
         </div>
     </div>
+    @endif
     <div class="container col-md-11">
 
         @if(session('error'))
@@ -21,34 +23,55 @@
 
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
-                <h1 class="">Mijn agenda</h1>
-
-                @if($user &&
-                  ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-                  $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                  $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                  $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                  $user->roles->contains('role', 'Administratie') ||
-                  $user->roles->contains('role', 'Bestuur') ||
-                  $user->roles->contains('role', 'Praktijkbegeleider') ||
-                  $user->roles->contains('role', 'Loodsen Mentor') ||
-                  $user->roles->contains('role', 'Ouderraad'))
-                  )
+                @if(isset($lesson))
+                    <h1 class="">Les planning</h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Mijn agenda</li>
+                            <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
+                            <li class="breadcrumb-item"><a
+                                    href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
+                            </li>
+                            @if($isTeacher)
+                                <li class="breadcrumb-item"><a
+                                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
+                                </li>
+                            @endif
+                            <li class="breadcrumb-item active" aria-current="page">Les planning</li>
                         </ol>
                     </nav>
+                @else
+                    <h1 class="">Mijn Agenda</h1>
+
+                    @if($user &&
+                    ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                    $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                    $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                    $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                    $user->roles->contains('role', 'Administratie') ||
+                    $user->roles->contains('role', 'Bestuur') ||
+                    $user->roles->contains('role', 'Praktijkbegeleider') ||
+                    $user->roles->contains('role', 'Loodsen Mentor') ||
+                    $user->roles->contains('role', 'Ouderraad')) ||
+                    $user->roles->contains('role', 'Loods') ||
+                    $user->roles->contains('role', 'Afterloods'))
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Mijn agenda</li>
+                            </ol>
+                        </nav>
+
 
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="show-all" @if($wantViewAll === 'true') checked @endif>
-                        <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging zien</label>
+                        <input class="form-check-input" type="checkbox" role="switch" id="show-all"
+                               @if($wantViewAll === 'true') checked @endif>
+                        <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging
+                            zien</label>
                     </div>
+                    @endif
+
+                    <p>Welkom in jouw MHG Agenda! Hier vind je de komende activiteiten die voor jouw relevant zijn!</p>
                 @endif
-
-                <p>Welkom in jouw MHG Agenda! Hier vind je de komende activiteiten die voor jouw relevant zijn!</p>
-
 
                 <script>
                     let showAll = document.getElementById('show-all')
@@ -70,11 +93,19 @@
                 <div id="nav">
                     <ul class="nav nav-tabs flex-row-reverse mb-4">
                         <li class="nav-item">
+                            @if(isset($lesson))
+                                <a class="nav-link"
+                                   href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#nav">
+                                    <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_view_month</span>
+                                    Maand
+                                </a>
+                            @else
                             <a class="nav-link"
                                href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll]) }}#nav">
                                 <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_view_month</span>
                                 Maand
                             </a>
+                            @endif
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page">
@@ -88,6 +119,7 @@
         </div>
 
         <div class="d-flex justify-content-between align-items-center">
+            @if(!isset($lesson))
             <div class="d-flex flex-row gap-0">
                 <a href="{{ route('agenda.schedule', ['month' => $monthOffset - 1, 'all' => $wantViewAll]) }}#agenda"
                    class="btn d-flex align-items-center justify-content-center">
@@ -102,6 +134,22 @@
                     <span class="material-symbols-rounded">arrow_forward_ios</span>
                 </a>
             </div>
+            @else
+                <div class="d-flex flex-row gap-0">
+                    <a href="{{ route('agenda.schedule', ['month' => $monthOffset - 1, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#agenda"
+                       class="btn d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-rounded">arrow_back_ios</span>
+                    </a>
+                    <a href="{{ route('agenda.schedule', ['month' => 0, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#agenda"
+                       class="btn d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-rounded">home</span>
+                    </a>
+                    <a href="{{ route('agenda.schedule', ['month' => $monthOffset + 1, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#agenda"
+                       class="btn d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-rounded">arrow_forward_ios</span>
+                    </a>
+                </div>
+            @endif
             <div>
                 <h2>{{ $monthName }} {{ $year }}</h2>
             </div>
@@ -131,15 +179,25 @@
                     </div>
                 @endif
 
-                <a href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', $activity->id]) }}" class="text-decoration-none"
-                   style="color: unset">
+                    <a
+                        @if(!isset($lesson) && $activity->lesson_id === null)
+                            href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'id' => $activity->id]) }}"
+                        @elseif(isset($lesson))
+                            href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'id' => $activity->id, 'lessonId' => $lesson->id]) }}"
+                        @else
+                            class="cursor-default text-decoration-none"
+                        @endif
+                        class="text-decoration-none"
+                        style="color: unset"
+                    >
+
                     <div class="d-flex flex-row">
                         <div style="width: 50px"
                              class="d-flex flex-column gap-0 align-items-center justify-content-center">
                             <p class="day-name">{{ mb_substr($activitiesStart->translatedFormat('l'), 0, 2) }}</p>
                             <p class="day-number">{{ $activitiesStart->format('j') }}</p>
                         </div>
-                        <div class="event mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between">
+                        <div class="event mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between" @if(!isset($lesson) && $activity->lesson_id !== null) style="background-color: var(--secondary-color) !important;" @endif>
                             <div class="d-flex flex-column justify-content-between">
                                 <div>
                                     @if($activitiesStart->isSameDay($activityEnd))

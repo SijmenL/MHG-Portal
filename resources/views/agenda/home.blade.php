@@ -26,6 +26,7 @@
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
                 <h1 class="">Agenda</h1>
+
                 <p>Welkom in de MHG agenda! Omdat je leiding of vrijwilliger bent kun je activiteiten aanmaken en bewerken!</p>
 
                 <div class="bg-light rounded-2 p-3">

@@ -24,6 +24,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Insigne::class, 'user_insigne');
     }
 
+    public function lessons() {
+        return $this->belongsToMany(Lesson::class, 'user_lesson', 'user_id', 'lesson_id');
+    }
+
+
     public function children()
     {
         return $this->belongsToMany(User::class, 'parent_child', 'parent_id', 'child_id');
@@ -38,6 +43,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserNotificationSettings::class);
     }
+
+    public function testResults()
+    {
+        return $this->hasMany(UserLessonTestResult::class);
+    }
+
 
 // Custom method to get notification preference by type
     public function getNotificationSetting($type)

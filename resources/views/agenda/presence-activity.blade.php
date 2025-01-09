@@ -21,6 +21,7 @@
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
                 <h1 class="">{{ $activity->title }}</h1>
+                @if(!isset($lesson))
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
@@ -29,6 +30,20 @@
                         <li class="breadcrumb-item active" aria-current="page">{{ $activity->title }}</li>
                     </ol>
                 </nav>
+                @else
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
+                            <li class="breadcrumb-item"><a
+                                    href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a></li>
+                            <li class="breadcrumb-item"><a
+                                    href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
+                            </li>
+                            <li class="breadcrumb-item"><a href="{{ route('agenda.presence', ['lessonId' => $lesson->id]) }}">Aanwezigheid</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ $activity->title }}</li>
+                        </ol>
+                    </nav>
+                @endif
 
                 <form id="auto-submit" method="GET" class="user-select-forum-submit">
                     <div class="d-flex">
@@ -41,6 +56,11 @@
                                        placeholder="Zoeken op naam, email, adres etc."
                                        aria-label="Zoeken" aria-describedby="basic-addon1" value="{{ $search }}"
                                        onchange="this.form.submit();">
+
+                                @if(isset($lesson))
+                                    <input type="hidden" name="lessonId" value="{{$lesson->id}}">
+                                @endif
+
                                 @if($all_roles->count() > 0)
                             </div>
 
@@ -145,7 +165,7 @@
                     </p>
                 @endif
 
-                <a href="{{ route('agenda.activity', $activity->id) }}" class="m-4 d-flex flex-row align-items-center justify-content-center btn btn-info">
+                <a href="@if(!isset($lesson)){{ route('agenda.activity', $activity->id) }}@else {{ route('agenda.activity', [$activity->id, 'lessonId' => $lesson->id]) }} @endif" class="m-4 d-flex flex-row align-items-center justify-content-center btn btn-info">
                             <span
                                 class="material-symbols-rounded me-2">event</span>
                     <span>Bekijk de activiteit</span></a>

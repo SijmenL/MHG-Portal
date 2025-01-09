@@ -10,6 +10,8 @@ let displayListItems = [];
 let forum;
 
 function init() {
+    console.log('searchuser code active')
+
     userSelectWindows = document.querySelectorAll('.user-select-window');
     userSelectSearch = document.querySelectorAll('.user-select-search');
     userSelectWindowPopup = document.querySelectorAll('.user-select-window-popup');
@@ -19,6 +21,8 @@ function init() {
 
     body = document.getElementById('app');
 
+
+    userSelectWindows.forEach(function (select, index) {
     if (userSelectSearch[0].dataset.stayopen !== 'true') {
         document.addEventListener('click', function (event) {
             // Iterate over each user-select-window input
@@ -32,11 +36,9 @@ function init() {
                 }
             });
         });
+    } else {
+        searchUsers(' ', index);
     }
-
-    console.log(userSelectWindows)
-
-    userSelectWindows.forEach(function (select, index) {
 
         userSelectSearch[index].addEventListener('keypress', function (event) {
             if (event.key === "Enter") {
@@ -67,6 +69,12 @@ function init() {
 }
 
 function searchUsers(searchTerm, index) {
+
+    let selectedIndex;
+    if (index) {
+        selectedIndex = userSelectWindows[index].value
+    }
+
     fetch('/user-search', {
         method: 'POST',
         headers: {
@@ -75,7 +83,7 @@ function searchUsers(searchTerm, index) {
         },
         body: JSON.stringify({
             search: searchTerm,
-            selected: userSelectWindows[index].value
+            selected: selectedIndex
         })
     })
         .then(response => response.json())
@@ -182,19 +190,23 @@ function setUserId(index, userId, listItem) {
 
 // Function to handle search input
 function handleSearchInput(index, event) {
+    console.log(event)
+
     event.preventDefault()
 
-    const searchTerm = event.target.value.trim();
+        const searchTerm = event.target.value.trim();
 
-    console.log(searchTerm)
+        console.log(searchTerm)
 
-    if (searchTerm !== '') {
-        searchUsers(searchTerm, index);
-    } else {
-        // If search term is empty, reset user list or do nothing
-        userList.innerHTML = ''; // Reset user list
-        // Optionally, you can load all users here
-    }
+        if (searchTerm !== '') {
+            searchUsers(searchTerm, index);
+        } else {
+            // If search term is empty, reset user list or do nothing
+            userList.innerHTML = ''; // Reset user list
+            // Optionally, you can load all users here
+            searchUsers('', index);
+
+        }
 }
 
 

@@ -6,6 +6,7 @@ use App\Exports\AgendaExport;
 use App\Models\Activity;
 use App\Models\ActivityFormElement;
 use App\Models\ActivityFormResponses;
+use App\Models\Lesson;
 use App\Models\Log;
 use App\Models\News;
 use App\Models\Presence;
@@ -30,6 +31,7 @@ class AgendaController extends Controller
         return view('agenda.home', ['user' => $user, 'roles' => $roles]);
     }
 
+    // Inschrijvingen & aanwezigheid
     public function agendaSubmissions(Request $request)
     {
         $user = Auth::user();
@@ -85,6 +87,23 @@ class AgendaController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        $lessonId = $request->query('lessonId');
+        $lesson = $lessonId ? Lesson::find($lessonId) : null;
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists());
+
+        if ($isTeacher === false) {
+            return redirect()->route('agenda.edit')->with('error', 'Deze activiteit bestaat niet.');
+        }
+
         $search = $request->query('search', '');
         $currentDate = now();
 
@@ -108,7 +127,15 @@ class AgendaController extends Controller
                         ->orWhere('organisator', 'like', "%{$search}%");
                 });
             })
-            ->where('user_id', Auth::id())
+            // When lessonId is provided, include activities with that lesson_id, regardless of the user
+            ->when($lessonId, function ($query) use ($lessonId) {
+                $query->where('lesson_id', $lessonId);
+            })
+            // Exclude activities with a lesson_id when lessonId is null
+            ->when(!$lessonId, function ($query) use ($user) {
+                $query->whereNull('lesson_id')
+                    ->where('user_id', $user->id);
+            })
             ->orderByRaw(
                 'CASE
             WHEN date_end >= ? THEN date_end
@@ -120,39 +147,63 @@ class AgendaController extends Controller
             )
             ->paginate(10);
 
-
         return view('agenda.edit', [
             'user' => $user,
             'roles' => $roles,
             'search' => $search,
-            'activities' => $activities
+            'activities' => $activities,
+            'lesson' => $lesson
         ]);
     }
 
-    public function editActivity($id)
+
+    public function editActivity(Request $request, $id)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         $all_roles = Role::all();
 
+        $lessonId = $request->query('lessonId');
+        $lesson = $lessonId ? Lesson::find($lessonId) : null;
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists());
+
         $activity = Activity::with('formElements')->findOrFail($id);
 
         if (!$activity) {
-            return redirect()->route('agenda.edit')->with('error', 'Activiteit niet gevonden.');
+            return redirect()->back()->with('error', 'Activiteit niet gevonden.');
         }
 
+        // Check if the activity is attached to a lesson and no lessonId is provided in the URI
+        if ((int)$activity->lesson_id !== (int)$lessonId) {
+            return redirect()->route('agenda.edit')->with('error', 'Deze activiteit is gekoppeld aan een les, maar de les-ID ontbreekt.');
+        }
+
+        // Ownership or teacher check
         if ($activity->user_id !== Auth::id()) {
-            return redirect()->route('agenda.edit')->with('error', 'Activiteit niet gevonden.');
+            if (!$lesson || !$isTeacher) {
+                return redirect()->back()->with('error', 'Activiteit niet gevonden.');
+            }
         }
 
         return view('agenda.edit-activity', [
             'user' => $user,
             'roles' => $roles,
             'activity' => $activity,
-            'all_roles' => $all_roles
+            'all_roles' => $all_roles,
+            'lesson' => $lesson,
         ]);
     }
+
 
     public function editActivitySave(Request $request, $id)
     {
@@ -174,6 +225,7 @@ class AgendaController extends Controller
             'form_types' => 'nullable|array',
             'form_options' => 'nullable|array',
             'is_required' => 'nullable|array',
+            'lesson_id' => 'nullable'
         ]);
 
         try {
@@ -191,7 +243,7 @@ class AgendaController extends Controller
 
             // Handle roles and users input
             $roles = $request->input('roles') ? implode(', ', $request->input('roles')) : null;
-            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : Auth::id();
+            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : null;
 
             // Validate content for disallowed elements or styles
             if (ForumController::validatePostData($request->input('content'))) {
@@ -210,6 +262,7 @@ class AgendaController extends Controller
                     'image' => $newPictureName,
                     'public' => $request->input('public'),
                     'presence' => $request->input('presence'),
+                    'lesson_id' => $request->input('lesson_id'),
                 ]);
 
                 // Log the update of the activity
@@ -245,7 +298,19 @@ class AgendaController extends Controller
                     $log->createLog(auth()->user()->id, 2, 'Update activity form', 'agenda', 'Activity id: ' . $activity->id, 'Er is een inschrijfformulier bijgewerkt.');
                 }
 
-                return redirect()->route('agenda.edit', $activity->id)->with('success', 'Je agendapunt is bijgewerkt!');
+
+                // Check if lesson_id is provided in the request
+                $lessonId = $request->input('lesson_id');
+
+                // If lesson_id is present, include it in the redirect, otherwise just use the activity ID
+                if ($lessonId) {
+                    return redirect()->route('agenda.edit', ['id' => $activity->id, 'lessonId' => $lessonId])
+                        ->with('success', 'Je agendapunt is bijgewerkt!');
+                } else {
+                    return redirect()->route('agenda.edit', ['id' => $activity->id])
+                        ->with('success', 'Je agendapunt is bijgewerkt!');
+                }
+
             } else {
                 throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
             }
@@ -310,10 +375,27 @@ class AgendaController extends Controller
 
         $search = $request->query('search', '');
 
+        $lessonId = $request->query('lessonId');
+        $lesson = $lessonId ? Lesson::find($lessonId) : null;
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists());
+
+        if ($isTeacher === false) {
+            return redirect()->route('agenda.presence')->with('error', 'Deze activiteit bestaat niet.');
+        }
+
         $currentDate = now();
 
         $activities = Activity::query()
-            ->where('presence', 1)  // Filter by presence
+            ->where('presence', 1) // Filter by presence
             ->when(empty($search), function ($query) use ($currentDate) {
                 // Include activities that are either upcoming or ongoing
                 $query->where(function ($query) use ($currentDate) {
@@ -333,6 +415,15 @@ class AgendaController extends Controller
                         ->orWhere('organisator', 'like', "%{$search}%");
                 });
             })
+            ->when($lessonId, function ($query) use ($lessonId) {
+                // Show all activities connected to the lesson when viewing from a lesson
+                $query->where('lesson_id', $lessonId);
+            })
+            ->when(!$lessonId, function ($query) use ($user) {
+                // Only show activities created by the user when not viewing from a lesson
+                $query->whereNull('lesson_id')
+                    ->where('user_id', $user->id);
+            })
             ->orderByRaw(
                 'CASE
             WHEN date_end >= ? THEN date_end
@@ -344,9 +435,15 @@ class AgendaController extends Controller
             )
             ->paginate(10);
 
-
-        return view('agenda.presence', ['user' => $user, 'roles' => $roles, 'search' => $search, 'activities' => $activities]);
+        return view('agenda.presence', [
+            'user' => $user,
+            'roles' => $roles,
+            'search' => $search,
+            'activities' => $activities,
+            'lesson' => $lesson
+        ]);
     }
+
 
     public function agendaPresenceActivity(Request $request, $id)
     {
@@ -358,51 +455,70 @@ class AgendaController extends Controller
 
         $activity = Activity::find($id);
 
-        if (!$activity) {
+        if (!$activity || !$activity->presence) {
             return redirect()->route('agenda.presence')->with('error', 'Activiteit niet gevonden.');
         }
 
-        if (!$activity->presence) {
-            return redirect()->route('agenda.presence')->with('error', 'Activiteit niet gevonden.');
+        $lessonId = $request->query('lessonId');
+        $lesson = $lessonId ? Lesson::find($lessonId) : null;
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher
+        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists());
+
+        if (!$isTeacher) {
+            return redirect()->route('agenda.presence')->with('error', 'Geen toegang tot deze activiteit.');
         }
 
-        $activityRoleIds = !empty($activity->roles)
-            ? array_map('trim', explode(',', $activity->roles))
-            : [];
-
-        $activityUserIds = !empty($activity->users)
-            ? array_map('trim', explode(',', $activity->users))
-            : [];
+        $activityRoleIds = $activity->roles ? array_map('trim', explode(',', $activity->roles)) : [];
 
         $all_roles = Role::whereIn('id', $activityRoleIds)->get();
 
-        if (isset($selected_role) && !in_array($selected_role, Role::whereIn('id', $activityRoleIds)->pluck('role')->toArray())) {
+        if (!in_array($selected_role, Role::whereIn('id', $activityRoleIds)->pluck('role')->toArray())) {
             $selected_role = 'none';
         }
 
-        if (isset($selected_role) && $selected_role !== 'none') {
-            $usersWithRoles = User::whereHas('roles', function ($query) use ($selected_role) {
-                $query->where('role', $selected_role);
-            })
+        // Retrieve users
+        $users = [];
+        if ($lesson) {
+            $users = $lesson->users()
                 ->where(function ($query) use ($search) {
-                    $query->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('last_name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%')
-                        ->orWhere('sex', 'like', '%' . $search . '%')
-                        ->orWhere('infix', 'like', '%' . $search . '%')
-                        ->orWhere('birth_date', 'like', '%' . $search . '%')
-                        ->orWhere('street', 'like', '%' . $search . '%')
-                        ->orWhere('postal_code', 'like', '%' . $search . '%')
-                        ->orWhere('city', 'like', '%' . $search . '%')
-                        ->orWhere('phone', 'like', '%' . $search . '%')
-                        ->orWhere('id', 'like', '%' . $search . '%')
-                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                    $query->where('users.name', 'like', '%' . $search . '%')
+                        ->orWhere('users.infix', 'like', '%' . $search . '%')
+                        ->orWhere('users.last_name', 'like', '%' . $search . '%');
                 })
-                ->orderBy('last_name', 'asc')->get();
+                ->orderBy('users.last_name', 'asc')
+                ->get();
+
+            // Ensure the $lesson->user_id user is included
+            $lessonOwner = User::find($lesson->user_id);
+
+            if ($lessonOwner && !$users->contains('id', $lessonOwner->id)) {
+                $users->push($lessonOwner);
+            }
+
+            // Sort the collection again after adding the lesson owner
+            $users = $users->sortBy('last_name')->values();
+
         } else {
-            if (!empty($activityRoleIds)) {
-                $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds) {
-                    $query->whereIn('role_id', $activityRoleIds);
+            $activityRoleIds = !empty($activity->roles)
+                ? array_map('trim', explode(',', $activity->roles))
+                : [];
+
+            $activityUserIds = !empty($activity->users)
+                ? array_map('trim', explode(',', $activity->users))
+                : [];
+
+
+            if (isset($selected_role) && $selected_role !== 'none') {
+                $usersWithRoles = User::whereHas('roles', function ($query) use ($selected_role) {
+                    $query->where('role', $selected_role);
                 })
                     ->where(function ($query) use ($search) {
                         $query->where('name', 'like', '%' . $search . '%')
@@ -420,28 +536,50 @@ class AgendaController extends Controller
                     })
                     ->orderBy('last_name', 'asc')->get();
             } else {
-                $usersWithRoles = User::where(function ($query) use ($search) {
-                    $query->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('last_name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%')
-                        ->orWhere('sex', 'like', '%' . $search . '%')
-                        ->orWhere('infix', 'like', '%' . $search . '%')
-                        ->orWhere('birth_date', 'like', '%' . $search . '%')
-                        ->orWhere('street', 'like', '%' . $search . '%')
-                        ->orWhere('postal_code', 'like', '%' . $search . '%')
-                        ->orWhere('city', 'like', '%' . $search . '%')
-                        ->orWhere('phone', 'like', '%' . $search . '%')
-                        ->orWhere('id', 'like', '%' . $search . '%')
-                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-                })
-                    ->orderBy('last_name', 'asc')->get();
+                if (!empty($activityRoleIds)) {
+                    $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds) {
+                        $query->whereIn('role_id', $activityRoleIds);
+                    })
+                        ->where(function ($query) use ($search) {
+                            $query->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('last_name', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%')
+                                ->orWhere('sex', 'like', '%' . $search . '%')
+                                ->orWhere('infix', 'like', '%' . $search . '%')
+                                ->orWhere('birth_date', 'like', '%' . $search . '%')
+                                ->orWhere('street', 'like', '%' . $search . '%')
+                                ->orWhere('postal_code', 'like', '%' . $search . '%')
+                                ->orWhere('city', 'like', '%' . $search . '%')
+                                ->orWhere('phone', 'like', '%' . $search . '%')
+                                ->orWhere('id', 'like', '%' . $search . '%')
+                                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                        })
+                        ->orderBy('last_name', 'asc')->get();
+                } else {
+                    $usersWithRoles = User::where(function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('last_name', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%')
+                            ->orWhere('sex', 'like', '%' . $search . '%')
+                            ->orWhere('infix', 'like', '%' . $search . '%')
+                            ->orWhere('birth_date', 'like', '%' . $search . '%')
+                            ->orWhere('street', 'like', '%' . $search . '%')
+                            ->orWhere('postal_code', 'like', '%' . $search . '%')
+                            ->orWhere('city', 'like', '%' . $search . '%')
+                            ->orWhere('phone', 'like', '%' . $search . '%')
+                            ->orWhere('id', 'like', '%' . $search . '%')
+                            ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                    })
+                        ->orderBy('last_name', 'asc')->get();
+                }
             }
+
+            $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
+
+            $users = $usersWithRoles->merge($mentionedUsers)->unique('id');
+
+
         }
-
-        $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
-
-        $users = $usersWithRoles->merge($mentionedUsers)->unique('id');
-
         $userPresenceArray = $users->mapWithKeys(function ($user) use ($activity) {
             $presenceRecord = Presence::where('activity_id', $activity->id)
                 ->where('user_id', $user->id)
@@ -456,7 +594,7 @@ class AgendaController extends Controller
             $user->presence = $userPresenceArray->get($user->id, 'null');
         });
 
-        // Sort users by presence status and then by last name
+        // Sort users
         $sortedUsers = $users->sort(function ($a, $b) {
             $presenceOrder = ['present' => 1, 'absent' => 2, 'null' => 3];
             $aPresence = $presenceOrder[$a->presence] ?? 3;
@@ -476,7 +614,8 @@ class AgendaController extends Controller
             'users' => $sortedUsers,
             'all_roles' => $all_roles,
             'selected_role' => $selected_role,
-            'search' => $search
+            'search' => $search,
+            'lesson' => $lesson,
         ]);
     }
 
@@ -510,7 +649,9 @@ class AgendaController extends Controller
             $user->roles->contains('role', 'Bestuur') ||
             $user->roles->contains('role', 'Praktijkbegeleider') ||
             $user->roles->contains('role', 'Loodsen Mentor') ||
-            $user->roles->contains('role', 'Ouderraad')
+            $user->roles->contains('role', 'Ouderraad') ||
+            $user->roles->contains('role', 'Loods') ||
+            $user->roles->contains('role', 'Afterloods')
         ) {
             $canViewAll = true;
         }
@@ -539,11 +680,40 @@ class AgendaController extends Controller
 
 
         // Fetch activities for the calculated month and year
-        $activities = Activity::whereYear('date_start', $calculatedYear)
-            ->whereMonth('date_start', $calculatedMonth)
-            ->orWhere(function ($query) use ($calculatedYear, $calculatedMonth) {
-                $query->whereYear('date_end', $calculatedYear)
-                    ->whereMonth('date_end', $calculatedMonth);
+        $lessonId = $request->query('lessonId');
+        $lesson = Lesson::find($lessonId);
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = false;
+        $isTeacher = false;
+        if (isset($lesson)) {
+            $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+                $lesson->user_id === $user->id ||
+                $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists();
+        }
+
+        $activities = Activity::when($lessonId, function ($query) use ($lessonId) {
+            // If lessonId is provided, filter by lesson_id
+            return $query->where('lesson_id', $lessonId);
+        }, function ($query) use ($canViewAll) {
+            // If no lessonId is provided and $canViewAll is false, exclude activities with a connected lesson
+            if (!$canViewAll) {
+                return $query->whereNull('lesson_id');
+            }
+        })
+            ->where(function ($query) use ($calculatedYear, $calculatedMonth) {
+                $query->whereYear('date_start', $calculatedYear)
+                    ->whereMonth('date_start', $calculatedMonth)
+                    ->orWhere(function ($query) use ($calculatedYear, $calculatedMonth) {
+                        $query->whereYear('date_end', $calculatedYear)
+                            ->whereMonth('date_end', $calculatedMonth);
+                    });
             })
             ->get()
             ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll) {
@@ -581,7 +751,7 @@ class AgendaController extends Controller
 
                     if ($canViewAll) {
                         // Highlight only if there are roles or users and the user doesn't have access
-                        $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
+                        $activity->should_highlight = (!$hasRoleAccess && !$isUserListed);
                         return true; // Keep activity in the list
                     } else {
                         // Hide activity if the user doesn't have access, but allow visibility if their child has access
@@ -589,6 +759,7 @@ class AgendaController extends Controller
                     }
                 }
             });
+
 
         $globalRowTracker = [];
         $activityPositions = [];
@@ -628,6 +799,8 @@ class AgendaController extends Controller
             'activities' => $activities,
             'wantViewAll' => $wantViewAll,
             'activityPositions' => $activityPositions,
+            'lesson' => $lesson,
+            'isTeacher' => $isTeacher
         ]);
     }
 
@@ -736,25 +909,28 @@ class AgendaController extends Controller
 
         // Check if the user is either the authenticated user or a child of the authenticated user
         if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
-            $presence = Presence::where('user_id', $userId) // This will be the child ID if present
-            ->where('activity_id', $activityId)
+            $presence = Presence::where('user_id', $userId)
+                ->where('activity_id', $activityId)
                 ->first();
 
             if ($presence) {
                 $presence->update(['presence' => 1]);
             } else {
                 Presence::create([
-                    'user_id' => $userId, // This will be the child ID if present
+                    'user_id' => $userId,
                     'activity_id' => $activityId,
                     'presence' => 1,
                 ]);
             }
 
+            // Append query parameters to the redirect URL
+            $queryParams = request()->query();
+            $redirectUrl = route('agenda.activity', $activityId) . ($queryParams ? '?' . http_build_query($queryParams) : '');
 
             if ($userId === Auth::id()) {
-                return redirect()->route('agenda.activity', $activityId)->with('success', 'Je bent aanwezig gemeld!');
+                return redirect($redirectUrl)->with('success', 'Je bent aanwezig gemeld!');
             } else {
-                return redirect()->route('agenda.activity', $activityId)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is aanwezig gemeld!');
+                return redirect($redirectUrl)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is aanwezig gemeld!');
             }
         } else {
             return redirect()->route('agenda.activity', $activityId)->with('error', 'Dit account kan niet aanwezig gemeld worden');
@@ -768,23 +944,28 @@ class AgendaController extends Controller
 
         // Check if the user is either the authenticated user or a child of the authenticated user
         if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
-            $presence = Presence::where('user_id', $userId) // This will be the child ID if present
-            ->where('activity_id', $activityId)
+            $presence = Presence::where('user_id', $userId)
+                ->where('activity_id', $activityId)
                 ->first();
 
             if ($presence) {
                 $presence->update(['presence' => 0]);
             } else {
                 Presence::create([
-                    'user_id' => $userId, // This will be the child ID if present
+                    'user_id' => $userId,
                     'activity_id' => $activityId,
                     'presence' => 0,
                 ]);
             }
+
+            // Append query parameters to the redirect URL
+            $queryParams = request()->query();
+            $redirectUrl = route('agenda.activity', $activityId) . ($queryParams ? '?' . http_build_query($queryParams) : '');
+
             if ($userId === Auth::id()) {
-                return redirect()->route('agenda.activity', $activityId)->with('success', 'Je bent afwezig gemeld, jammer dat je er niet bij bent!');
+                return redirect($redirectUrl)->with('success', 'Je bent afwezig gemeld, jammer dat je er niet bij bent!');
             } else {
-                return redirect()->route('agenda.activity', $activityId)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is afwezig gemeld!');
+                return redirect($redirectUrl)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is afwezig gemeld!');
             }
         } else {
             return redirect()->route('agenda.activity', $activityId)->with('error', 'Dit account kan niet afwezig gemeld worden');
@@ -808,6 +989,8 @@ class AgendaController extends Controller
             $user->roles->contains('role', 'Bestuur') ||
             $user->roles->contains('role', 'Praktijkbegeleider') ||
             $user->roles->contains('role', 'Loodsen Mentor') ||
+            $user->roles->contains('role', 'Loods') ||
+            $user->roles->contains('role', 'Afterloods') ||
             $user->roles->contains('role', 'Ouderraad')
         ) {
             $canViewAll = true;
@@ -842,7 +1025,33 @@ class AgendaController extends Controller
         $childrenIds = $user->children->pluck('id')->toArray();
 
         // Retrieve activities between the start of the calculated month and 3 months later
-        $activities = Activity::whereBetween('date_start', [$startDate, $endDate])
+        $lessonId = $request->query('lessonId'); // Retrieve the lesson ID from the URI query parameters
+        $lesson = Lesson::find($lessonId);
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = false;
+        if (isset($lesson)) {
+            $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+                $lesson->user_id === $user->id ||
+                $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists();
+        }
+
+
+        $activities = Activity::when($lessonId, function ($query) use ($lessonId) {
+            // If lessonId is provided, filter by lesson_id
+            return $query->where('lesson_id', $lessonId);
+        }, function ($query) use ($canViewAll) {
+            // If no lessonId is provided and $canViewAll is false, exclude activities with a connected lesson
+            if (!$canViewAll) {
+                return $query->whereNull('lesson_id');
+            }
+        })
+            ->whereBetween('date_start', [$startDate, $endDate])
             ->orderBy('date_start')
             ->get()
             ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds) {
@@ -886,6 +1095,7 @@ class AgendaController extends Controller
                 }
             });
 
+
         // Return view with activities data
         return view('agenda.schedule', [
             'activities' => $activities,
@@ -896,6 +1106,8 @@ class AgendaController extends Controller
             'year' => $calculatedYear,
             'dayOffset' => $dayOffset,
             'wantViewAll' => $wantViewAll,
+            'lesson' => $lesson,
+            'isTeacher' => $isTeacher
         ]);
     }
 
@@ -970,7 +1182,22 @@ class AgendaController extends Controller
             ->first();
         $presenceStatus = $userPresence ? $userPresence->presence : null;
 
+        // Retrieve activities between the start of the calculated month and 3 months later
+        $lessonId = $request->query('lessonId'); // Retrieve the lesson ID from the URI query parameters
+        $lesson = Lesson::find($lessonId);
 
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = false;
+        if (isset($lesson)) {
+            $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+                $lesson->user_id === $user->id ||
+                $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists();
+        }
         // Fetch roles and users for the activity
         $activityRoleIds = !empty($activity->roles)
             ? array_map('trim', explode(',', $activity->roles))
@@ -1052,7 +1279,9 @@ class AgendaController extends Controller
             'wantViewAll' => $wantViewAll,
             'view' => $view,
             'allowedChildren' => $allowedChildren,
-            'canAlwaysView' => $canAlwaysView
+            'canAlwaysView' => $canAlwaysView,
+            'lesson' => $lesson,
+            'isTeacher' => $isTeacher
         ]);
     }
 
@@ -1080,15 +1309,18 @@ class AgendaController extends Controller
     }
 
 
-    public function createAgenda()
+    public function createAgenda(Request $request)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         $all_roles = Role::all();
 
+        $lessonId = $request->query('lessonId'); // Retrieve the lesson ID from the URI query parameters
+        $lesson = Lesson::find($lessonId);
 
-        return view('agenda.add', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles]);
+
+        return view('agenda.add', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'lesson' => $lesson]);
     }
 
     public function createAgendaSave(Request $request)
@@ -1107,6 +1339,7 @@ class AgendaController extends Controller
             'location' => 'string|nullable',
             'organisator' => 'string|nullable',
             'image' => 'mimes:jpeg,png,jpg,gif,webp|max:6000',
+            'lesson_id' => 'integer|nullable',
 
 
             'form_labels' => 'nullable|array',
@@ -1145,6 +1378,7 @@ class AgendaController extends Controller
                     'image' => $newPictureName,
                     'public' => $request->input('public'),
                     'presence' => $request->input('presence'),
+                    'lesson_id' => $request->input('lesson_id')
                 ]);
 
                 // Log the creation of the activity
@@ -1177,7 +1411,11 @@ class AgendaController extends Controller
                     $log->createLog(auth()->user()->id, 2, 'Create activity form', 'agenda', 'Activity id: ' . $activity->id, 'Er is een inschrijfformulier aangemaakt.');
                 }
 
-                return redirect()->route('agenda.new')->with('success', 'Je agendapunt is opgeslagen!');
+                if ($request->input('lesson_id') === null) {
+                    return redirect()->route('agenda.new')->with('success', 'Je agendapunt is opgeslagen!');
+                } else {
+                    return redirect()->route('agenda.month', ['lessonId' => $request->input('lesson_id')])->with('success', 'Je agendapunt is opgeslagen!');
+                }
             } else {
                 throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
             }
@@ -1188,8 +1426,30 @@ class AgendaController extends Controller
         }
     }
 
-    public function deleteActivity($id)
+    public function deleteActivity(Request $request, $id)
     {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $lessonId = $request->query('lessonId');
+        $lesson = $lessonId ? Lesson::find($lessonId) : null;
+
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists());
+
+        if (isset($lesson) && !$isTeacher) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete activity', 'activity', 'Actvity id: ' . $id, 'Activiteit bestaat niet');
+            return redirect()->route('agenda.edit.activity', $id)->with('error', 'Je hebt hier geen toegang tot.');
+        }
+
         try {
             $activity = Activity::find($id);
         } catch (ModelNotFoundException $exception) {
@@ -1210,8 +1470,11 @@ class AgendaController extends Controller
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Delete activity', 'activity', $activity->title, '');
 
-        return redirect()->route('agenda.edit')->with('success', 'Je activiteit is verwijderd');
-
+        if (isset($lesson)) {
+            return redirect()->route('agenda.edit', ['lessonId' => $lesson->id])->with('success', 'Je agendapunt is verwijderd');
+        } else {
+            return redirect()->route('agenda.edit')->with('success', 'Je activiteit is verwijderd');
+        }
     }
 
 }

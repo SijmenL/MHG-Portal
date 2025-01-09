@@ -224,7 +224,8 @@ class ForumController extends Controller
                         ->orWhere('city', 'like', '%' . $search . '%')
                         ->orWhere('phone', 'like', '%' . $search . '%')
                         ->orWhere('id', 'like', '%' . $search . '%')
-                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                        ->orWhere('dolfijnen_name', 'like', '%' . $search . '%')
+                        ->orWhereRaw("CONCAT(name, ' ', COALESCE(infix, ''), ' ', last_name) LIKE ?", ['%' . $search . '%']);
                 });
         })->get();
 
@@ -240,13 +241,14 @@ class ForumController extends Controller
                 ->orWhere('city', 'like', '%' . $search . '%')
                 ->orWhere('phone', 'like', '%' . $search . '%')
                 ->orWhere('id', 'like', '%' . $search . '%')
-                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
+                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%')
+                ->orWhereRaw("CONCAT(name, ' ', COALESCE(infix, ''), ' ', last_name) LIKE ?", ['%' . $search . '%']);
         })
             ->whereNotIn('id', $ids)
             ->orderBy('created_at', 'asc')
             ->get();
 
-        $remainingUsersCount = max(0,($selectedUsers->count() + $remainingUsers->count()) - 7);
+        $remainingUsersCount = max(0, ($selectedUsers->count() + $remainingUsers->count()) - 7);
 
         $firstNineUsers = $selectedUsers->merge($remainingUsers)->splice(0, 7);
 
@@ -265,6 +267,7 @@ class ForumController extends Controller
 
         return response()->json($usersWithRemainingCount);
     }
+
 
 
 

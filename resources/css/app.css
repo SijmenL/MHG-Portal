@@ -150,6 +150,7 @@ h1, .h1 {
     color: rgb(128, 128, 128);
 }
 
+
 .btn-admin {
     border: 2px #ffb3af solid;
     background-color: rgb(255, 217, 215);
@@ -800,6 +801,12 @@ table, th, td, label {
     box-shadow: 0px 3px 20px -10px rgba(0, 0, 0, 0.75);
 }
 
+.no-shadow {
+    -webkit-box-shadow: none !important;
+    -moz-box-shadow: none !important;
+    box-shadow: none !important;
+}
+
 .user-list {
     display: flex;
     flex-direction: row;
@@ -979,6 +986,16 @@ th .form-control, .form-select {
 
 .calendar-event-highlight {
     background-color: #ffb3af;
+}
+
+.calendar-event-highlight-disabled {
+    color: black !important;
+    background-color: #e1e1e1 !important;
+    cursor: default !important;
+}
+
+.cursor-default {
+    cursor: default !important;
 }
 
 .calendar-cell-text {
@@ -1340,6 +1357,7 @@ th .form-control, .form-select {
         scrollbar-width: none;
     }
 
+
     .navbar-info ul {
         align-items: center;
     }
@@ -1441,6 +1459,19 @@ th .form-control, .form-select {
 
     .calendar-event:not(.calendar-event-first):not(.calendar-event-last) {
         border-radius: 0;
+    }
+
+}
+
+
+
+@media screen and (min-width: 768px) and (max-width: 1199px) {
+    .nav-link {
+        font-size: 15px;
+    }
+
+    .no-tablet {
+        display: none !important;
     }
 
 }
@@ -1592,10 +1623,6 @@ th .form-control, .form-select {
         width: 100%;
     }
 
-
-    .no-tablet {
-        display: none !important;
-    }
 
     .logo-text {
         display: block;
