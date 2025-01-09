@@ -10,13 +10,20 @@ class Post extends Model
     protected $fillable = [
         'content',
         'user_id',
-        'location'
+        'location',
+        'lesson_id'
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class, 'lesson_id');
+    }
+
 
     public function comments()
     {

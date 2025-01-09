@@ -20,29 +20,48 @@
 
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
-                <h1 class="">Activiteiten bewerken</h1>
-                <nav aria-label="breadcrumb">
+                @if(!isset($lesson))
+                    <h1 class="">Activiteiten bewerken</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Activiteiten bewerken</li>
+                        </ol>
+                    </nav>
+
+                    <p>Bewerk de activiteiten die je hebt aangemaakt.</p>
+
+                @else
+                    <h1 class="">Agendapunten bewerken</h1>
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Activiteiten bewerken</li>
+                        <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
+                        </li>
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Agendapunten bewerken</li>
                     </ol>
-                </nav>
-
-                <p>Bewerk de activiteiten die je hebt aangemaakt.</p>
-
-                <form id="auto-submit" method="GET" class="user-select-forum-submit">
-                    <div class="d-flex">
-                        <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100">
-                            <div class="input-group">
-                                <label for="search" class="input-group-text" id="basic-addon1">
-                                    <span class="material-symbols-rounded">search</span></label>
-                                <input id="search" name="search" type="text" class="form-control"
-                                       placeholder="Zoeken op activiteiten"
-                                       aria-label="Zoeken" aria-describedby="basic-addon1" value="{{ $search }}" onchange="this.form.submit();">
+                @endif
+                    <form id="auto-submit" method="GET" class="user-select-forum-submit">
+                        <div class="d-flex">
+                            <div class="d-flex flex-row-responsive gap-2 align-items-center mb-3 w-100">
+                                <div class="input-group">
+                                    <label for="search" class="input-group-text" id="basic-addon1">
+                                        <span class="material-symbols-rounded">search</span></label>
+                                    <input id="search" name="search" type="text" class="form-control"
+                                           placeholder="Zoeken op activiteiten"
+                                           aria-label="Zoeken" aria-describedby="basic-addon1" value="{{ $search }}"
+                                           onchange="this.form.submit();">
+                                </div>
                             </div>
+                            @if(isset($lesson))
+                                <input type="hidden" name="lessonId" value="{{$lesson->id}}">
+                            @endif
                         </div>
-                    </div>
-                </form>
+                    </form>
+
 
                 @if(count($activities) > 0)
                     @php
@@ -68,7 +87,8 @@
                             </div>
                         @endif
 
-                        <a href="{{ route('agenda.edit.activity', [$activity->id]) }}" class="text-decoration-none"
+                        <a href="@if(!isset($lesson)){{ route('agenda.edit.activity', [$activity->id]) }} @else {{ route('agenda.edit.activity', [$activity->id, 'lessonId' => $lesson->id]) }} @endif"
+                           class="text-decoration-none"
                            style="color: unset">
                             <div class="d-flex flex-row">
                                 <div style="width: 50px"
@@ -76,7 +96,8 @@
                                     <p class="day-name">{{ mb_substr($activitiesStart->translatedFormat('l'), 0, 2) }}</p>
                                     <p class="day-number">{{ $activitiesStart->format('j') }}</p>
                                 </div>
-                                <div class="event mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between">
+                                <div
+                                    class="event mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between">
                                     <div class="d-flex flex-column justify-content-between">
                                         <div>
                                             @if($activitiesStart->isSameDay($activityEnd))
@@ -115,7 +136,8 @@
                     {{ $activities->links() }}
                 @else
                     <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
-                        <span class="material-symbols-rounded me-2">event_busy</span>Geen activiteiten gevonden die je hebt aangemaakt...
+                        <span class="material-symbols-rounded me-2">event_busy</span>Geen activiteiten gevonden die je
+                        hebt aangemaakt...
                     </div>
                 @endif
 

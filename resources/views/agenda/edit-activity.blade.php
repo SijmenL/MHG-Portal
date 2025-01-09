@@ -65,7 +65,20 @@
 
     <div class="container col-md-11">
         <h1>Bewerk {{ $activity->title }}</h1>
-
+        @if(isset($lesson))
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
+                    <li class="breadcrumb-item"><a
+                            href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a></li>
+                    <li class="breadcrumb-item"><a
+                            href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
+                    </li>
+                    <li class="breadcrumb-item"><a href="{{ route('agenda.edit', ['lessonId' => $lesson->id]) }}">Agendapunten bewerken</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Bewerk {{ $activity->title }}</li>
+                </ol>
+            </nav>
+        @else
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
@@ -73,6 +86,9 @@
                 <li class="breadcrumb-item active" aria-current="page">Bewerk {{ $activity->title }}</li>
             </ol>
         </nav>
+
+        @endif
+
 
         @if(Session::has('error'))
             <div class="alert alert-danger" role="alert">
@@ -154,6 +170,7 @@
                     </div>
 
 
+                        @if(!isset($lesson))
                     <div class="mt-4">
                         <div class="d-flex flex-row-responsive justify-content-between align-items-center">
                             <h2 class="flex-row gap-3"><span
@@ -363,6 +380,7 @@
 
 
                     </div>
+                    @endif
 
 
                     <div class="mt-4">
@@ -416,6 +434,8 @@
                             @enderror
                         </div>
 
+                        @if(!isset($lesson))
+
                         <div class="w-100">
                             <label for="public" class="col-form-label ">Maak dit een openbare activiteit (Het zal ook op
                                 de
@@ -433,6 +453,7 @@
                             @enderror
                         </div>
 
+
                         <div class="w-100">
                             <label for="price" class="col-form-label ">Prijs (als je dit
                                 veld leeg laat vermelden we de prijs niet en voor een gratis evenement kun je 0
@@ -448,6 +469,10 @@
                                     </span>
                             @enderror
                         </div>
+                        @else
+                            <input name="public" type="hidden" value="0">
+                            <input name="lesson_id" type="hidden" value="{{$lesson->id}}">
+                        @endif
 
                         <div class="d-flex flex-column">
                             <label for="location" class="col-form-label ">Locatie, bijvoorbeeld "De veste" of "Sluisweg
@@ -459,6 +484,8 @@
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
+
+                        @if(!isset($lesson))
 
                         <div class="d-flex flex-column">
                             <label for="organisator" class="col-form-label ">Organisatie, bijvoorbeeld "De Loodsen" of
@@ -563,6 +590,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                     <div>
                         @error('roles')
@@ -597,11 +625,19 @@
                             <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
                             <span style="display: none" class="loading-text" role="status">Laden...</span>
                         </button>
+                        @if(isset($lesson))
+                            <a class="btn btn-danger text-white" href="{{ route('agenda.edit', ['lessonId' => $lesson->id]) }}">Annuleren</a>
+                            <a class="delete-button btn btn-outline-danger"
+                               data-id="{{ $activity->id }}"
+                               data-name="{{ $activity->title }}"
+                               data-link="{{ route('agenda.delete', [$activity->id, 'lessonId' => $lesson->id]) }}">Verwijderen</a>
+                        @else
                         <a class="btn btn-danger text-white" href="{{ route('agenda.edit') }}">Annuleren</a>
                         <a class="delete-button btn btn-outline-danger"
                            data-id="{{ $activity->id }}"
                            data-name="{{ $activity->title }}"
                            data-link="{{ route('agenda.delete', $activity->id) }}">Verwijderen</a>
+                        @endif
                     </div>
 
                 </form>

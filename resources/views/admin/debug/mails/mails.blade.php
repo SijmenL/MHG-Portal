@@ -43,6 +43,8 @@
             <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'add_parent') }}">add_parent</a>
             <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'delete_parent') }}">delete_parent</a>
             <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'delete_child') }}">delete_child</a>
+            <br>
+            <a class="btn btn-info" href="{{ route('admin.debug.mail.view', 'new_exam_result') }}">new_exam_result</a>
 
         </div>
     </div>

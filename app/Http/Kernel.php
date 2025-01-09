@@ -14,6 +14,7 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
         'checkAccepted' => \App\Http\Middleware\CheckAccepted::class,
+        'checkLesson' => \App\Http\Middleware\CheckLesson::class,
     ];
 
     /**

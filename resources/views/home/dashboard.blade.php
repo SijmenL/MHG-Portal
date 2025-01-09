@@ -6,26 +6,38 @@
     {{-- Blade file, e.g., home/dashboard.blade.php --}}
     <div id="newPopUp" class="popup" style="margin-top: -122px; display: none">
         <div class="popup-body overflow-hidden">
-            <h2>Wat is er nieuw in versie 2.2?</h2>
+            <h2>Wat is er nieuw in versie 3.0?</h2>
 
             <div class="tab-container no-scrolbar" style="overflow-x: auto; white-space: nowrap;">
                 <ul class="nav nav-tabs flex-nowrap" style="max-width: calc(100vw - 40px)" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link active" id="tab1-tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Notificaties</a>
+                        <a class="nav-link active" id="tab1-tab" href="#tab1" role="tab" aria-controls="tab1"
+                           aria-selected="true">Lessen</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="tab1-tab" href="#tab2" role="tab" aria-controls="tab2"
+                           aria-selected="true">Archief</a>
                     </li>
                 </ul>
             </div>
 
             <div class="tab-content w-100 bg-light rounded p-4">
                 <div class="text-start tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
-                    <h4>Posts werden te vaak verstuurd</h4>
-                    <p>Als de mailtjes verstuurd worden heeft het systeem even nodig achter de schermen. Alle
-                        opslaan knoppen hebben nu een animatie om dit aan te geven en worden uitgezet om meerdere posts te
-                        voorkomen doordat de gebruiker te vaak op de knop klikt.</p>
+                    <h4>De nieuwe leeromgeving</h4>
+                    <p>Praktijkbegeleiders kunnen een leeromgeving aanmaken waarop ze bestanden, examenuitslagen, de lesplanning en
+                        posts kunnen delen.</p>
+                    <p>Wanneer je meedoet met CWO of Roei-insigne zul je de knop vanzelf zien verschijnen op het
+                        dashboard.</p>
+                    <p>Het lesmateriaal blijft beschikbaar.</p>
                 </div>
-            <button id="close-new-popup" class="btn btn-outline-danger mt-2" style="float: none;">
-                <span class="material-symbols-rounded">close</span>
-            </button>
+                <div class="text-start tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                    <h4>Archief</h4>
+                    <p>18+ leden kunnen vanaf het dashboard het MHG archief bekijken.</p>
+                    <p>In de toekomst zal er meer in deze OneDrive map komen te staan.</p>
+                </div>
+                <button id="close-new-popup" class="btn btn-outline-danger mt-2" style="float: none;">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
             </div>
 
         </div>
@@ -48,7 +60,7 @@
                 <p>Het portaal opent altijd op de beginpagina, oftewel het dashboard. Deze ziet er voor iedereen anders
                     uit, op basis van wat je binnen de club kan en mag. Er kunnen altijd knoppen bijkomen in toekomstige
                     updates.</p>
-                <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/dashboard.png') }}">
+                <img alt="tutorial" class="w-100" src="{{ asset('img/tutorial/dashboard.png') }}">
             </div>
             <div class="page" style="display: none">
                 <h2>Speltak</h2>
@@ -61,7 +73,7 @@
                         <p>Verder kun je ook de informatie van de leiding oproepen, zoals telefoonnummers en
                             verenigingsgebonden e-mailadressen.</p>
                     </div>
-                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/speltakpagina.png') }}">
+                    <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/speltakpagina.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -74,7 +86,7 @@
                             niemand anders je post aanpassen.</p>
                         <p>Posts worden in de gaten gehouden door team Admin en de leiding van de speltak.</p>
                     </div>
-                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/post.png') }}">
+                    <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/post.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -92,7 +104,7 @@
                             bijvoorbeeld Afterloods is geweest of in de ouderraad zit. Je kan ook een volledig nieuw
                             account aanmaken.</p>
                     </div>
-                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/settings.png') }}">
+                    <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/settings.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -104,7 +116,7 @@
                             Afterloodsen zit.</p>
                         <p>Een kindkoppeling kan altijd door de ouder verwijderd worden.</p>
                     </div>
-                    <img alt="tutorial"  class="w-75" src="{{ asset('img/tutorial/delete-parent.png') }}">
+                    <img alt="tutorial" class="w-75" src="{{ asset('img/tutorial/delete-parent.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -121,18 +133,19 @@
                         <p>Notificaties met een lichte kleur zijn nog ongelezen.</p>
                         <p>Alle notificaties die je hier ontvangt, ontvang je ook per mail.</p>
                     </div>
-                    <img alt="tutorial"  class="w-75" src="{{ asset('img/tutorial/notificaties.png') }}">
+                    <img alt="tutorial" class="w-75" src="{{ asset('img/tutorial/notificaties.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
                 <h2>Agenda</h2>
                 <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                     <div style="text-align: start">
-                        <p>Op ons ledenportaal is een agenda te vinden waar we alle activiteiten in zetten die belangrijk zijn. Denk hierbij aan een kamp of een bijeenkomst.</p>
+                        <p>Op ons ledenportaal is een agenda te vinden waar we alle activiteiten in zetten die
+                            belangrijk zijn. Denk hierbij aan een kamp of een bijeenkomst.</p>
                         <p>De aanwezigheid gaat ook via deze agenda. Je kunt je per activiteit aan of afmelden.</p>
-                        <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/aanwezigheid.png') }}">
+                        <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/aanwezigheid.png') }}">
                     </div>
-                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/activiteit.png') }}">
+                    <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/activiteit.png') }}">
                 </div>
             </div>
             @if($user->children()->count() > 0)
@@ -144,7 +157,7 @@
                                     href="{{ route('children') }}">Mijn Kinderen</a> pagina.</p>
                             <p>Op deze pagina kan je de persoonsgegevens van je kinderen aanpassen.</p>
                         </div>
-                        <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/kinderen.png') }}">
+                        <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/kinderen.png') }}">
                     </div>
                 </div>
 
@@ -152,8 +165,10 @@
                     <h2>Kinderen</h2>
                     <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                         <div style="text-align: start">
-                            <p>Als ouder kun je alle activiteiten van je kinderen ook bekijken en kun je ze aan- of afmelden.</p>
-                        <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/aanwezigheid-kinderen.png') }}">
+                            <p>Als ouder kun je alle activiteiten van je kinderen ook bekijken en kun je ze aan- of
+                                afmelden.</p>
+                            <img alt="tutorial" class="w-100"
+                                 src="{{ asset('img/tutorial/aanwezigheid-kinderen.png') }}">
                         </div>
                     </div>
                 </div>
@@ -178,12 +193,12 @@
                     <p>Op deze pagina valt ook een archief te vinden van de notules van de afgelopen groepsraden.</p>
 
                     <p>Ook is er een grote lijst te zien waar iedereen binnen de organisatie te vinden is.</p>
-                    <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
+                    <img alt="tutorial" class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
                 @else
                     <p>Op de pagina <a href="{{ route('leiding.leiding') }}">Leiding & Organisatie</a> is een overzicht
                         te vinden met alle belangrijke contactpersonen binnen de club. Je kan hier de telefoonnummers en
                         clubgebonden e-mailadressen opvragen.</p>
-                    <img alt="tutorial"  class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
+                    <img alt="tutorial" class="w-100" src="{{ asset('img/tutorial/team admin.png') }}">
                 @endif
             </div>
             <div class="page" style="display: none">
@@ -195,7 +210,7 @@
                         <p>Als je een nieuwtje instuurt wordt deze eerst nagekeken voordat deze online komt te
                             staan.</p>
                     </div>
-                    <img alt="tutorial"  class="w-50" src="{{ asset('img/tutorial/nieuws.png') }}">
+                    <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/nieuws.png') }}">
                 </div>
             </div>
             <div class="page" style="display: none">
@@ -293,6 +308,18 @@
                     </a>
                 @endif
 
+                @if($user && $user->accepted === 1 && (
+        $user->roles->contains('role', 'Administratie') ||
+        $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+        $user->roles->contains('role', 'Praktijkbegeleider') ||
+        $user->lessons->isNotEmpty() // Check if the user is associated with any lessons
+    ))
+                    <a class="btn btn-info quick-action" href="{{ route('lessons') }}">
+                        <span class="material-symbols-rounded">school</span>
+                        <p>Lessen</p>
+                    </a>
+                @endif
+
 
                 @if($user &&
                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
@@ -381,20 +408,40 @@
                     </a>
                 @endif
 
+                @if($user && $user->accepted === 1 &&
+                                   ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                                   $user->roles->contains('role', 'Loods') ||
+                                   $user->roles->contains('role', 'Afterloods') ||
+                                   $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                                   $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                                   $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                                   $user->roles->contains('role', 'Vrijwilliger') ||
+                                   $user->roles->contains('role', 'Administratie') ||
+                                   $user->roles->contains('role', 'Bestuur') ||
+                                   $user->roles->contains('role', 'Praktijkbegeleider') ||
+                                   $user->roles->contains('role', 'Loodsen Mentor') ||
+                                   $user->roles->contains('role', 'Ouderraad'))
+                                   )
+                    <a class="btn btn-secondary quick-action" target="_blank"
+                       href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/Eupj-GlJrWpAtLXTDg5UP-MBTEwXSY3_0QhLDven31IqBg?e=LboRQr">
+                        <span class="material-symbols-rounded">archive</span>
+                        <p>Club archief</p>
+                    </a>
+                @endif
 
-                {{--                                                <a class="btn btn-secondary quick-action" href="">--}}
-                {{--                                                    <span class="material-symbols-rounded">archive</span>--}}
-                {{--                                                    <p>Club archief</p>--}}
-                {{--                                                </a>--}}
-                <a class="btn btn-secondary quick-action" href="{{ route('news') }}">
-                    <span class="material-symbols-rounded">news</span>
-                    <p>Nieuws</p>
-                </a>
-                @if($user &&
+                @if($user && $user->accepted === 1)
+                    <a class="btn btn-secondary quick-action" href="{{ route('news') }}">
+                        <span class="material-symbols-rounded">news</span>
+                        <p>Nieuws</p>
+                    </a>
+                @endif
+
+                @if($user && $user->accepted === 1 &&
                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                     $user->roles->contains('role', 'Loodsen Stamoudste') ||
                     $user->roles->contains('role', 'Loods') ||
+                    $user->roles->contains('role', 'Afterloods') ||
                     $user->roles->contains('role', 'Afterloodsen Organisator') ||
                     $user->roles->contains('role', 'Administratie') ||
                     $user->roles->contains('role', 'Bestuur') ||
@@ -407,10 +454,12 @@
                         <p>Agenda</p>
                     </a>
                 @else
-                    <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
-                        <span class="material-symbols-rounded">event</span>
-                        <p>Agenda</p>
-                    </a>
+                    @if($user->accepted === 1)
+                        <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
+                            <span class="material-symbols-rounded">event</span>
+                            <p>Agenda</p>
+                        </a>
+                    @endif
                 @endif
             </div>
         </div>

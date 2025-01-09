@@ -4,6 +4,7 @@ use App\Http\Controllers\AfterloodsenController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LeidingController;
+use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LoodsenController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NonLoggedInController;
@@ -146,6 +147,56 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 
     Route::get('/agenda/inschrijvingen', [AgendaController::class, 'agendaSubmissions'])->name('agenda.submissions');
     Route::get('/agenda/inschrijvingen/{id}', [AgendaController::class, 'agendaSubmissionsActivity'])->name('agenda.submissions.activity');
+});
+
+//Lessen
+Route::middleware(['checkLesson'])->group(function () {
+    Route::get('/lessen', [LessonController::class, 'lessons'])->name('lessons');
+
+    Route::get('/lessen/nieuw', [LessonController::class, 'lessonsNew'])->name('lessons.new');
+    Route::post('/lessen/nieuw', [LessonController::class, 'lessonsNewCreate'])->name('lessons.new.create');
+
+    Route::get('/lessen/omgeving/{lessonId}', [LessonController::class, 'lesson'])->name('lessons.environment.lesson');
+    Route::post('/lessen/omgeving/{lessonId}', [LessonController::class, 'postMessage'])->name('lessons.environment.lesson.message-post');
+
+    Route::get('/lessen/omgeving/{lessonId}/post/{id}', [LessonController::class, 'viewPost'])->name('lessons.environment.lesson.post');
+    Route::post('/lessen/omgeving/{lessonId}/post/{id}', [LessonController::class, 'postComment'])->name('lessons.environment.lesson.comment-post');
+    Route::post('/lessen/omgeving/{lessonId}/post/reaction/{id}/{commentId}', [LessonController::class, 'postReaction'])->name('lessons.environment.lesson.reaction-post');
+
+    Route::get('/lessen/omgeving/{lessonId}/post/edit/{id}', [LessonController::class, 'editPost'])->name('lessons.environment.lesson.post.edit');
+    Route::post('/lessen/omgeving/{lessonId}/post/edit/{id}', [LessonController::class, 'storePost'])->name('lessons.environment.lesson.post.store');
+
+    Route::get('/lessen/omgeving/{lessonId}/post/delete/{id}', [LessonController::class, 'deletePost'])->name('lessons.environment.lesson.post.delete');
+    Route::get('/lessen/omgeving/{lessonId}/comment/delete/{id}/{postId}', [LessonController::class, 'deleteComment'])->name('lessons.environment.lesson.comment.delete');
+
+    Route::get('/lessen/omgeving/{lessonId}/deelnemers', [LessonController::class, 'users'])->name('lessons.environment.lesson.users');
+    Route::post('/lessen/omgeving/{lessonId}/deelnemers/verwijder', [LessonController::class, 'userRemove'])->name('lessons.environment.lesson.users.delete');
+
+    Route::post('/lessen/omgeving/{lessonId}/deelnemers/praktijkbegeleider', [LessonController::class, 'updateTeachers'])->name('lessons.environment.lesson.users.add.teacher');
+    Route::post('/lessen/omgeving/{lessonId}/deelnemers/deelnemer', [LessonController::class, 'updateStudents'])->name('lessons.environment.lesson.users.add.student');
+
+
+    Route::get('/lessen/omgeving/{lessonId}/bestanden', [LessonController::class, 'files'])->name('lessons.environment.lesson.files');
+    Route::post('/lessen/omgeving/{lessonId}/bestanden', [LessonController::class, 'filesStore'])->name('lessons.environment.lesson.files.store');
+    Route::delete('/lessen/omgeving/{lessonId}/bestanden/{fileId}', [LessonController::class, 'filesDestroy'])->name('lessons.environment.lesson.files.destroy');
+
+    Route::get('/lessen/omgeving/{lessonId}/resultaten', [LessonController::class, 'results'])->name('lessons.environment.lesson.results');
+    Route::post('/lessen/omgeving/{lessonId}/resultaten', [LessonController::class, 'storeTest'])->name('lessons.environment.lesson.results.store');
+    Route::post('/lessen/omgeving/{lessonId}/resultaten/cijfers', [LessonController::class, 'storeGrades'])->name('lessons.environment.lesson.results.store.grades');
+
+    Route::get('/lessen/omgeving/{lessonId}/resultaten/{testId}/bewerk-examen', [LessonController::class, 'editExam'])->name('lessons.environment.lesson.results.edit.exam');
+    Route::post('/lessen/omgeving/{lessonId}/resultaten/{testId}/bewerk-examen', [LessonController::class, 'editExamStore'])->name('lessons.environment.lesson.results.edit.exam.store');
+
+    Route::get('/lessen/omgeving/{lessonId}/resultaten/{testId}/verwijder-examen', [LessonController::class, 'deleteExam'])->name('lessons.environment.lesson.results.exam.delete');
+
+
+    Route::get('/lessen/omgeving/{lessonId}/bewerk', [LessonController::class, 'editLesson'])->name('lessons.environment.lesson.edit');
+    Route::post('/lessen/omgeving/{lessonId}/bewerk', [LessonController::class, 'editLessonStore'])->name('lessons.environment.lesson.edit.store');
+
+    Route::get('/lessen/omgeving/{lessonId}/verwijder', [LessonController::class, 'deleteLesson'])->name('lessons.environment.lesson.delete');
+
+    Route::get('/lessen/omgeving/{lessonId}/planning', [LessonController::class, 'planningOptions'])->name('lessons.environment.lesson.planning');
+
 });
 
 

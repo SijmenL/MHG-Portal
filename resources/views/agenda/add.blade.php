@@ -64,6 +64,7 @@
     </div>
 
     <div class="container col-md-11">
+        @if(!isset($lesson))
         <h1>Voeg een activiteit toe</h1>
 
         <nav aria-label="breadcrumb">
@@ -72,6 +73,19 @@
                 <li class="breadcrumb-item active" aria-current="page">Voeg een activiteit toe</li>
             </ol>
         </nav>
+        @else
+            <h1 class="">Nieuw agendapunt</h1>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
+                <li class="breadcrumb-item"><a
+                        href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
+                </li>
+                <li class="breadcrumb-item"><a
+                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Nieuw agendapunt</li>
+            </ol>
+        @endif
 
         @if(Session::has('error'))
             <div class="alert alert-danger" role="alert">
@@ -145,7 +159,7 @@
                     </div>
 
 
-
+                @if(!isset($lesson))
                     <div class="mt-4">
                         <div class="d-flex flex-row-responsive justify-content-between align-items-center">
                             <h2 class="flex-row gap-3"><span
@@ -359,7 +373,7 @@
 
 
                     </div>
-
+                    @endif
 
                     <div class="mt-4">
                         <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">date_range</span>Datum &
@@ -411,6 +425,7 @@
                             @enderror
                         </div>
 
+                        @if(!isset($lesson))
                         <div class="w-100">
                             <label for="public" class="col-form-label ">Maak dit een openbare activiteit (Het zal ook op
                                 de
@@ -443,6 +458,10 @@
                                     </span>
                             @enderror
                         </div>
+                        @else
+                            <input name="public" type="hidden" value="0">
+                            <input name="lesson_id" type="hidden" value="{{$lesson->id}}">
+                        @endif
 
                         <div class="d-flex flex-column">
                             <label for="location" class="col-form-label ">Locatie, bijvoorbeeld "De veste" of "Sluisweg
@@ -454,6 +473,8 @@
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
+
+                        @if(!isset($lesson))
 
                         <div class="d-flex flex-column">
                             <label for="organisator" class="col-form-label ">Organisatie, bijvoorbeeld "De Loodsen" of
@@ -520,11 +541,11 @@
                                         <div id="collapseTwo" class="accordion-collapse collapse"
                                              data-bs-parent="#accordionExample">
                                             <div class="accordion-body">
-                                                <input id="users" name="users" type="text"
+                                                <input id="users" name="users" type="hidden"
                                                        class="user-select-window user-select-none form-control"
                                                        placeholder="Kies een gebruiker uit de lijst"
                                                        aria-label="user" aria-describedby="basic-addon1">
-                                                <div class="user-select-window-popup d-none mt-2"
+                                                <div class="user-select-window-popup no-shadow d-none mt-2"
                                                      style="position: unset; display: block !important;">
                                                     <h3>Selecteer gebruikers</h3>
                                                     <div class="input-group">
@@ -564,6 +585,7 @@
                         </span>
                         @enderror
                     </div>
+                        @endif
 
                     <button
                         onclick="function handleButtonClick(button) {
@@ -578,7 +600,7 @@
                                 button.closest('form').submit();
                             }
                             handleButtonClick(this)"
-                        class="btn btn-success flex flex-row align-items-center justify-content-center">
+                        class="btn mt-2 btn-success flex flex-row align-items-center justify-content-center">
                         <span class="button-text">Opslaan</span>
                         <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
                         <span style="display: none" class="loading-text" role="status">Laden...</span>

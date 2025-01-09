@@ -16,6 +16,22 @@
             zelf ook nieuwe bugs aan toe!
         </div>
 
+        <h2>Update 3.0</h2>
+        <p class="fst-italic">08/01/2025</p>
+        <ul>
+            <li class="added">De digitale lesomgeving is toegevoegd</li>
+            <ul>
+                <li class="added">Praktijkbegeleiders kunnen lesomgevingen aanmaken</li>
+                <li class="added">Lesomgevingen hebben hun eigen prikbord</li>
+                <li class="added">Lesomgevingen hebben hun eigen agenda</li>
+                <li class="added">Lesomgevingen kunnen deelnemers en praktijkbegeleiders bevatten. Praktijkbegeleiders zijn de docenten van de lesomgeving en kunnen dingen aanpassen</li>
+                <li class="added">Lesomgevingen hebben hun eigen bestanden die geüpload kunnen worden door de praktijkbegeleiders.</li>
+                <li class="added">Wanneer je bent toegevoegd aan een les kun je deze vanaf het dashboard bekijken.</li>
+            </ul>
+            <li class="added">Een link naar het MHG archief op de OneDrive is toegevoegd aan het dashboard voor 18+ leden.</li>
+            <li class="added">Algemene bugfixes.</li>
+        </ul>
+
         <h2>Update 2.2</h2>
         <p class="fst-italic">04/12/2024</p>
         <ul>

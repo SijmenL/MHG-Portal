@@ -43,12 +43,16 @@
                                         @endif
                                         @if($notification->location === 'afterloodsen')
                                             <img class="w-100" alt="afterloodsen"
-                                                 src="{{ asset('img/icons/afterloodsen.png') }}">
+                                                 src="{{ asset('img/icons/after_loodsen.png') }}">
                                         @endif
                                         @if($notification->location === 'leiding')
                                             <span
                                                 class="material-symbols-rounded notification-icon">supervisor_account</span>
                                         @endif
+                                            @if($notification->location === 'les')
+                                                <span
+                                                    class="material-symbols-rounded notification-icon">school</span>
+                                            @endif
                                         @if(!$notification->sender)
                                             <span
                                                 class="material-symbols-rounded notification-icon">instant_mix</span>
