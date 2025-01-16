@@ -7,11 +7,11 @@
 
 @section('content')
     @if(!isset($lesson))
-    <div class="header" style="background-image: url({{ asset('files/agenda/banner.jpg') }})">
-        <div>
-            <p class="header-title">Agenda</p>
+        <div class="header" style="background-image: url({{ asset('files/agenda/banner.jpg') }})">
+            <div>
+                <p class="header-title">Agenda</p>
+            </div>
         </div>
-    </div>
     @endif
     <div class="container col-md-11">
 
@@ -62,12 +62,12 @@
                         </nav>
 
 
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="show-all"
-                               @if($wantViewAll === 'true') checked @endif>
-                        <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging
-                            zien</label>
-                    </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="show-all"
+                                   @if($wantViewAll === 'true') checked @endif>
+                            <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging
+                                zien</label>
+                        </div>
                     @endif
 
                     <p>Welkom in jouw MHG Agenda! Hier vind je de komende activiteiten die voor jouw relevant zijn!</p>
@@ -100,11 +100,11 @@
                                     Maand
                                 </a>
                             @else
-                            <a class="nav-link"
-                               href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll]) }}#nav">
-                                <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_view_month</span>
-                                Maand
-                            </a>
+                                <a class="nav-link"
+                                   href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll]) }}#nav">
+                                    <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_view_month</span>
+                                    Maand
+                                </a>
                             @endif
                         </li>
                         <li class="nav-item">
@@ -120,20 +120,20 @@
 
         <div class="d-flex justify-content-between align-items-center">
             @if(!isset($lesson))
-            <div class="d-flex flex-row gap-0">
-                <a href="{{ route('agenda.schedule', ['month' => $monthOffset - 1, 'all' => $wantViewAll]) }}#agenda"
-                   class="btn d-flex align-items-center justify-content-center">
-                    <span class="material-symbols-rounded">arrow_back_ios</span>
-                </a>
-                <a href="{{ route('agenda.schedule', ['month' => 0, 'all' => $wantViewAll]) }}#agenda"
-                   class="btn d-flex align-items-center justify-content-center">
-                    <span class="material-symbols-rounded">home</span>
-                </a>
-                <a href="{{ route('agenda.schedule', ['month' => $monthOffset + 1, 'all' => $wantViewAll]) }}#agenda"
-                   class="btn d-flex align-items-center justify-content-center">
-                    <span class="material-symbols-rounded">arrow_forward_ios</span>
-                </a>
-            </div>
+                <div class="d-flex flex-row gap-0">
+                    <a href="{{ route('agenda.schedule', ['month' => $monthOffset - 1, 'all' => $wantViewAll]) }}#agenda"
+                       class="btn d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-rounded">arrow_back_ios</span>
+                    </a>
+                    <a href="{{ route('agenda.schedule', ['month' => 0, 'all' => $wantViewAll]) }}#agenda"
+                       class="btn d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-rounded">home</span>
+                    </a>
+                    <a href="{{ route('agenda.schedule', ['month' => $monthOffset + 1, 'all' => $wantViewAll]) }}#agenda"
+                       class="btn d-flex align-items-center justify-content-center">
+                        <span class="material-symbols-rounded">arrow_forward_ios</span>
+                    </a>
+                </div>
             @else
                 <div class="d-flex flex-row gap-0">
                     <a href="{{ route('agenda.schedule', ['month' => $monthOffset - 1, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#agenda"
@@ -166,6 +166,27 @@
                     $activityEnd = Carbon::parse($activity->date_end);
 
                     $activityMonth = $activitiesStart->translatedFormat('F');
+
+                    $lessonActivity = $activity->lesson; // Load the related lesson
+                    $lessonUsers = $lessonActivity ? $lessonActivity->users->pluck('id')->toArray() : [];
+
+                    $activityClass = '';
+
+                    if ($activity->lesson_id !== null) {
+                                            if (!$isTeacher) {
+                                                // If the user is not a teacher, check if the user is in the lesson
+                                                if (!in_array($user->id, $lessonUsers)) {
+                                                    // User is not in the lesson users, disable the event highlight
+                                                    $activityClass .= ' schedule-event-highlight-disabled';
+                                                } else {
+                                                    // User is in the lesson users, mark as a lesson-related event
+                                                    $activityClass .= ' schedule-event-lesson';
+                                                }
+                                            } else {
+                                                // If the user is a teacher, always mark as a lesson-related event
+                                                $activityClass .= ' schedule-event-lesson';
+                                            }
+                                        }
                 @endphp
 
                 @if($currentMonth !== $activityMonth)
@@ -179,17 +200,16 @@
                     </div>
                 @endif
 
-                    <a
-                        @if(!isset($lesson) && $activity->lesson_id === null)
-                            href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'id' => $activity->id]) }}"
-                        @elseif(isset($lesson))
-                            href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'id' => $activity->id, 'lessonId' => $lesson->id]) }}"
-                        @else
-                            class="cursor-default text-decoration-none"
-                        @endif
-                        class="text-decoration-none"
-                        style="color: unset"
-                    >
+                <a
+                    @if($activity->lesson_id !== null)
+                        @if(in_array($user->id, $lessonUsers) || $isTeacher)
+                            href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'lessonId' => $activity->lesson_id, 'id' => $activity->id]) }}"
+                    @endif
+                    @else
+                        href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'id' => $activity->id]) }}"
+                    @endif
+                    style="color: unset; text-decoration: none"
+                >
 
                     <div class="d-flex flex-row">
                         <div style="width: 50px"
@@ -197,7 +217,8 @@
                             <p class="day-name">{{ mb_substr($activitiesStart->translatedFormat('l'), 0, 2) }}</p>
                             <p class="day-number">{{ $activitiesStart->format('j') }}</p>
                         </div>
-                        <div class="event mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between" @if(!isset($lesson) && $activity->lesson_id !== null) style="background-color: var(--secondary-color) !important;" @endif>
+                        <div
+                            class="event mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between {{$activityClass}}">
                             <div class="d-flex flex-column justify-content-between">
                                 <div>
                                     @if($activitiesStart->isSameDay($activityEnd))

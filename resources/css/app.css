@@ -994,6 +994,25 @@ th .form-control, .form-select {
     cursor: default !important;
 }
 
+.calendar-event-lesson {
+    color: white;
+    background-color: var(--title-color);
+    cursor: pointer;
+}
+
+.calendar-event-lesson:hover {
+    background-color: var(--primary-color);
+}
+
+
+.schedule-event-highlight-disabled {
+    background-color: var(--secondary-color) !important;
+}
+
+.schedule-event-lesson {
+    background-color: white !important;
+}
+
 .cursor-default {
     cursor: default !important;
 }

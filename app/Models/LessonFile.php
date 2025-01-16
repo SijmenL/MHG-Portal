@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LessonFile extends Model
 {
-    protected $fillable = ['lesson_id', 'user_id', 'file_name', 'file_path', 'access'];
+    protected $fillable = ['lesson_id', 'user_id', 'file_name', 'file_path', 'access', 'type'];
 
     public function lesson()
     {

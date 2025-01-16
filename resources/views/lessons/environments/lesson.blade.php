@@ -34,7 +34,7 @@
             </ol>
         </nav>
 
-        <div>{{ $lesson->description }}</div>
+        <div>{!! $lesson->description !!}</div>
 
         @if(session('success'))
             <div class="alert alert-success">

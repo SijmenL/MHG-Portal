@@ -6,6 +6,7 @@
 /storage/*.key
 /vendor
 .env
+.env_live.txt
 .env.backup
 .env.production
 .phpunit.result.cache
@@ -23,6 +24,7 @@ yarn-error.log
 /storage/logs/
 /storage/framework/
 /public/files/forum-documents/
+/public/files/lessons/lesson-images
 /public/files/forum-images/
 /public/files/loodsen/flunkyball/music_files/
 /public/files/loodsen/flunkyball/music_images/
