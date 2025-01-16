@@ -179,6 +179,7 @@ Route::middleware(['checkLesson'])->group(function () {
     Route::get('/lessen/omgeving/{lessonId}/bestanden', [LessonController::class, 'files'])->name('lessons.environment.lesson.files');
     Route::post('/lessen/omgeving/{lessonId}/bestanden', [LessonController::class, 'filesStore'])->name('lessons.environment.lesson.files.store');
     Route::delete('/lessen/omgeving/{lessonId}/bestanden/{fileId}', [LessonController::class, 'filesDestroy'])->name('lessons.environment.lesson.files.destroy');
+    Route::get('/lessen/omgeving/{lessonId}/bestanden/{fileId}/beschikbaarheid', [LessonController::class, 'toggleFileAccess'])->name('lessons.environment.lesson.files.toggle-access');
 
     Route::get('/lessen/omgeving/{lessonId}/resultaten', [LessonController::class, 'results'])->name('lessons.environment.lesson.results');
     Route::post('/lessen/omgeving/{lessonId}/resultaten', [LessonController::class, 'storeTest'])->name('lessons.environment.lesson.results.store');
@@ -196,6 +197,8 @@ Route::middleware(['checkLesson'])->group(function () {
     Route::get('/lessen/omgeving/{lessonId}/verwijder', [LessonController::class, 'deleteLesson'])->name('lessons.environment.lesson.delete');
 
     Route::get('/lessen/omgeving/{lessonId}/planning', [LessonController::class, 'planningOptions'])->name('lessons.environment.lesson.planning');
+
+
 
 });
 

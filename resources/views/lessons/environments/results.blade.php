@@ -192,43 +192,51 @@
                                                     </thead>
                                                     <tbody>
                                                     @foreach ($lesson->users as $user)
-                                                        <tr>
-                                                            <td>{{ $user->name.' '.$user->infix.' '.$user->last_name }}</td>
-                                                            <input type="hidden" name="grades[{{ $user->id }}][user_id]"
-                                                                   value="{{ $user->id }}">
+                                                        @php
+                                                            // Define the roles that classify the user as a teacher
+                                                            $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
 
-                                                            <td class="d-flex flex-row gap-2 h-100" style="min-width: 60px">
-                                                                <input type="number"
-                                                                       name="grades[{{ $user->id }}][score]"
-                                                                       class="form-control"
-                                                                       value="{{ $test->testResults->where('user_id', $user->id)->first()->score ?? '' }}">
-                                                                @if(isset($test->max_points))
-                                                                    <p class="w-25" style="min-width: 30px">/{{$test->max_points}}</p>
-                                                                @endif
-                                                            </td>
+                                                            // Check if the user is a teacher based on roles or lesson-specific permissions
+                                                            $isUserTeacher = $user->roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+                                                                $lesson->user_id === $user->id ||
+                                                                $lesson->users()
+                                                                    ->where('user_id', $user->id)
+                                                                    ->wherePivot('teacher', true)
+                                                                    ->exists();
+                                                        @endphp
 
-                                                            <td style="min-width: 250px">
-                                                            <textarea name="grades[{{ $user->id }}][feedback]"
-                                                                      class="form-control" style="height: 30px">@if(isset($test->testResults->where('user_id', $user->id)->first()->feedback)){{ trim($test->testResults->where('user_id', $user->id)->first()->feedback) ?? '' }}@endif</textarea>
+                                                        @if(!$isUserTeacher)
+                                                            <tr>
+                                                                <td>{{ $user->name.' '.$user->infix.' '.$user->last_name }}</td>
+                                                                <input type="hidden" name="grades[{{ $user->id }}][user_id]" value="{{ $user->id }}">
 
+                                                                <td class="d-flex flex-row gap-2 h-100" style="min-width: 60px">
+                                                                    <input type="number" name="grades[{{ $user->id }}][score]" class="form-control"
+                                                                           value="{{ $test->testResults->where('user_id', $user->id)->first()->score ?? '' }}">
+                                                                    @if(isset($test->max_points))
+                                                                        <p class="w-25" style="min-width: 30px">/{{$test->max_points}}</p>
+                                                                    @endif
+                                                                </td>
 
-                                                            </td>
+                                                                <td style="min-width: 250px">
+                <textarea name="grades[{{ $user->id }}][feedback]" class="form-control"
+                          style="height: 30px">@if(isset($test->testResults->where('user_id', $user->id)->first()->feedback)){{ trim($test->testResults->where('user_id', $user->id)->first()->feedback) ?? '' }}@endif</textarea>
+                                                                </td>
 
-                                                            <td>
-                                                                <select name="grades[{{ $user->id }}][passed]"
-                                                                        class="form-control">
-                                                                    <option
-                                                                        value="0" {{ !($test->testResults->where('user_id', $user->id)->first()->passed ?? true) ? 'selected' : '' }}>
-                                                                        Nee
-                                                                    </option>
-                                                                    <option
-                                                                        value="1" {{ ($test->testResults->where('user_id', $user->id)->first()->passed ?? false) ? 'selected' : '' }}>
-                                                                        Ja
-                                                                    </option>
-                                                                </select>
-                                                            </td>
-                                                        </tr>
+                                                                <td>
+                                                                    <select name="grades[{{ $user->id }}][passed]" class="form-control">
+                                                                        <option value="0" {{ !($test->testResults->where('user_id', $user->id)->first()->passed ?? true) ? 'selected' : '' }}>
+                                                                            Nee
+                                                                        </option>
+                                                                        <option value="1" {{ ($test->testResults->where('user_id', $user->id)->first()->passed ?? false) ? 'selected' : '' }}>
+                                                                            Ja
+                                                                        </option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                        @endif
                                                     @endforeach
+
                                                     </tbody>
                                                 </table>
                                             </div>

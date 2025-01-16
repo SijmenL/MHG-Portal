@@ -87,29 +87,29 @@
                     @enderror
                 </div>
 
-                <div class="d-flex flex-row-responsive gap-2 justify-content-between align-items-center mt-3">
-                    <div class="w-100">
-                        <label for="date_start" class="col-md-4 col-form-label ">Start datum</label>
-                        <input id="date_start" value="{{ $lesson->date_start }}" type="date"
-                               class="form-control @error('date_start') is-invalid @enderror" name="date_start">
-                        @error('date_start')
-                        <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                        @enderror
-                    </div>
+{{--                <div class="d-flex flex-row-responsive gap-2 justify-content-between align-items-center mt-3">--}}
+{{--                    <div class="w-100">--}}
+{{--                        <label for="date_start" class="col-md-4 col-form-label ">Start datum</label>--}}
+{{--                        <input id="date_start" value="{{ $lesson->date_start }}" type="date"--}}
+{{--                               class="form-control @error('date_start') is-invalid @enderror" name="date_start">--}}
+{{--                        @error('date_start')--}}
+{{--                        <span class="invalid-feedback" role="alert">--}}
+{{--                                        <strong>{{ $message }}</strong>--}}
+{{--                                    </span>--}}
+{{--                        @enderror--}}
+{{--                    </div>--}}
 
-                    <div class="w-100">
-                        <label for="date_end" class="col-md-4 col-form-label ">Eind datum</label>
-                        <input id="date_end" value="{{ $lesson->date_end }}" type="date"
-                               class="form-control @error('date_end') is-invalid @enderror" name="date_end">
-                        @error('date_end')
-                        <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                        @enderror
-                    </div>
-                </div>
+{{--                    <div class="w-100">--}}
+{{--                        <label for="date_end" class="col-md-4 col-form-label ">Eind datum</label>--}}
+{{--                        <input id="date_end" value="{{ $lesson->date_end }}" type="date"--}}
+{{--                               class="form-control @error('date_end') is-invalid @enderror" name="date_end">--}}
+{{--                        @error('date_end')--}}
+{{--                        <span class="invalid-feedback" role="alert">--}}
+{{--                                        <strong>{{ $message }}</strong>--}}
+{{--                                    </span>--}}
+{{--                        @enderror--}}
+{{--                    </div>--}}
+{{--                </div>--}}
 
 
                 <div class="d-flex align-items-center flex-row mt-3 gap-2">

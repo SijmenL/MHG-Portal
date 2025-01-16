@@ -69,67 +69,67 @@
                         @enderror
                     </div>
 
-                    <div class="d-flex flex-row-responsive gap-2 justify-content-between align-items-center mt-3">
-                        <div class="w-100">
-                            <label for="date_start" class="col-md-4 col-form-label ">Start datum</label>
-                            <input id="date_start" value="{{ old('date_start') }}" type="date"
-                                   class="form-control @error('date_start') is-invalid @enderror" name="date_start">
-                            @error('date_start')
-                            <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                            @enderror
-                        </div>
+{{--                    <div class="d-flex flex-row-responsive gap-2 justify-content-between align-items-center mt-3">--}}
+{{--                        <div class="w-100">--}}
+{{--                            <label for="date_start" class="col-md-4 col-form-label ">Start datum</label>--}}
+{{--                            <input id="date_start" value="{{ old('date_start') }}" type="date"--}}
+{{--                                   class="form-control @error('date_start') is-invalid @enderror" name="date_start">--}}
+{{--                            @error('date_start')--}}
+{{--                            <span class="invalid-feedback" role="alert">--}}
+{{--                                        <strong>{{ $message }}</strong>--}}
+{{--                                    </span>--}}
+{{--                            @enderror--}}
+{{--                        </div>--}}
 
-                        <div class="w-100">
-                            <label for="date_end" class="col-md-4 col-form-label ">Eind datum</label>
-                            <input id="date_end" value="{{ old('date_end') }}" type="date"
-                                   class="form-control @error('date_end') is-invalid @enderror" name="date_end">
-                            @error('date_end')
-                            <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                            @enderror
-                        </div>
-                    </div>
+{{--                        <div class="w-100">--}}
+{{--                            <label for="date_end" class="col-md-4 col-form-label ">Eind datum</label>--}}
+{{--                            <input id="date_end" value="{{ old('date_end') }}" type="date"--}}
+{{--                                   class="form-control @error('date_end') is-invalid @enderror" name="date_end">--}}
+{{--                            @error('date_end')--}}
+{{--                            <span class="invalid-feedback" role="alert">--}}
+{{--                                        <strong>{{ $message }}</strong>--}}
+{{--                                    </span>--}}
+{{--                            @enderror--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
 
-                    <div>
+{{--                    <div>--}}
 
-                        <label for="user-search" class="col-md-4 col-form-label w-100">Deelnemers van de les (extra
-                            Praktijkbegeleiders zijn toe te voegen vanuit de lesomgeving)</label>
+{{--                        <label for="user-search" class="col-md-4 col-form-label w-100">Deelnemers van de les (extra--}}
+{{--                            Praktijkbegeleiders zijn toe te voegen vanuit de lesomgeving)</label>--}}
 
 
-                        <div>
-                            <input id="users" name="users" type="hidden" value="{{old('users')}}"
-                                   class="user-select-window user-select-none form-control"
-                                   placeholder="Kies een gebruiker uit de lijst"
-                                   aria-label="user" aria-describedby="basic-addon1">
-                            <div class="user-select-window-popup no-shadow d-none mt-2"
-                                 style="position: unset; display: block !important;">
-                                <h3>Selecteer deelnemers</h3>
-                                <div class="input-group">
-                                    <label class="input-group-text" id="basic-addon1">
-                                        <span class="material-symbols-rounded">search</span></label>
-                                    <input type="text" data-type="multiple" data-stayopen="true"
-                                           class="user-select-search form-control" id="user-search"
-                                           placeholder="Zoeken op naam, email, adres etc."
-                                           aria-label="Zoeken" aria-describedby="basic-addon1">
-                                </div>
-                                <div class="user-list no-scrolbar">
-                                    <div
-                                        class="w-100 h-100 d-flex justify-content-center align-items-center"><span
-                                            class="material-symbols-rounded rotating"
-                                            style="font-size: xxx-large">progress_activity</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @error('users')
-                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                    @enderror
+{{--                        <div>--}}
+{{--                            <input id="users" name="users" type="hidden" value="{{old('users')}}"--}}
+{{--                                   class="user-select-window user-select-none form-control"--}}
+{{--                                   placeholder="Kies een gebruiker uit de lijst"--}}
+{{--                                   aria-label="user" aria-describedby="basic-addon1">--}}
+{{--                            <div class="user-select-window-popup no-shadow d-none mt-2"--}}
+{{--                                 style="position: unset; display: block !important;">--}}
+{{--                                <h3>Selecteer deelnemers</h3>--}}
+{{--                                <div class="input-group">--}}
+{{--                                    <label class="input-group-text" id="basic-addon1">--}}
+{{--                                        <span class="material-symbols-rounded">search</span></label>--}}
+{{--                                    <input type="text" data-type="multiple" data-stayopen="true"--}}
+{{--                                           class="user-select-search form-control" id="user-search"--}}
+{{--                                           placeholder="Zoeken op naam, email, adres etc."--}}
+{{--                                           aria-label="Zoeken" aria-describedby="basic-addon1">--}}
+{{--                                </div>--}}
+{{--                                <div class="user-list no-scrolbar">--}}
+{{--                                    <div--}}
+{{--                                        class="w-100 h-100 d-flex justify-content-center align-items-center"><span--}}
+{{--                                            class="material-symbols-rounded rotating"--}}
+{{--                                            style="font-size: xxx-large">progress_activity</span>--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                    @error('users')--}}
+{{--                    <span class="invalid-feedback" role="alert">--}}
+{{--                                        <strong>{{ $message }}</strong>--}}
+{{--                                    </span>--}}
+{{--                    @enderror--}}
 
                     <div class="d-flex align-items-center flex-row mt-3 gap-2">
                         <button

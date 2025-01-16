@@ -388,7 +388,7 @@ class AgendaController extends Controller
                     ->wherePivot('teacher', true)
                     ->exists());
 
-        if ($isTeacher === false) {
+        if (isset($lesson) && $isTeacher === false) {
             return redirect()->route('agenda.presence')->with('error', 'Deze activiteit bestaat niet.');
         }
 
@@ -421,8 +421,7 @@ class AgendaController extends Controller
             })
             ->when(!$lessonId, function ($query) use ($user) {
                 // Only show activities created by the user when not viewing from a lesson
-                $query->whereNull('lesson_id')
-                    ->where('user_id', $user->id);
+                $query->whereNull('lesson_id');
             })
             ->orderByRaw(
                 'CASE
@@ -472,7 +471,7 @@ class AgendaController extends Controller
                     ->wherePivot('teacher', true)
                     ->exists());
 
-        if (!$isTeacher) {
+        if (isset($lesson) && !$isTeacher) {
             return redirect()->route('agenda.presence')->with('error', 'Geen toegang tot deze activiteit.');
         }
 
@@ -486,7 +485,7 @@ class AgendaController extends Controller
 
         // Retrieve users
         $users = [];
-        if ($lesson) {
+        if (isset($lesson)) {
             $users = $lesson->users()
                 ->where(function ($query) use ($search) {
                     $query->where('users.name', 'like', '%' . $search . '%')
@@ -698,14 +697,9 @@ class AgendaController extends Controller
                     ->exists();
         }
 
-        $activities = Activity::when($lessonId, function ($query) use ($lessonId) {
+        $activities = Activity::when($lessonId, function ($query) use ($lessonId, $isTeacher, $lesson) {
             // If lessonId is provided, filter by lesson_id
             return $query->where('lesson_id', $lessonId);
-        }, function ($query) use ($canViewAll) {
-            // If no lessonId is provided and $canViewAll is false, exclude activities with a connected lesson
-            if (!$canViewAll) {
-                return $query->whereNull('lesson_id');
-            }
         })
             ->where(function ($query) use ($calculatedYear, $calculatedMonth) {
                 $query->whereYear('date_start', $calculatedYear)
@@ -716,47 +710,64 @@ class AgendaController extends Controller
                     });
             })
             ->get()
-            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll) {
-                // Check if activity has roles or users
-                $activityRoleIds = !empty($activity->roles)
-                    ? array_map('trim', explode(',', $activity->roles))
-                    : [];
+            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $lesson, $isTeacher, $lessonId) {
+                // Check if the activity is associated with a lesson
+                if (isset($activity->lesson_id)) {
+                    // Fetch the lesson and its associated users
+                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
 
-                $activityUserIds = !empty($activity->users)
-                    ? array_map('trim', explode(',', $activity->users))
-                    : [];
-
-                // Default behavior if both roles and users are null: available for everyone without highlighting
-                if (empty($activityRoleIds) && empty($activityUserIds)) {
-                    $activity->should_highlight = false;
-                    return true; // Keep activity available
-                } else {
-                    // If the user can view all, check if it should be highlighted
-                    $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
-                    $isUserListed = in_array($user->id, $activityUserIds);
-
-                    // Check if any child has role access
-                    $isChildHasAccess = false;
-
-                    foreach ($user->children as $child) {
-                        // Get the role IDs for the child
-                        $childRoleIds = $child->roles->pluck('id')->toArray();
-
-                        // Check if the child has access based on roles or user IDs
-                        if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
-                            $isChildHasAccess = true;
-                            break; // Stop checking if any child has access
+                    if (!isset($lessonId) && !$isTeacher) {
+                        // If the user is in the lesson's users, allow visibility; otherwise, hide it
+                        if (in_array($user->id, $lessonUsers) || $canViewAll) {
+                            return true; // User has access to the lesson
+                        } else {
+                            return false; // Hide the activity if the user has no access to the lesson
                         }
-                    }
-
-                    if ($canViewAll) {
-                        // Highlight only if there are roles or users and the user doesn't have access
-                        $activity->should_highlight = (!$hasRoleAccess && !$isUserListed);
-                        return true; // Keep activity in the list
                     } else {
-                        // Hide activity if the user doesn't have access, but allow visibility if their child has access
-                        return $hasRoleAccess || $isUserListed || $isChildHasAccess;
+                        return true;
                     }
+                } else {
+                    // Check if activity has roles or users
+                    $activityRoleIds = !empty($activity->roles)
+                        ? array_map('trim', explode(',', $activity->roles))
+                        : [];
+
+                    $activityUserIds = !empty($activity->users)
+                        ? array_map('trim', explode(',', $activity->users))
+                        : [];
+
+                    // Default behavior if both roles and users are null: available for everyone without highlighting
+                    if (empty($activityRoleIds) && empty($activityUserIds)) {
+                        $activity->should_highlight = false;
+                        return true; // Keep activity available
+                    }
+                }
+
+                // If no lesson is connected, proceed with roles and user access checks
+                $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+                $isUserListed = in_array($user->id, $activityUserIds);
+
+                // Check if any child has role access
+                $isChildHasAccess = false;
+
+                foreach ($user->children as $child) {
+                    // Get the role IDs for the child
+                    $childRoleIds = $child->roles->pluck('id')->toArray();
+
+                    // Check if the child has access based on roles or user IDs
+                    if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+                        $isChildHasAccess = true;
+                        break; // Stop checking if any child has access
+                    }
+                }
+
+                if ($canViewAll) {
+                    // Highlight only if there are roles or users and the user doesn't have access
+                    $activity->should_highlight = (!$hasRoleAccess && !$isUserListed);
+                    return true; // Keep activity in the list
+                } else {
+                    // Hide activity if the user doesn't have access, but allow visibility if their child has access
+                    return $hasRoleAccess || $isUserListed || $isChildHasAccess;
                 }
             });
 
@@ -1042,19 +1053,29 @@ class AgendaController extends Controller
         }
 
 
-        $activities = Activity::when($lessonId, function ($query) use ($lessonId) {
+        $activities = Activity::when($lessonId, function ($query) use ($lessonId, $isTeacher) {
             // If lessonId is provided, filter by lesson_id
             return $query->where('lesson_id', $lessonId);
-        }, function ($query) use ($canViewAll) {
-            // If no lessonId is provided and $canViewAll is false, exclude activities with a connected lesson
-            if (!$canViewAll) {
-                return $query->whereNull('lesson_id');
-            }
         })
             ->whereBetween('date_start', [$startDate, $endDate])
             ->orderBy('date_start')
             ->get()
-            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds) {
+            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds, $isTeacher) {
+                if (isset($activity->lesson_id)) {
+                    // Fetch the lesson and its associated users
+                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
+
+                    if (!isset($lessonId) && !$isTeacher) {
+                        // If the user is in the lesson's users, allow visibility; otherwise, hide it
+                        if (in_array($user->id, $lessonUsers) || $canViewAll) {
+                            return true; // User has access to the lesson
+                        } else {
+                            return false; // Hide the activity if the user has no access to the lesson
+                        }
+                    } else {
+                        return true;
+                    }
+                }
                 // Check if activity has roles or users
                 $activityRoleIds = !empty($activity->roles)
                     ? array_map('trim', explode(',', $activity->roles))
@@ -1093,6 +1114,7 @@ class AgendaController extends Controller
                         return $hasRoleAccess || $isUserListed || $isChildListed || $isChildHasAccess;
                     }
                 }
+
             });
 
 

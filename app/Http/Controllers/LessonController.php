@@ -49,23 +49,44 @@ class LessonController extends Controller
         }
     }
 
-    public function lessons()
+    public function lessons(Request $request)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        if ($user->roles->contains('role', 'Administratie') || $user->roles->contains('role', 'Praktijkbegeleider') || $user->roles->contains('role', 'Ouderraad') || $user->roles->contains('role', 'Bestuur')) {
-            $lessons = Lesson::all();
+        $search = $request->query('search', '');
+
+        if ($user->roles->contains('role', 'Administratie') ||
+            $user->roles->contains('role', 'Praktijkbegeleider') ||
+            $user->roles->contains('role', 'Ouderraad') ||
+            $user->roles->contains('role', 'Bestuur')) {
+
+            $lessons = Lesson::when($search, function ($query) use ($search) {
+                $query->where('title', 'LIKE', "%$search%")
+                    ->orWhere('description', 'LIKE', "%$search%");
+            })
+                ->orderBy('created_at', 'desc')
+                ->get();
         } else {
             $lessons = Lesson::whereHas('users', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
+                ->when($search, function ($query) use ($search) {
+                    $query->where('title', 'LIKE', "%$search%")
+                        ->orWhere('description', 'LIKE', "%$search%");
+                })
+                ->orderBy('created_at', 'desc')
                 ->get();
         }
 
-
-        return view('lessons.home', ['user' => $user, 'roles' => $roles, 'lessons' => $lessons]);
+        return view('lessons.home', [
+            'user' => $user,
+            'roles' => $roles,
+            'lessons' => $lessons,
+            'search' => $search,
+        ]);
     }
+
 
     public function lessonsNew()
     {
@@ -241,7 +262,6 @@ class LessonController extends Controller
 
             // Delete all users associated with this lesson (if needed)
             $lesson->users()->detach();  // Assuming it’s a many-to-many relationship with 'users'
-
 
 
             // If lesson has a file associated with it, delete that file
@@ -448,38 +468,67 @@ class LessonController extends Controller
         $lesson = Lesson::findOrFail($lessonId);
 
         $request->validate([
-            'file' => 'required|array', // Expect an array of files
-            'file.*' => 'file|mimes:pdf,jpeg,jpg,webp,png,zip,pptx,docx,doc,ppt,mp4,mov,mp3,wav,xlsx', // Validate each file
-            'access' => 'required|string'
+            'type' => 'required',
+            'access' => 'required|string',
         ]);
 
-        $files = $request->file('file'); // Get the uploaded files
+        if ($request->type === "0") {
+            $request->validate([
+                'file' => 'required|array', // Expect an array of files
+                'file.*' => 'file|mimes:pdf,jpeg,jpg,webp,png,zip,pptx,docx,doc,ppt,mp4,mov,mp3,wav,xlsx', // Validate each file
+            ]);
 
+            $files = $request->file('file'); // Get the uploaded files
 
-        foreach ($files as $file) {
-            // Get the original file name
-            $originalFileName = $file->getClientOriginalName();
+            foreach ($files as $file) {
+                // Get the original file name
+                $originalFileName = $file->getClientOriginalName();
 
-            // Generate a unique file name by appending a timestamp or random string
-            $uniqueFileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                // Generate a unique file name by appending a timestamp or random string
+                $uniqueFileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
-            // Store the file with the unique name in the desired directory
-            $path = $file->storeAs('files/lessons', $uniqueFileName, 'public');
+                // Store the file with the unique name in the desired directory
+                $path = $file->storeAs('files/lessons', $uniqueFileName, 'public');
 
-            // Create a record in the database with the file information
+                // Create a record in the database with the file information
+                $fileRecord = new LessonFile([
+                    'lesson_id' => $lesson->id,
+                    'user_id' => Auth::id(),
+                    'file_name' => $originalFileName,
+                    'file_path' => $path,
+                    'access' => $request->access,
+                    'type' => 0
+                ]);
+
+                $fileRecord->save();
+            }
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Bestand(en) geüpload');
+        }
+        if ($request->type === "1") {
+            $request->validate([
+                'file' => 'required|string', // Validate as a string (URL)
+                'title' => 'required|string', // Title is required
+                'access' => 'required|string', // Access is required
+            ]);
+
+            // Save the file information to the database
             $fileRecord = new LessonFile([
                 'lesson_id' => $lesson->id,
                 'user_id' => Auth::id(),
-                'file_name' => $originalFileName,
-                'file_path' => $path,
+                'file_name' => $request->title, // Use the provided title
+                'file_path' => $request->file, // Save the URL as the file path
                 'access' => $request->access,
+                'type' => 1, // URL type
             ]);
 
             $fileRecord->save();
-        }
 
-        $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Bestand(en) geüpload');
+            // Log the action
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Url geüpload');
+        }
 
 
         return redirect()->route('lessons.environment.lesson.files', $lesson->id)->with('success', 'Bestanden succesvol geüpload.');
@@ -508,6 +557,44 @@ class LessonController extends Controller
 
         return redirect()->route('lessons.environment.lesson.files', $file->lesson_id)->with('success', 'Bestand succesvol verwijderd.');
     }
+
+    public function toggleFileAccess($lessonId, $fileId)
+    {
+        // Fetch the file and ensure it belongs to the specified lesson
+        $file = LessonFile::where('lesson_id', $lessonId)->findOrFail($fileId);
+
+        // Ensure the authenticated user is either the one who uploaded the file
+        // or a teacher for the lesson
+        $isTeacher = $file->user_id === Auth::id() ||
+            $file->lesson->users()
+                ->wherePivot('teacher', true)
+                ->where('user_id', Auth::id())
+                ->exists();
+
+        if (!$isTeacher) {
+            return redirect()->route('lessons.environment.lesson.files', $lessonId)
+                ->with('error', 'Je hebt geen toestemming om dit bestand aan te passen.');
+        }
+
+        // Toggle the file's access
+        $newAccess = $file->access === 'teachers' ? 'all' : 'teachers';
+        $file->update(['access' => $newAccess]);
+
+        // Log the action
+        $log = new Log();
+        $log->createLog(
+            auth()->user()->id,
+            2,
+            'Update lesson',
+            'les',
+            'Lesson id: ' . $lessonId,
+            'Bestandstoegang aangepast naar: ' . $newAccess
+        );
+
+        return redirect()->route('lessons.environment.lesson.files', $lessonId)
+            ->with('success', 'Toegang succesvol aangepast.');
+    }
+
 
     public function results($lessonId)
     {
@@ -681,7 +768,6 @@ class LessonController extends Controller
     }
 
 
-
     /*
      * Forum section, including posts, comments and like handling.
      */
@@ -704,7 +790,7 @@ class LessonController extends Controller
                 ]);
 
                 $lesson = Lesson::findOrFail($lessonId);
-                $users = $lesson->users();
+                $users = $lesson->users->pluck('id')->toArray(); // Extract user IDs as an array
 
                 $notification = new Notification();
                 $notification->sendNotification($user->id, $users, 'Heeft een post geplaatst in de lesomgeving!', '/lessen/omgeving/' . $lessonId . '/post/' . $post->id, 'les', 'new_post', $post->id);

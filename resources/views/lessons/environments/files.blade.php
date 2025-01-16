@@ -4,144 +4,205 @@
 @section('content')
     <div id="popup-upload" class="popup d-none" style="margin-top: -122px">
         <div class="popup-body">
-            <h2>Upload bestanden naar de lesomgeving</h2>
-            <p>Toegestane bestandstypes: <i>.pdf, .jpeg, .jpg, .webp, .png, .zip, .pptx, .docx, .doc, .ppt, .mp4, .mov,
-                    .mp3, .wav, .xlsx</i></p>
+            <h2>Upload naar de lesomgeving</h2>
 
-            <form id="upload-form" enctype="multipart/form-data">
-                @csrf
-                <div class="d-flex flex-row-responsive gap-2">
-                    <div class="form-group">
-                        <label for="file">Kies bestanden om te uploaden</label>
-                        <input type="file" name="file[]" multiple class="form-control" id="file-input">
-                    </div>
-                    <div class="form-group">
-                        <label for="access">Toegang</label>
-                        <select name="access" class="form-control" id="access">
-                            <option value="all">Iedereen</option>
-                            <option value="teachers">Alleen praktijkbegeleiders</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="progress mt-3" style="display: none;">
-                    <div class="progress-bar h-100 progress-bar-striped bg-success progress-bar-animated"
-                         role="progressbar" style="width: 0%;"></div>
+            <div class="tab-container no-scrolbar" style="overflow-x: auto;">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1"
+                                type="button" role="tab" aria-controls="tab1" aria-selected="true">Bestanden
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button"
+                                role="tab" aria-controls="tab2" aria-selected="false">Hyperlink
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="tab-content w-100 bg-light rounded p-4">
+                <div class="tab-pane show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+                    <p class="text-center">Toegestane bestandstypes: <i>.pdf, .jpeg, .jpg, .webp, .png, .zip, .pptx,
+                            .docx, .doc, .ppt, .mp4, .mov, .mp3, .wav, .xlsx</i></p>
+                    <form id="upload-form" enctype="multipart/form-data">
+                        @csrf
+                        <div class="d-flex flex-row gap-2 align-items-center justify-content-center">
+                            <div class="form-group">
+                                <label for="file">Kies bestanden om te uploaden</label>
+                                <input type="file" name="file[]" multiple class="form-control" id="file-input">
+                                <input type="hidden" name="type" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="access">Toegang</label>
+                                <select name="access" class="form-control" id="access">
+                                    <option value="all">Iedereen</option>
+                                    <option value="teachers">Alleen praktijkbegeleiders</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="progress mt-3" style="display: none;">
+                            <div class="progress-bar progress-bar-striped bg-success progress-bar-animated h-100"
+                                 role="progressbar" style="width: 0%;"></div>
+                        </div>
+                        <div id="upload-status" class="text-success mt-2" style="display: none;"></div>
+                        <div class="button-container justify-content-center">
+                            <button type="button" id="upload-button"
+                                    class="btn btn-success text-white d-flex align-items-center justify-content-center">
+                                <span class="button-text">Uploaden</span>
+                                <span class="loading-spinner spinner-border spinner-border-sm" style="display: none;"
+                                      aria-hidden="true"></span>
+                                <span class="loading-text" style="display: none;" role="status">Laden...</span>
+                            </button>
+                            <a class="popup-upload-button-close btn btn-outline-danger">Annuleren</a>
+                        </div>
+                    </form>
                 </div>
 
-                <div id="upload-status" class="text-success mt-2" style="display: none;"></div>
-                <div class="button-container justify-content-center">
-                    <button type="button" id="upload-button"
-                            class="btn btn-success text-white flex flex-row align-items-center justify-content-center">
-                        <span class="button-text">Uploaden</span>
-                        <span style="display: none" class="loading-spinner spinner-border spinner-border-sm"
-                              aria-hidden="true"></span>
-                        <span style="display: none" class="loading-text" role="status">Laden...</span>
-                    </button>
-                    <a id="popup-upload-button-close" class="btn btn-outline-danger">Annuleren</a>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        let uploadPopup = document.getElementById('popup-upload');
+                        let uploadPopupButton = document.getElementById('popup-upload-button');
+                        let uploadPopupButtonClose = document.getElementsByClassName('popup-upload-button-close');
+                        let uploadForm = document.getElementById('upload-form');
+                        let uploadButton = document.getElementById('upload-button');
+                        let fileInput = document.getElementById('file-input');
+                        let progressBar = document.querySelector('.progress-bar');
+                        let progressContainer = document.querySelector('.progress');
+                        let uploadStatus = document.getElementById('upload-status');
+                        let xhr = null; // Declare xhr globally so it can be canceled
+
+                        console.log(uploadPopupButtonClose)
+
+                        // Show the upload popup
+                        uploadPopupButton.addEventListener('click', function () {
+                            uploadPopup.classList.remove('d-none');
+
+                        });
+
+                        // Close the upload popup and reset everything
+                        Array.from(uploadPopupButtonClose).forEach(function (button) {
+                            button.addEventListener('click', function () {
+                                if (xhr) {
+                                    xhr.abort(); // Cancel the ongoing upload
+                                }
+                                uploadPopup.classList.add('d-none');
+                                progressContainer.style.display = 'none';
+                                progressBar.style.width = '0%';
+                                uploadStatus.textContent = '';
+                                uploadForm.reset(); // Reset the form
+
+                                uploadButton.disabled = false;
+                                uploadButton.classList.remove('loading');
+
+                                // Show the spinner and hide the text
+                                uploadButton.querySelector('.button-text').style.display = 'inline-block';
+                                uploadButton.querySelector('.loading-spinner').style.display = 'none';
+                                uploadButton.querySelector('.loading-text').style.display = 'none';
+                            });
+                        });
+
+
+                        // Handle file upload
+                        uploadButton.addEventListener('click', function () {
+                            if (fileInput.files.length === 0) {
+                                uploadStatus.style.display = 'block';
+                                uploadStatus.textContent = 'Selecteer bestanden om te uploaden.';
+                                return;
+                            }
+
+                            uploadButton.disabled = true;
+                            uploadButton.classList.add('loading');
+
+                            // Show the spinner and hide the text
+                            uploadButton.querySelector('.button-text').style.display = 'none';
+                            uploadButton.querySelector('.loading-spinner').style.display = 'inline-block';
+                            uploadButton.querySelector('.loading-text').style.display = 'inline-block';
+
+                            let formData = new FormData(uploadForm);
+                            progressContainer.style.display = 'block';
+                            uploadStatus.style.display = 'block';
+                            progressBar.style.width = '0%';
+                            uploadStatus.textContent = '0 MB / 0 MB';
+
+                            xhr = new XMLHttpRequest();
+                            xhr.open('POST', "{{ route('lessons.environment.lesson.files.store', $lesson->id) }}", true);
+                            xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+
+                            // Update progress bar with size
+                            xhr.upload.addEventListener('progress', function (e) {
+                                if (e.lengthComputable) {
+                                    let uploaded = (e.loaded / 1024 / 1024).toFixed(2); // Convert to MB
+                                    let total = (e.total / 1024 / 1024).toFixed(2); // Convert to MB
+                                    progressBar.style.width = `${(e.loaded / e.total) * 100}%`;
+                                    uploadStatus.textContent = `${uploaded} MB / ${total} MB`;
+                                }
+                            });
+
+                            // Handle upload success or failure
+                            xhr.onload = function () {
+                                if (xhr.status === 200) {
+                                    progressContainer.style.display = 'none';
+                                    progressBar.style.width = '0%';
+                                    uploadStatus.textContent = '';
+                                    uploadPopup.classList.add('d-none');
+                                    uploadForm.reset();
+                                    location.reload(); // Optionally reload to reflect new files
+                                } else {
+                                    uploadStatus.textContent = 'Er is iets misgegaan tijdens het uploaden.';
+                                }
+                            };
+
+                            xhr.onerror = function () {
+                                uploadStatus.textContent = 'Er is een netwerkfout opgetreden.';
+                            };
+
+                            xhr.send(formData);
+                        });
+                    });
+                </script>
+
+                <div class="text-start tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                    <p class="text-center">Vul een url in waarvan we een link kunnen maken</p>
+                    <form method="post" action="{{ route('lessons.environment.lesson.files.store', $lesson->id) }}"
+                          enctype="multipart/form-data">
+                        @csrf
+                        <div class="d-flex flex-row-responsive w-100 gap-2 align-items-center justify-content-center">
+                            <div class="form-group w-100">
+                                <label for="file">Vul een url in</label>
+                                <input type="text" name="file" class="form-control"> <!-- Not an array -->
+                                <input type="hidden" name="type" value="1">
+                            </div>
+                            <div class="form-group w-100">
+                                <label for="title">Weergavenaam</label>
+                                <input type="text" name="title" class="form-control">
+                            </div>
+                            <div class="form-group w-100">
+                                <label for="access">Toegang</label>
+                                <select name="access" class="form-control" id="access">
+                                    <option value="all">Iedereen</option>
+                                    <option value="teachers">Alleen praktijkbegeleiders</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="button-container justify-content-center">
+                            <button type="submit"
+                                    class="btn btn-success text-white d-flex align-items-center justify-content-center">
+                                <span class="button-text">Uploaden</span>
+                                <span class="loading-spinner spinner-border spinner-border-sm" style="display: none;"
+                                      aria-hidden="true"></span>
+                                <span class="loading-text" style="display: none;" role="status">Laden...</span>
+                            </button>
+                            <a class="popup-upload-button-close btn btn-outline-danger">Annuleren</a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+
+            </div>
+
+
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let uploadPopup = document.getElementById('popup-upload');
-            let uploadPopupButton = document.getElementById('popup-upload-button');
-            let uploadPopupButtonClose = document.getElementById('popup-upload-button-close');
-            let uploadForm = document.getElementById('upload-form');
-            let uploadButton = document.getElementById('upload-button');
-            let fileInput = document.getElementById('file-input');
-            let progressBar = document.querySelector('.progress-bar');
-            let progressContainer = document.querySelector('.progress');
-            let uploadStatus = document.getElementById('upload-status');
-            let xhr = null; // Declare xhr globally so it can be canceled
-
-            // Show the upload popup
-            uploadPopupButton.addEventListener('click', function () {
-                uploadPopup.classList.remove('d-none');
-
-            });
-
-            // Close the upload popup and reset everything
-            uploadPopupButtonClose.addEventListener('click', function () {
-                if (xhr) {
-                    xhr.abort(); // Cancel the ongoing upload
-                }
-                uploadPopup.classList.add('d-none');
-                progressContainer.style.display = 'none';
-                progressBar.style.width = '0%';
-                uploadStatus.textContent = '';
-                uploadForm.reset(); // Reset the form
-
-                uploadButton.disabled = false;
-                uploadButton.classList.remove('loading');
-
-                // Show the spinner and hide the text
-                uploadButton.querySelector('.button-text').style.display = 'inline-block';
-                uploadButton.querySelector('.loading-spinner').style.display = 'none';
-                uploadButton.querySelector('.loading-text').style.display = 'none';
-            });
-
-            // Handle file upload
-            uploadButton.addEventListener('click', function () {
-                if (fileInput.files.length === 0) {
-                    uploadStatus.style.display = 'block';
-                    uploadStatus.textContent = 'Selecteer bestanden om te uploaden.';
-                    return;
-                }
-
-                uploadButton.disabled = true;
-                uploadButton.classList.add('loading');
-
-                // Show the spinner and hide the text
-                uploadButton.querySelector('.button-text').style.display = 'none';
-                uploadButton.querySelector('.loading-spinner').style.display = 'inline-block';
-                uploadButton.querySelector('.loading-text').style.display = 'inline-block';
-
-                let formData = new FormData(uploadForm);
-                progressContainer.style.display = 'block';
-                uploadStatus.style.display = 'block';
-                progressBar.style.width = '0%';
-                uploadStatus.textContent = '0 MB / 0 MB';
-
-                xhr = new XMLHttpRequest();
-                xhr.open('POST', "{{ route('lessons.environment.lesson.files.store', $lesson->id) }}", true);
-                xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-
-                // Update progress bar with size
-                xhr.upload.addEventListener('progress', function (e) {
-                    if (e.lengthComputable) {
-                        let uploaded = (e.loaded / 1024 / 1024).toFixed(2); // Convert to MB
-                        let total = (e.total / 1024 / 1024).toFixed(2); // Convert to MB
-                        progressBar.style.width = `${(e.loaded / e.total) * 100}%`;
-                        uploadStatus.textContent = `${uploaded} MB / ${total} MB`;
-                    }
-                });
-
-                // Handle upload success or failure
-                xhr.onload = function () {
-                    if (xhr.status === 200) {
-                        progressContainer.style.display = 'none';
-                        progressBar.style.width = '0%';
-                        uploadStatus.textContent = '';
-                        uploadPopup.classList.add('d-none');
-                        uploadForm.reset();
-                        location.reload(); // Optionally reload to reflect new files
-                    } else {
-                        uploadStatus.textContent = 'Er is iets misgegaan tijdens het uploaden.';
-                    }
-                };
-
-                xhr.onerror = function () {
-                    uploadStatus.textContent = 'Er is een netwerkfout opgetreden.';
-                };
-
-                xhr.send(formData);
-            });
-        });
-    </script>
-
-
 
 
     <div class="container col-md-11">
@@ -177,7 +238,7 @@
 
         <div>
             @if(count($files) > 0)
-            <p>Klik op de bestanden om ze te downloaden of te bekijken.</p>
+                <p>Klik op de bestanden om ze te downloaden of te bekijken.</p>
                 <ul class="list-group mt-3">
                     @foreach($files as $file)
                         @if(!($file->access === 'teachers' && !$isTeacher))
@@ -190,6 +251,8 @@
                                 $icon = 'unknown.webp';
 
                                 // Match the file extension to the correct icon
+                                if ($file->type === 0 || $file->type === null) {
+
                                 switch(strtolower($extension)) {
                                     case 'pdf':
                                         $icon = 'pdf.webp'; // PDF icon
@@ -231,28 +294,55 @@
                                         $icon = 'xlsx.webp'; // Excel icon
                                         break;
                                 }
+}
+
+                                if ($file->type === 1) {
+                                    $icon = 'url.webp';
+                                }
                             @endphp
                             <li class="list-group-item d-flex flex-row gap-3 align-items-center justify-content-between">
                                 <a class="text-decoration-none text-black d-flex flex-row gap-3 align-items-center justify-content-center"
-                                   href="{{ Storage::url($file->file_path) }}" target="_blank">
+                                   @if($file->type === 0 || $file->type === null)
+                                   href="{{ Storage::url($file->file_path) }}"
+                                   @else
+                                   href="{{ $file->file_path }}"
+                                   @endif
+                                   target="_blank">
                                     <img style="width: clamp(25px, 50px, 5vw)" class="m-0" alt="file"
                                          src="{{ asset('/files/lessons/file-icons/'.$icon) }}">
                                     <div class="d-flex flex-column gap-2">
                                         <span>{{ $file->file_name }}</span>
                                         @if($file->access === 'teachers')
-                                            <i class="text-secondary">Dit bestand is alleen beschikbaar voor praktijkbegeleiders.</i>
+                                            <i class="text-secondary">Dit bestand is alleen beschikbaar voor
+                                                praktijkbegeleiders.</i>
                                         @endif
                                     </div>
                                 </a>
 
-                                @if(Auth::id() === $file->user_id || $lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists())
-                                    <form
-                                        action="{{ route('lessons.environment.lesson.files.destroy', [$lesson->id, $file->id]) }}"
-                                        method="POST" class="d-inline-block">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger btn-sm" style="min-width: 75px">Verwijderen</button>
-                                    </form>
+                                @if($isTeacher)
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opties
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><form
+                                                    action="{{ route('lessons.environment.lesson.files.destroy', [$lesson->id, $file->id]) }}"
+                                                    method="POST" class="d-inline-block">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item">Verwijderen
+                                                    </button>
+                                                </form></li>
+                                            @if($file->access === 'teachers')
+                                                <li><a class="dropdown-item" href="{{ route('lessons.environment.lesson.files.toggle-access', [$lesson->id, $file->id]) }}">Maak beschikbaar voor alle deelnemers</a></li>
+                                            @endif
+                                            @if($file->access === 'all' || $file->access === '')
+                                                <li><a class="dropdown-item" href="{{ route('lessons.environment.lesson.files.toggle-access', [$lesson->id, $file->id]) }}">Maak alleen beschikbaar voor praktijkbegeleiders</a></li>
+                                            @endif
+                                        </ul>
+                                    </div>
+
+
                                 @endif
                             </li>
                         @endif

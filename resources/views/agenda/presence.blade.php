@@ -96,7 +96,8 @@
                             </div>
                         @endif
 
-                        <a href="@if(!isset($lesson)){{ route('agenda.presence.activity', [$activity->id]) }} @else {{ route('agenda.presence.activity', [$activity->id, 'lessonId' => $lesson->id]) }} @endif" class="text-decoration-none"
+                        <a href="
+                        @if(!isset($lesson)){{ route('agenda.presence.activity', [$activity->id]) }} @else {{ route('agenda.presence.activity', [$activity->id, 'lessonId' => $lesson->id]) }} @endif" class="text-decoration-none"
                            style="color: unset">
                             <div class="d-flex flex-row">
                                 <div style="width: 50px"
