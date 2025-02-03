@@ -132,10 +132,11 @@ class AgendaController extends Controller
                 $query->where('lesson_id', $lessonId);
             })
             // Exclude activities with a lesson_id when lessonId is null
-            ->when(!$lessonId, function ($query) use ($user) {
+            ->when(!$lessonId && !$user->roles->contains('role', 'Administratie'), function ($query) use ($user) {
                 $query->whereNull('lesson_id')
                     ->where('user_id', $user->id);
             })
+
             ->orderByRaw(
                 'CASE
             WHEN date_end >= ? THEN date_end
@@ -189,7 +190,7 @@ class AgendaController extends Controller
         }
 
         // Ownership or teacher check
-        if ($activity->user_id !== Auth::id()) {
+        if ($activity->user_id !== Auth::id() && !$user->roles->contains('role', 'Administratie')) {
             if (!$lesson || !$isTeacher) {
                 return redirect()->back()->with('error', 'Activiteit niet gevonden.');
             }
@@ -584,20 +585,24 @@ class AgendaController extends Controller
                 ->where('user_id', $user->id)
                 ->first();
 
-            $status = $presenceRecord ? ($presenceRecord->presence ? 'present' : 'absent') : 'null';
-
-            return [$user->id => $status];
+            return [$user->id => [
+                'status' => $presenceRecord ? ($presenceRecord->presence ? 'present' : 'absent') : 'null',
+                'date' => $presenceRecord ? $presenceRecord->updated_at->toDateTimeString() : null
+            ]];
         });
 
         $users->each(function ($user) use ($userPresenceArray) {
-            $user->presence = $userPresenceArray->get($user->id, 'null');
+            $user->presence = $userPresenceArray->get($user->id, ['status' => 'null', 'date' => null]);
         });
+
 
         // Sort users
         $sortedUsers = $users->sort(function ($a, $b) {
             $presenceOrder = ['present' => 1, 'absent' => 2, 'null' => 3];
-            $aPresence = $presenceOrder[$a->presence] ?? 3;
-            $bPresence = $presenceOrder[$b->presence] ?? 3;
+
+            // Extract the presence status
+            $aPresence = $presenceOrder[$a->presence['status']] ?? 3;
+            $bPresence = $presenceOrder[$b->presence['status']] ?? 3;
 
             if ($aPresence === $bPresence) {
                 return strcmp($a->last_name, $b->last_name);
@@ -605,6 +610,7 @@ class AgendaController extends Controller
 
             return $aPresence <=> $bPresence;
         });
+
 
         return view('agenda.presence-activity', [
             'user' => $user,
@@ -623,11 +629,25 @@ class AgendaController extends Controller
     {
         // Retrieve the filtered user data from the request
         $usersData = json_decode($request->input('users'), true);
-
         $activityName = $request->input('activity_name');
 
+        // Ensure presence data is correctly mapped and sanitized
+        $usersData = collect($usersData)->map(function ($user) {
+            return [
+                'ID' => $user['id'],
+                'Name' => $user['name'],
+                'Presence' => $user['presence'] ?? 'null',
+                'Date' => isset($user['date']) && !empty($user['date'])
+                    ? \Carbon\Carbon::parse($user['date'])->format('d-m-Y H:i')
+                    : '-', // Use default '-' if no date present
+            ];
+        });
+
+        // Check data structure by logging (for debugging)
+        \Log::info('Users Data:', $usersData->toArray());
+
         // Export data to Excel
-        $export = new AgendaExport($usersData, $activityName);
+        $export = new AgendaExport($usersData->toArray(), $activityName);
         return $export->export();
     }
 
@@ -713,18 +733,22 @@ class AgendaController extends Controller
             ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $lesson, $isTeacher, $lessonId) {
                 // Check if the activity is associated with a lesson
                 if (isset($activity->lesson_id)) {
-                    // Fetch the lesson and its associated users
-                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
+                    if (isset($activity->lesson->users)) {
+                        // Fetch the lesson and its associated users
+                        $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
 
-                    if (!isset($lessonId) && !$isTeacher) {
-                        // If the user is in the lesson's users, allow visibility; otherwise, hide it
-                        if (in_array($user->id, $lessonUsers) || $canViewAll) {
-                            return true; // User has access to the lesson
+                        if (!isset($lessonId) && !$isTeacher) {
+                            // If the user is in the lesson's users, allow visibility; otherwise, hide it
+                            if (in_array($user->id, $lessonUsers) || $canViewAll) {
+                                return true; // User has access to the lesson
+                            } else {
+                                return false; // Hide the activity if the user has no access to the lesson
+                            }
                         } else {
-                            return false; // Hide the activity if the user has no access to the lesson
+                            return true;
                         }
                     } else {
-                        return true;
+                        return false;
                     }
                 } else {
                     // Check if activity has roles or users
@@ -1062,18 +1086,22 @@ class AgendaController extends Controller
             ->get()
             ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds, $isTeacher) {
                 if (isset($activity->lesson_id)) {
-                    // Fetch the lesson and its associated users
-                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
+                    if (isset($activity->lesson->users)) {
+                        // Fetch the lesson and its associated users
+                        $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
 
-                    if (!isset($lessonId) && !$isTeacher) {
-                        // If the user is in the lesson's users, allow visibility; otherwise, hide it
-                        if (in_array($user->id, $lessonUsers) || $canViewAll) {
-                            return true; // User has access to the lesson
+                        if (!isset($lessonId) && !$isTeacher) {
+                            // If the user is in the lesson's users, allow visibility; otherwise, hide it
+                            if (in_array($user->id, $lessonUsers) || $canViewAll) {
+                                return true; // User has access to the lesson
+                            } else {
+                                return false; // Hide the activity if the user has no access to the lesson
+                            }
                         } else {
-                            return false; // Hide the activity if the user has no access to the lesson
+                            return true;
                         }
                     } else {
-                        return true;
+                        return false;
                     }
                 }
                 // Check if activity has roles or users

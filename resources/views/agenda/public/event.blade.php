@@ -257,7 +257,7 @@
 
         </div>
     @else
-        <div class="header" style="background-image: url({{ asset('/files/agenda/banner.jpg') }})">
+        <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('/files/agenda/banner.jpg') }})">
             <div>
                 <p class="header-title">Geen activiteit gevonden</p>
             </div>

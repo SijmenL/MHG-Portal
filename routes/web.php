@@ -6,6 +6,7 @@ use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LeidingController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LoodsenController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NonLoggedInController;
 use App\Http\Controllers\SettingsController;
@@ -149,6 +150,9 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
     Route::get('/agenda/inschrijvingen/{id}', [AgendaController::class, 'agendaSubmissionsActivity'])->name('agenda.submissions.activity');
 });
 
+
+
+
 //Lessen
 Route::middleware(['checkLesson'])->group(function () {
     Route::get('/lessen', [LessonController::class, 'lessons'])->name('lessons');
@@ -198,10 +202,12 @@ Route::middleware(['checkLesson'])->group(function () {
 
     Route::get('/lessen/omgeving/{lessonId}/planning', [LessonController::class, 'planningOptions'])->name('lessons.environment.lesson.planning');
 
-
-
 });
 
+//Maintenance
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor,Loods,Zeeverkenner,Afterloods'])->group(function () {
+    Route::get('/onderhoud', [MaintenanceController::class, 'view'])->name('maintenance');
+});
 
 //Admin
 Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
@@ -293,6 +299,7 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
     Route::get('/leiding/comment/delete/{id}/{postId}', [LeidingController::class, 'deleteComment'])->name('leiding.comment.delete');
 
 });
+
 Route::get('/leiding/leiding-en-organisatie', [LeidingController::class, 'leiding'])->name('leiding.leiding');
 
 

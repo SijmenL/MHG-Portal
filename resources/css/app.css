@@ -352,7 +352,7 @@ table, th, td, label {
     background-repeat: no-repeat;
     background-size: cover;
     margin-top: -23px;
-    color: white !important;
+    color: #fff !important;
     display: flex;
     justify-content: center;
     align-items: center;

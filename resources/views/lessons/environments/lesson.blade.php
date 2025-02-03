@@ -12,7 +12,7 @@
 
 @section('content')
 
-    <div class="header" style="background-image: url({{ asset('files/lessons/lesson-images/'.$lesson->image) }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/lessons/lesson-images/'.$lesson->image) }})">
         <div>
             <p class="header-title">{{ $lesson->title }}</p>
         </div>

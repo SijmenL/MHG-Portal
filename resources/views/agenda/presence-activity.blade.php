@@ -78,10 +78,10 @@
                                     @endforeach
                                 </select>
                                 @endif
-                                <a @if($users->count() > 0) id="submit-export"
-                                   @endif class="input-group-text @if($users->count() < 1)disabled @endif"
-                                   style="text-decoration: none; cursor: pointer">
-                                    <span class="material-symbols-rounded">ios_share</span></a>
+{{--                                <a @if($users->count() > 0) id="submit-export"--}}
+{{--                                   @endif class="input-group-text @if($users->count() < 1)disabled @endif"--}}
+{{--                                   style="text-decoration: none; cursor: pointer">--}}
+{{--                                    <span class="material-symbols-rounded">ios_share</span></a>--}}
                             </div>
                         </div>
                     </div>
@@ -89,7 +89,15 @@
 
                 <form id="export" action="{{ route('agenda.presence.export') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="users" value="{{ json_encode($users) }}">
+                    <input type="hidden" name="users" value="{{ json_encode($users->map(function ($user) {
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+        'presence' => $user->presence['status'] ?? 'null',
+        'date' => $user->presence['date'] ?? null,
+    ];
+})) }}">
+
                     <input type="hidden" name="activity_name" value="{{ $activity->title }}">
                 </form>
 
@@ -139,11 +147,11 @@
                     @php
                         // Filter users to get only those who are present
                         $presentUsers = $users->filter(function ($user) {
-                            return $user->presence === 'present';
+                            return $user->presence["status"] === 'present';
                         });
 
                         $absentUsers = $users->filter(function ($user) {
-                            return $user->presence === 'absent';
+                            return $user->presence["status"] === 'absent';
                         });
                     @endphp
 
@@ -178,6 +186,19 @@
                                 <th class="no-mobile" scope="col">Profielfoto</th>
                                 <th scope="col">Naam</th>
                                 <th scope="col">Aanwezig?</th>
+                                @if($user &&
+                                                        ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                                                        $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                                                        $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                                                        $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                                                        $user->roles->contains('role', 'Administratie') ||
+                                                        $user->roles->contains('role', 'Bestuur') ||
+                                                        $user->roles->contains('role', 'Praktijkbegeleider') ||
+                                                        $user->roles->contains('role', 'Loodsen Mentor') ||
+                                                        $user->roles->contains('role', 'Ouderraad')
+                                                        ))
+                                <th scope="col">Datum</th>
+                                @endif
                             </tr>
                             </thead>
                             <tbody>
@@ -186,7 +207,7 @@
                                 <tr id="{{ $all_user->id }}">
                                     <th class="no-mobile">
                                         @if($all_user->profile_picture)
-                                            <img alt="profielfoto" class="profle-picture"
+                                            <img alt="profielfoto" class="profle-picture zoomable-image"
                                                  src="{{ asset('/profile_pictures/' .$all_user->profile_picture) }}">
                                         @else
                                             <img alt="profielfoto" class="profle-picture"
@@ -194,22 +215,36 @@
                                         @endif
                                     </th>
                                     <th>{{ $all_user->name .' '. $all_user->infix.' '. $all_user->last_name }}</th>
-                                    @if($all_user->presence === 'present')
+                                    @if($all_user->presence["status"] === 'present')
                                         <th class="bg-success-subtle">
                                             Aangemeld
                                         </th>
                                     @endif
-                                    @if($all_user->presence === 'absent')
+                                    @if($all_user->presence["status"] === 'absent')
                                         <th class="bg-danger-subtle">
                                             Afgemeld
                                         </th>
                                     @endif
-                                    @if($all_user->presence === 'null')
+                                    @if($all_user->presence["status"] === 'null')
                                         <th>
                                             Niets laten weten
                                         </th>
                                     @endif
-
+                                                        @if($user &&
+                                                         ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                                                         $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                                                         $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                                                         $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                                                         $user->roles->contains('role', 'Administratie') ||
+                                                         $user->roles->contains('role', 'Bestuur') ||
+                                                         $user->roles->contains('role', 'Praktijkbegeleider') ||
+                                                         $user->roles->contains('role', 'Loodsen Mentor') ||
+                                                         $user->roles->contains('role', 'Ouderraad')
+                                                         ))
+                                    <th>
+                                        <p>{{ $all_user->presence['date'] ? \Carbon\Carbon::parse($all_user->presence['date'])->format('d-m-Y H:m:s') : '-' }}</p>
+                                    </th>
+                                    @endif
                                 </tr>
                             @endforeach
                             </tbody>

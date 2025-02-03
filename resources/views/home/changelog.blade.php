@@ -16,6 +16,13 @@
             zelf ook nieuwe bugs aan toe!
         </div>
 
+        <h2>Update 3.1</h2>
+        <p class="fst-italic">03/02/2025</p>
+        <ul>
+            <li class="added">Algemene bugfixes en verbeteringen.</li>
+            <li class="added">Datum en tijd van de aan of afmelding in de agenda.</li>
+        </ul>
+
         <h2>Update 3.0</h2>
         <p class="fst-italic">08/01/2025</p>
         <ul>

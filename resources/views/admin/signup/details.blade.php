@@ -73,7 +73,7 @@
                                     <a href="{{ route('admin.account-management.details', ['id' => $child->id]) }}"
                                        class="d-flex flex-column gap-1 align-items-center m-2 bg-light p-2 rounded" target="_blank">
                                         @if($child->profile_picture)
-                                            <img alt="profielfoto" class="profle-picture"
+                                            <img alt="profielfoto" class="profle-picture zoomable-image"
                                                  src="{{ asset('/profile_pictures/' . $child->profile_picture) }}">
                                         @else
                                             <img alt="profielfoto" class="profle-picture"

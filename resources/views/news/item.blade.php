@@ -77,7 +77,7 @@
         }(document, 'script', 'facebook-jssdk'));
     </script>
 
-    <div class="header" style="background-image: url({{ asset('/files/news/news_images/'.$news->image) }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('/files/news/news_images/'.$news->image) }})">
         <div>
             <p class="header-title">{{ $news->title }}</p>
         </div>
@@ -123,7 +123,7 @@
         <div class="news-content">{!! $news->content !!}</div>
     </div>
 @else
-    <div class="header" style="background-image: url({{ asset('/files/news/DSC00617.JPG') }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('/files/news/DSC00617.JPG') }})">
         <div>
             <p class="header-title">Geen nieuws gevonden</p>
         </div>
