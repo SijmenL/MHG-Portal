@@ -90,7 +90,7 @@
         </form>
 
         @if($users->count() > 0)
-            <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
+            <div class=" no-scrolbar" style="max-width: 100vw">
                 <table class="table table-striped">
                     <thead class="thead-dark table-bordered table-hover">
                     <tr>
@@ -128,11 +128,18 @@
                                 </div>
                             </th>
                             <th>
-                                <div class="d-flex flex-row flex-wrap gap-2">
-                                    <a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}"
-                                       class="btn btn-info">Details</a>
-                                    <a href="{{ route('admin.account-management.edit', ['id' => $all_user->id]) }}"
-                                       class="btn btn-dark">Bewerk</a>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Opties
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}"
+                                               class="dropdown-item">Details</a></li>
+                                        <li>
+                                            <a href="{{ route('admin.account-management.edit', ['id' => $all_user->id]) }}"
+                                               class="dropdown-item">Bewerk</a>
+                                        </li>
+                                    </ul>
                                 </div>
                             </th>
                         </tr>

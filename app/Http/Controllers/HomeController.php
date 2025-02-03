@@ -53,13 +53,18 @@ class HomeController extends Controller
 
         $news = News::where('accepted', false)->count();
 
+        $newsItems = News::where('accepted', true)
+            ->orderBy('date', 'desc')
+            ->limit(3)
+            ->get();
+
         $admin = $contact + $signup + $news;
 
         if ($admin > 100) {
             $admin = "99+";
         }
 
-        return view('home.dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate, 'notifications' => $notifications, 'admin' => $admin]);
+        return view('home.dashboard', ['user' => $user, 'roles' => $roles, 'date' => $formattedDate, 'notifications' => $notifications, 'admin' => $admin, 'newsItems' => $newsItems]);
     }
 
     public function changelog() {

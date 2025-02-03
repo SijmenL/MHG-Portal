@@ -66,7 +66,7 @@
         </div>
 
         @if($users->count() > 0)
-            <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
+            <div style="max-width: 100vw">
                 <table class="table table-striped">
                     <thead class="thead-dark table-bordered table-hover">
                     <tr>
@@ -104,17 +104,27 @@
                                 </div>
                             </th>
                             <th>
-                                <div class="d-flex flex-row flex-wrap gap-2">
-                                    <a href="{{ route('admin.signup.details', ['id' => $all_user->id]) }}"
-                                       class="btn btn-info">Details</a>
-                                    <a href="{{ route('admin.signup.accept', ['id' => $all_user->id]) }}"
-                                       class="btn btn-success">Accepteer</a>
-                                    <a class="delete-button btn btn-outline-danger"
-                                       data-id="{{ $all_user->id }}"
-                                       data-name="{{ $all_user->name . ' ' . $all_user->infix . ' ' . $all_user->last_name }}"
-                                       data-link="{{ route('admin.signup.delete', $all_user->id) }}">Verwijderen</a>
+                                <div class="dropdown position-relative">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Opties
+                                    </button>
+                                    <ul class="dropdown-menu" style="z-index: 10050; transform: translate3d(0, 10px, 0);">
+                                        <li>
+                                            <a href="{{ route('admin.signup.details', ['id' => $all_user->id]) }}" class="dropdown-item">Details</a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ route('admin.signup.accept', ['id' => $all_user->id]) }}" class="dropdown-item text-success">Accepteer</a>
+                                        </li>
+                                        <li>
+                                            <a class="delete-button dropdown-item cursor-pointer text-danger"
+                                               data-id="{{ $all_user->id }}"
+                                               data-name="{{ $all_user->name . ' ' . $all_user->infix . ' ' . $all_user->last_name }}"
+                                               data-link="{{ route('admin.signup.delete', $all_user->id) }}">Verwijderen</a>
+                                        </li>
+                                    </ul>
                                 </div>
                             </th>
+
                         </tr>
                     @endforeach
                     </tbody>

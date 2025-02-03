@@ -3,7 +3,7 @@
 @vite('resources/js/home.js')
 
 @section('content')
-    <div class="header" style="background-image: url({{ asset('files/lessons/banner.jpg') }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/lessons/banner.jpg') }})">
         <div>
             <p class="header-title">Lessen</p>
             <p class="header-text">Welkom op de MHG Leeromgeving!</p>

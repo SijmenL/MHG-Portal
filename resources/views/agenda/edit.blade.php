@@ -29,7 +29,11 @@
                         </ol>
                     </nav>
 
-                    <p>Bewerk de activiteiten die je hebt aangemaakt.</p>
+                @if($user->roles->contains('role', 'Administratie'))
+                        <p>Bewerk de activiteiten die door de vereniging zijn aangemaakt. Vanwege je administratie rol kun je alles bewerken.</p>
+                    @else
+                        <p>Bewerk de activiteiten die je hebt aangemaakt.</p>
+                @endif
 
                 @else
                     <h1 class="">Agendapunten bewerken</h1>

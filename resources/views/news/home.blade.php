@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-    <div class="header" style="background-image: url({{ asset('files/news/DSC00617.JPG') }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/news/DSC00617.JPG') }})">
         <div>
             <p class="header-title">Nieuws</p>
         </div>

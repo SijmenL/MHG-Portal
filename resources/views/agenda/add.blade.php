@@ -517,11 +517,13 @@
                                                     <select id="select-roles" class="d-none" name="roles[]" multiple>
                                                         @foreach($all_roles as $role)
                                                             <option data-description="{{ $role->description }}"
-                                                                    value="{{ $role->id }}">
+                                                                    value="{{ $role->id }}"
+                                                                    @if(in_array($role->id, old('roles', []))) selected @endif>
                                                                 {{ $role->role }}
                                                             </option>
                                                         @endforeach
                                                     </select>
+
                                                 </div>
                                                 <div class="d-flex flex-wrap gap-1" id="button-container"></div>
                                             </div>
@@ -541,7 +543,7 @@
                                         <div id="collapseTwo" class="accordion-collapse collapse"
                                              data-bs-parent="#accordionExample">
                                             <div class="accordion-body">
-                                                <input id="users" name="users" type="hidden"
+                                                <input id="users" name="users" type="hidden" value="{{ old('users') }}"
                                                        class="user-select-window user-select-none form-control"
                                                        placeholder="Kies een gebruiker uit de lijst"
                                                        aria-label="user" aria-describedby="basic-addon1">
