@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-    <div class="header py-4" style="background-image: url({{ asset('files/loodsen/loodsen.webp') }});">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/loodsen/loodsen.webp') }});">
         <div>
             <p class="header-title">Loodsen</p>
             <p class="header-text">Welkom op de digitale omgeving van de Loodsen! </p>
@@ -25,10 +25,8 @@
         <div class="d-flex flex-row-responsive justify-content-center align-items-center gap-5">
             <div class="">
                 <h1 class="">Opties</h1>
-                <p>Voor nu zijn er een aantal opties in het portaal beschikbaar, je kunt op dit moment bijvoorbeeld de leiding
-                    bekijken. In de toekomst zal hier meer mogelijk zijn, zoals dingen
-                    delen met je groep, je aan- of af melden voor groepdraaien & activiteiten en bijvoorbeeld de agenda
-                    bekijken. Hou de omgeving dus goed in de gaten!</p>
+                <p>Welkom op het Loodsen portaal! Hier kun je verschillende posts vinden en maken! Meld je aan of af voor het groepdraaien via <a href="{{ route('agenda.month') }}">de agenda</a>!</p>
+
                 <div class="bg-light rounded-2 p-3">
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
@@ -46,16 +44,16 @@
                         @endif
                             <a class="btn btn-info quick-action" href="{{ route('loodsen.leiding') }}">
                                 <span class="material-symbols-rounded">supervisor_account</span>
-                                <p>Leiding</p>
+                                <p>Stamhoofden</p>
                             </a>
                             <a class="btn btn-info quick-action" href="{{ route('loodsen.flunkyball') }}">
                                 <img style="filter: unset" alt="flunkyball" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">
                                 <p>Flunkyball</p>
                             </a>
-                            <a class="btn btn-info quick-action disabled" href="">
-                                <img style="filter: unset" alt="loodsenbar" src="{{ asset('files/loodsen/logo-bar.webp') }}">
-                                <p>Loodsenbar</p>
-                            </a>
+{{--                            <a class="btn btn-info quick-action disabled" href="">--}}
+{{--                                <img style="filter: unset" alt="loodsenbar" src="{{ asset('files/loodsen/logo-bar.webp') }}">--}}
+{{--                                <p>Loodsenbar</p>--}}
+{{--                            </a>--}}
                     </div>
                 </div>
             </div>

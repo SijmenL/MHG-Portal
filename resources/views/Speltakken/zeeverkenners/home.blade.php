@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-    <div class="header" style="background-image: url({{ asset('files/zeeverkenners/Image-1-scaled.jpeg') }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/zeeverkenners/Image-1-scaled.jpeg') }})">
         <div>
             <p class="header-title">Zeeverkenners</p>
             <p class="header-text">Welkom op de digitale omgeving van de Zeeverkenners! </p>
@@ -25,11 +25,8 @@
         <div class="d-flex flex-row-responsive justify-content-center align-items-center gap-5">
             <div class="">
                 <h1 class="">Opties</h1>
-                <p>Voor nu zijn er een aantal opties in het portaal beschikbaar, je kunt op dit moment bijvoorbeeld de
-                    leiding
-                    bekijken. In de toekomst zal hier meer mogelijk zijn, zoals dingen
-                    delen met je groep, je aan- of af melden voor groepdraaien & activiteiten en bijvoorbeeld de agenda
-                    bekijken. Hou de omgeving dus goed in de gaten!</p>
+                <p>Welkom op het Zeeverkenners portaal! Hier kun je dingen delen met elkaar en de leiding. Ook kun je de leiding bekijken. Meld je aan of af voor het groepdraaien via <a href="{{ route('agenda.month') }}">de agenda</a>!</p>
+
                 <div class="bg-light rounded-2 p-3">
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
