@@ -98,7 +98,7 @@
 
     <div class="container col-md-11">
         <div class="d-flex flex-row align-items-center justify-content-between">
-            <h1>Resultaten</h1>
+            <h1>Examens {{ $lesson->title }}</h1>
             @if($isTeacher)
                 <a id="popup-exam-button"
                    class="btn btn-outline-dark">
@@ -112,7 +112,7 @@
                 <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
                 <li class="breadcrumb-item"><a
                         href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Resultaten</li>
+                <li class="breadcrumb-item active" aria-current="page">Examens</li>
             </ol>
         </nav>
 

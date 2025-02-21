@@ -65,14 +65,14 @@
 
     <div class="container col-md-11">
         @if(!isset($lesson))
-        <h1>Voeg een activiteit toe</h1>
+            <h1>Voeg een activiteit toe</h1>
 
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Voeg een activiteit toe</li>
-            </ol>
-        </nav>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Voeg een activiteit toe</li>
+                </ol>
+            </nav>
         @else
             <h1 class="">Nieuw agendapunt</h1>
             <ol class="breadcrumb">
@@ -159,150 +159,158 @@
                     </div>
 
 
-                @if(!isset($lesson))
-                    <div class="mt-4">
-                        <div class="d-flex flex-row-responsive justify-content-between align-items-center">
-                            <h2 class="flex-row gap-3"><span
-                                    class="material-symbols-rounded me-2">app_registration</span>Inschrijfformulier</h2>
-                            <a id="help-button"
-                               class="btn btn-outline-dark d-flex align-items-center justify-content-center"
-                               style="border: none">
-                                <span class="material-symbols-rounded" style="font-size: xx-large">help</span>
-                            </a>
-                        </div>
-                        <p>Bij sommige activiteiten is het nodig om een inschrijfformulier toe te voegen, bijvoorbeeld
-                            om bij te houden hoeveel teams meedoen met een pubquiz, of hoeveel kinderen mee willen lopen
-                            in een spooktocht. Als je niet zeker weet wat elk type veld doet, klik dan op <span
-                                id="help-button2" class="material-symbols-rounded"
-                                style="transform: translateY(7px); cursor: pointer">help</span> voor meer informatie.
-                        </p>
+                    @if(!isset($lesson))
+                        <div class="mt-4">
+                            <div class="d-flex flex-row-responsive justify-content-between align-items-center">
+                                <h2 class="flex-row gap-3"><span
+                                        class="material-symbols-rounded me-2">app_registration</span>Inschrijfformulier
+                                </h2>
+                                <a id="help-button"
+                                   class="btn btn-outline-dark d-flex align-items-center justify-content-center"
+                                   style="border: none">
+                                    <span class="material-symbols-rounded" style="font-size: xx-large">help</span>
+                                </a>
+                            </div>
+                            <p>Bij sommige activiteiten is het nodig om een inschrijfformulier toe te voegen,
+                                bijvoorbeeld
+                                om bij te houden hoeveel teams meedoen met een pubquiz, of hoeveel kinderen mee willen
+                                lopen
+                                in een spooktocht. Als je niet zeker weet wat elk type veld doet, klik dan op <span
+                                    id="help-button2" class="material-symbols-rounded"
+                                    style="transform: translateY(7px); cursor: pointer">help</span> voor meer
+                                informatie.
+                            </p>
 
-                        <script>
-                            let helpButton = document.getElementById('help-button');
-                            let helpButton2 = document.getElementById('help-button2');
-                            let body = document.getElementById('app');
-                            let html = document.querySelector('html');
-                            let popUp = document.getElementById('popUp');
+                            <script>
+                                let helpButton = document.getElementById('help-button');
+                                let helpButton2 = document.getElementById('help-button2');
+                                let body = document.getElementById('app');
+                                let html = document.querySelector('html');
+                                let popUp = document.getElementById('popUp');
 
 
-                            helpButton.addEventListener('click', function () {
-                                openPopup();
-                            });
+                                helpButton.addEventListener('click', function () {
+                                    openPopup();
+                                });
 
-                            helpButton2.addEventListener('click', function () {
-                                openPopup();
-                            });
+                                helpButton2.addEventListener('click', function () {
+                                    openPopup();
+                                });
 
-                            closeButton = document.getElementById('close-popup');
-                            closeButton.addEventListener('click', closePopup);
+                                closeButton = document.getElementById('close-popup');
+                                closeButton.addEventListener('click', closePopup);
 
-                            function openPopup() {
-                                let scrollPosition = window.scrollY;
-                                html.classList.add('no-scroll');
-                                window.scrollTo(0, scrollPosition);
-                                popUp.style.display = 'flex';
-                            }
+                                function openPopup() {
+                                    let scrollPosition = window.scrollY;
+                                    html.classList.add('no-scroll');
+                                    window.scrollTo(0, scrollPosition);
+                                    popUp.style.display = 'flex';
+                                }
 
-                            function closePopup() {
-                                popUp.style.display = 'none';
-                                html.classList.remove('no-scroll');
-                            }
+                                function closePopup() {
+                                    popUp.style.display = 'none';
+                                    html.classList.remove('no-scroll');
+                                }
 
-                        </script>
-                        <p>Druk op de knop "Voeg veld toe" om een invoerveld toe te voegen.</p>
+                            </script>
+                            <p>Druk op de knop "Voeg veld toe" om een invoerveld toe te voegen.</p>
 
-                        <div id="form-elements"
-                             class="d-flex flex-column bg-info p-2 gap-2 m-2 rounded @if(!old('form_labels'))d-none @endif">
-                            @if(old('form_labels'))
-                                @foreach(old('form_labels') as $index => $label)
-                                    <div class="d-flex flex-column gap-2 bg-white rounded p-4 align-items-start"
-                                         id="formElement{{ $index }}">
-                                        <button type="button" class="btn btn-outline-danger align-self-end"
-                                                onclick="removeFormElement(${fields})">Verwijder veld
-                                        </button>
-                                        <label for="fieldLabel{{ $index }}">Veldlabel (bijvoorbeeld: Naam, Achternaam,
-                                            Adres)</label>
-                                        <input id="fieldLabel{{ $index }}" class="form-control" type="text"
-                                               name="form_labels[]" value="{{ $label }}">
+                            <div id="form-elements"
+                                 class="d-flex flex-column bg-info p-2 gap-2 m-2 rounded @if(!old('form_labels'))d-none @endif">
+                                @if(old('form_labels'))
+                                    @foreach(old('form_labels') as $index => $label)
+                                        <div class="d-flex flex-column gap-2 bg-white rounded p-4 align-items-start"
+                                             id="formElement{{ $index }}">
+                                            <button type="button" class="btn btn-outline-danger align-self-end"
+                                                    onclick="removeFormElement(${fields})">Verwijder veld
+                                            </button>
+                                            <label for="fieldLabel{{ $index }}">Veldlabel (bijvoorbeeld: Naam,
+                                                Achternaam,
+                                                Adres)</label>
+                                            <input id="fieldLabel{{ $index }}" class="form-control" type="text"
+                                                   name="form_labels[]" value="{{ $label }}">
 
-                                        <label for="fieldType{{ $index }}">Type veld (wat je veld accepteerd,
-                                            bijvoorbeeld "Tekst" als je een naam wilt of "Dropdown" bij een lijst
-                                            tijdsloten)</label>
-                                        <select id="fieldType{{ $index }}" class="form-control" name="form_types[]"
-                                                onchange="handleFieldTypeChange(this, {{ $index }})">
-                                            <option
-                                                value="text" {{ old('form_types')[$index] == 'text' ? 'selected' : '' }}>
-                                                Tekst
-                                            </option>
-                                            <option
-                                                value="email" {{ old('form_types')[$index] == 'email' ? 'selected' : '' }}>
-                                                E-mail (geldig e-mail adres)
-                                            </option>
-                                            <option
-                                                value="number" {{ old('form_types')[$index] == 'number' ? 'selected' : '' }}>
-                                                Getal
-                                            </option>
-                                            <option
-                                                value="date" {{ old('form_types')[$index] == 'date' ? 'selected' : '' }}>
-                                                Datum
-                                            </option>
-                                            <option
-                                                value="select" {{ old('form_types')[$index] == 'select' ? 'selected' : '' }}>
-                                                Dropdown (Kies 1 waarde uit een menu)
-                                            </option>
-                                            <option
-                                                value="radio" {{ old('form_types')[$index] == 'radio' ? 'selected' : '' }}>
-                                                Radio (Kies 1 waarde uit verschillende opties)
-                                            </option>
-                                            <option
-                                                value="checkbox" {{ old('form_types')[$index] == 'checkbox' ? 'selected' : '' }}>
-                                                Checkbox (Kies meerdere waardes uit verschillende opties)
-                                            </option>
-                                        </select>
+                                            <label for="fieldType{{ $index }}">Type veld (wat je veld accepteerd,
+                                                bijvoorbeeld "Tekst" als je een naam wilt of "Dropdown" bij een lijst
+                                                tijdsloten)</label>
+                                            <select id="fieldType{{ $index }}" class="form-control" name="form_types[]"
+                                                    onchange="handleFieldTypeChange(this, {{ $index }})">
+                                                <option
+                                                    value="text" {{ old('form_types')[$index] == 'text' ? 'selected' : '' }}>
+                                                    Tekst
+                                                </option>
+                                                <option
+                                                    value="email" {{ old('form_types')[$index] == 'email' ? 'selected' : '' }}>
+                                                    E-mail (geldig e-mail adres)
+                                                </option>
+                                                <option
+                                                    value="number" {{ old('form_types')[$index] == 'number' ? 'selected' : '' }}>
+                                                    Getal
+                                                </option>
+                                                <option
+                                                    value="date" {{ old('form_types')[$index] == 'date' ? 'selected' : '' }}>
+                                                    Datum
+                                                </option>
+                                                <option
+                                                    value="select" {{ old('form_types')[$index] == 'select' ? 'selected' : '' }}>
+                                                    Dropdown (Kies 1 waarde uit een menu)
+                                                </option>
+                                                <option
+                                                    value="radio" {{ old('form_types')[$index] == 'radio' ? 'selected' : '' }}>
+                                                    Radio (Kies 1 waarde uit verschillende opties)
+                                                </option>
+                                                <option
+                                                    value="checkbox" {{ old('form_types')[$index] == 'checkbox' ? 'selected' : '' }}>
+                                                    Checkbox (Kies meerdere waardes uit verschillende opties)
+                                                </option>
+                                            </select>
 
-                                        @if(in_array(old('form_types')[$index], ['select', 'radio', 'checkbox']))
-                                            <div id="optionsContainer{{ $index }}" class="mt-2 w-100">
-                                                <label>Waardes die in je dropdown, radio of checkbox komen te
-                                                    staan</label>
-                                                <div id="options{{ $index }}" class="w-100">
-                                                    @foreach(old('form_options.'.$index, []) as $option)
-                                                        <div
-                                                            class="d-flex flex-row-responsive align-items-center gap-2 w-100 mt-2">
-                                                            <input type="text" class="form-control w-full"
-                                                                   name="form_options[{{ $index }}][]"
-                                                                   value="{{ $option }}">
-                                                            <button type="button"
-                                                                    class="btn btn-outline-danger d-flex align-items-center justify-content-center"
-                                                                    style="min-width: 10%" onclick="removeOption(this)"><span
-                                                                    class="material-symbols-rounded">close</span>
-                                                            </button>
-                                                        </div>
-                                                    @endforeach
+                                            @if(in_array(old('form_types')[$index], ['select', 'radio', 'checkbox']))
+                                                <div id="optionsContainer{{ $index }}" class="mt-2 w-100">
+                                                    <label>Waardes die in je dropdown, radio of checkbox komen te
+                                                        staan</label>
+                                                    <div id="options{{ $index }}" class="w-100">
+                                                        @foreach(old('form_options.'.$index, []) as $option)
+                                                            <div
+                                                                class="d-flex flex-row-responsive align-items-center gap-2 w-100 mt-2">
+                                                                <input type="text" class="form-control w-full"
+                                                                       name="form_options[{{ $index }}][]"
+                                                                       value="{{ $option }}">
+                                                                <button type="button"
+                                                                        class="btn btn-outline-danger d-flex align-items-center justify-content-center"
+                                                                        style="min-width: 10%"
+                                                                        onclick="removeOption(this)"><span
+                                                                        class="material-symbols-rounded">close</span>
+                                                                </button>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    <button type="button" class="btn btn-info mt-2"
+                                                            onclick="addOption({{ $index }})">Voeg optie toe
+                                                    </button>
                                                 </div>
-                                                <button type="button" class="btn btn-info mt-2"
-                                                        onclick="addOption({{ $index }})">Voeg optie toe
-                                                </button>
-                                            </div>
-                                        @endif
+                                            @endif
 
-                                        <label for="fieldRequired{{ $index }}">Verplicht veld</label>
-                                        <input id="fieldRequired{{ $index }}" class="form-check-input" type="checkbox"
-                                               name="is_required[]" {{ old('is_required.'.$index) ? 'checked' : '' }}>
-                                    </div>
-                                @endforeach
-                            @endif
-                        </div>
-                        <button class="btn btn-primary text-white" type="button" onclick="addFormElement()">Voeg veld
-                            toe
-                        </button>
-                        <script>
-                            let fields = 0;
+                                            <label for="fieldRequired{{ $index }}">Verplicht veld</label>
+                                            <input id="fieldRequired{{ $index }}" class="form-check-input"
+                                                   type="checkbox"
+                                                   name="is_required[]" {{ old('is_required.'.$index) ? 'checked' : '' }}>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <button class="btn btn-primary text-white" type="button" onclick="addFormElement()">Voeg
+                                veld
+                                toe
+                            </button>
+                            <script>
+                                let fields = 0;
 
-                            function addFormElement() {
-                                let elementContainer = document.getElementById('form-elements');
-                                elementContainer.classList.remove('d-none');
+                                function addFormElement() {
+                                    let elementContainer = document.getElementById('form-elements');
+                                    elementContainer.classList.remove('d-none');
 
-                                let html = `
+                                    let html = `
         <div class="d-flex flex-column gap-2 bg-white rounded p-4 align-items-start" id="formElement${fields}">
             <button type="button" class="btn btn-outline-danger align-self-end" onclick="removeFormElement(${fields})">Verwijder veld</button>
             <label for="fieldLabel${fields}">Veldlabel (bijvoorbeeld: Naam, Achternaam, Adres)</label>
@@ -335,44 +343,44 @@
             <input id="fieldRequired${fields}" class="form-check-input" type="checkbox" name="is_required[]">
         </div>`;
 
-                                elementContainer.insertAdjacentHTML('beforeend', html);
-                                fields++;
-                            }
+                                    elementContainer.insertAdjacentHTML('beforeend', html);
+                                    fields++;
+                                }
 
-                            function removeFormElement(index) {
-                                let element = document.getElementById(`formElement${index}`);
-                                element.remove();
-                            }
+                                function removeFormElement(index) {
+                                    let element = document.getElementById(`formElement${index}`);
+                                    element.remove();
+                                }
 
-                            function addOption(fieldIndex) {
-                                let optionsContainer = document.getElementById(`options${fieldIndex}`);
-                                let newOptionHtml = `
+                                function addOption(fieldIndex) {
+                                    let optionsContainer = document.getElementById(`options${fieldIndex}`);
+                                    let newOptionHtml = `
         <div class="d-flex align-items-center gap-2 w-100 mt-2">
             <input type="text" class="form-control w-full" name="form_options[${fieldIndex}][]">
             <button type="button" class="btn btn-outline-danger d-flex align-items-center justify-content-center" style="min-width: 10%" onclick="removeOption(this)"><span
                                                                 class="material-symbols-rounded">close</span></button>
         </div>`;
-                                optionsContainer.insertAdjacentHTML('beforeend', newOptionHtml);
-                            }
-
-                            function removeOption(button) {
-                                button.parentElement.remove();
-                            }
-
-                            function handleFieldTypeChange(select, fieldIndex) {
-                                let optionsContainer = document.getElementById(`optionsContainer${fieldIndex}`);
-                                let selectedValue = select.value;
-
-                                if (['select', 'radio', 'checkbox'].includes(selectedValue)) {
-                                    optionsContainer.classList.remove('d-none');
-                                } else {
-                                    optionsContainer.classList.add('d-none');
+                                    optionsContainer.insertAdjacentHTML('beforeend', newOptionHtml);
                                 }
-                            }
-                        </script>
+
+                                function removeOption(button) {
+                                    button.parentElement.remove();
+                                }
+
+                                function handleFieldTypeChange(select, fieldIndex) {
+                                    let optionsContainer = document.getElementById(`optionsContainer${fieldIndex}`);
+                                    let selectedValue = select.value;
+
+                                    if (['select', 'radio', 'checkbox'].includes(selectedValue)) {
+                                        optionsContainer.classList.remove('d-none');
+                                    } else {
+                                        optionsContainer.classList.add('d-none');
+                                    }
+                                }
+                            </script>
 
 
-                    </div>
+                        </div>
                     @endif
 
                     <div class="mt-4">
@@ -406,58 +414,95 @@
                     </div>
 
 
-
                     <div class="mt-4">
                         <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">event_note</span>Extra's
                         </h2>
-                        <div class="w-100">
-                            <label for="presence" class="col-form-label ">Laat de gebruikers zich aan of af melden voor deze activiteit <span
-                                    class="required-form">*</span></label>
-                            <select id="presence" type="text" class="form-select @error('presence') is-invalid @enderror"
-                                    name="presence">
-                                <option value="0">Nee</option>
-                                <option value="1" selected>Ja</option>
-                            </select>
-                            @error('presence')
-                            <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                            @enderror
+                        <div class="w-100 d-flex flex-row-responsive align-items-end gap-2">
+                            <div class="w-100">
+                                <label for="presence" class="col-form-label">
+                                    Laat de gebruikers zich aan of af melden voor deze activiteit
+                                    <span class="required-form">*</span>
+                                </label>
+                                <select id="presence" class="form-select @error('presence') is-invalid @enderror"
+                                        name="presence">
+                                    <option value="0">Nee</option>
+                                    <option value="1" selected>Ja</option>
+                                </select>
+                                @error('presence')
+                                <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+                                @enderror
+                            </div>
+                            <div id="date-container" class="w-100 mt-2">
+                                <label for="presence-date" class="col-form-label">Deadline om aan- of af te melden: (wanneer dit veld leeg gelaten wordt zal er geen deadline op zitten)</label>
+                                <input type="datetime-local" id="presence-date" name="presence-date"
+                                       class="form-control @error('presence-date') is-invalid @enderror">
+                                @error('presence-date')
+                                <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+                                @enderror
+                            </div>
                         </div>
+
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                                const presenceSelect = document.getElementById("presence");
+                                const dateContainer = document.getElementById("date-container");
+
+                                function toggleDateInput() {
+                                    if (presenceSelect.value === "1") {
+                                        dateContainer.style.display = "block";
+                                    } else {
+                                        dateContainer.style.display = "none";
+                                    }
+                                }
+
+                                // Initial check on page load
+                                toggleDateInput();
+
+                                // Listen for changes
+                                presenceSelect.addEventListener("change", toggleDateInput);
+                            });
+                        </script>
+
 
                         @if(!isset($lesson))
-                        <div class="w-100">
-                            <label for="public" class="col-form-label ">Maak dit een openbare activiteit (Het zal ook op
-                                de
-                                normale website komen te staan als activiteit) <span
-                                    class="required-form">*</span></label>
-                            <select id="public" type="text" class="form-select @error('public') is-invalid @enderror"
-                                    name="public">
-                                <option value="0">Nee</option>
-                                <option value="1">Ja</option>
-                            </select>
-                            @error('public')
-                            <span class="invalid-feedback" role="alert">
+                            <div class="w-100">
+                                <label for="public" class="col-form-label ">Maak dit een openbare activiteit (Het zal
+                                    ook op
+                                    de
+                                    normale website komen te staan als activiteit) <span
+                                        class="required-form">*</span></label>
+                                <select id="public" type="text"
+                                        class="form-select @error('public') is-invalid @enderror"
+                                        name="public">
+                                    <option value="0">Nee</option>
+                                    <option value="1">Ja</option>
+                                </select>
+                                @error('public')
+                                <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
-                            @enderror
-                        </div>
-
-                        <div class="w-100">
-                            <label for="price" class="col-form-label ">Prijs (als je dit
-                                veld leeg laat vermelden we de prijs niet en voor een gratis evenement kun je 0
-                                invullen)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">€</span>
-                                <input name="price" type="number" class="form-control" aria-label="price"
-                                       aria-describedby="price" id="price" value="{{ old('price') }}">
+                                @enderror
                             </div>
-                            @error('price')
-                            <span class="invalid-feedback" role="alert">
+
+                            <div class="w-100">
+                                <label for="price" class="col-form-label ">Prijs (als je dit
+                                    veld leeg laat vermelden we de prijs niet en voor een gratis evenement kun je 0
+                                    invullen)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input name="price" type="number" class="form-control" aria-label="price"
+                                           aria-describedby="price" id="price" value="{{ old('price') }}">
+                                </div>
+                                @error('price')
+                                <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
-                            @enderror
-                        </div>
+                                @enderror
+                            </div>
                         @else
                             <input name="public" type="hidden" value="0">
                             <input name="lesson_id" type="hidden" value="{{$lesson->id}}">
@@ -476,93 +521,100 @@
 
                         @if(!isset($lesson))
 
-                        <div class="d-flex flex-column">
-                            <label for="organisator" class="col-form-label ">Organisatie, bijvoorbeeld "De Loodsen" of
-                                "Leiding Zeeverkenners"</label>
-                            <input name="organisator" type="text" class="form-control" id="organisator"
-                                   value="{{ old('organisator') }}"
-                            >
-                            @error('organisator')
-                            <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
+                            <div class="d-flex flex-column">
+                                <label for="organisator" class="col-form-label ">Organisatie, bijvoorbeeld "De Loodsen"
+                                    of
+                                    "Leiding Zeeverkenners"</label>
+                                <input name="organisator" type="text" class="form-control" id="organisator"
+                                       value="{{ old('organisator') }}"
+                                >
+                                @error('organisator')
+                                <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
 
 
 
-                        <div class="mt-4">
-                            <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">for_you</span>Rollen
-                                & Mensen</h2>
-                            <p>Als je geen rollen of gebruikers toevoegt aan je activiteit wordt deze voor iedereen
-                                zichtbaar!</p>
-                            <p>Om een activiteit aan te maken voor bijvoorbeeld de Zeeverkenners, kun je de rol
-                                "Zeeverkenners" kiezen onder "Eventuele rollen waarvoor je activiteit geldt".</p>
-                            <p>Vergeet niet om ook de leiding rol toe te voegen als je iets aan je speltak toevoegd!</p>
-                            <div class="d-flex flex-column mt-4 mb-2">
-                                <div class="accordion" id="accordionExample">
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed" type="button"
-                                                    data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                                                    aria-expanded="false" aria-controls="collapseOne">
-                                                <label for="select-roles" class="col-md-4 col-form-label ">Eventuele
-                                                    rollen
-                                                    waarvoor je activiteit geldt</label>
-                                            </button>
-                                        </h2>
+                            <div class="mt-4">
+                                <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">for_you</span>Rollen
+                                    & Mensen</h2>
+                                <p>Als je geen rollen of gebruikers toevoegt aan je activiteit wordt deze voor iedereen
+                                    zichtbaar!</p>
+                                <p>Om een activiteit aan te maken voor bijvoorbeeld de Zeeverkenners, kun je de rol
+                                    "Zeeverkenners" kiezen onder "Eventuele rollen waarvoor je activiteit geldt".</p>
+                                <p>Vergeet niet om ook de leiding rol toe te voegen als je iets aan je speltak
+                                    toevoegd!</p>
+                                <div class="d-flex flex-column mt-4 mb-2">
+                                    <div class="accordion" id="accordionExample">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#collapseOne"
+                                                        aria-expanded="false" aria-controls="collapseOne">
+                                                    <label for="select-roles" class="col-md-4 col-form-label ">Eventuele
+                                                        rollen
+                                                        waarvoor je activiteit geldt</label>
+                                                </button>
+                                            </h2>
 
-                                        <div id="collapseOne" class="accordion-collapse collapse"
-                                             data-bs-parent="#accordionExample">
-                                            <div class="accordion-body">
-                                                <div class="custom-select">
-                                                    <select id="select-roles" class="d-none" name="roles[]" multiple>
-                                                        @foreach($all_roles as $role)
-                                                            <option data-description="{{ $role->description }}"
-                                                                    value="{{ $role->id }}"
-                                                                    @if(in_array($role->id, old('roles', []))) selected @endif>
-                                                                {{ $role->role }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                            <div id="collapseOne" class="accordion-collapse collapse"
+                                                 data-bs-parent="#accordionExample">
+                                                <div class="accordion-body">
+                                                    <div class="custom-select">
+                                                        <select id="select-roles" class="d-none" name="roles[]"
+                                                                multiple>
+                                                            @foreach($all_roles as $role)
+                                                                <option data-description="{{ $role->description }}"
+                                                                        value="{{ $role->id }}"
+                                                                        @if(in_array($role->id, old('roles', []))) selected @endif>
+                                                                    {{ $role->role }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
 
+                                                    </div>
+                                                    <div class="d-flex flex-wrap gap-1" id="button-container"></div>
                                                 </div>
-                                                <div class="d-flex flex-wrap gap-1" id="button-container"></div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed" type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#collapseTwo" aria-expanded="false"
-                                                    aria-controls="collapseTwo">
-                                                <label for="users" class="col-md-4 col-form-label ">Eventuele gebruikers
-                                                    waarvoor je activiteit
-                                                    geldt</label>
-                                            </button>
-                                        </h2>
-                                        <div id="collapseTwo" class="accordion-collapse collapse"
-                                             data-bs-parent="#accordionExample">
-                                            <div class="accordion-body">
-                                                <input id="users" name="users" type="hidden" value="{{ old('users') }}"
-                                                       class="user-select-window user-select-none form-control"
-                                                       placeholder="Kies een gebruiker uit de lijst"
-                                                       aria-label="user" aria-describedby="basic-addon1">
-                                                <div class="user-select-window-popup no-shadow d-none mt-2"
-                                                     style="position: unset; display: block !important;">
-                                                    <h3>Selecteer gebruikers</h3>
-                                                    <div class="input-group">
-                                                        <label class="input-group-text" id="basic-addon1">
-                                                            <span class="material-symbols-rounded">search</span></label>
-                                                        <input type="text" data-type="multiple" data-stayopen="true"
-                                                               class="user-select-search form-control"
-                                                               placeholder="Zoeken op naam, email, adres etc."
-                                                               aria-label="Zoeken" aria-describedby="basic-addon1">
-                                                    </div>
-                                                    <div class="user-list no-scrolbar">
-                                                        <div
-                                                            class="w-100 h-100 d-flex justify-content-center align-items-center"><span
-                                                                class="material-symbols-rounded rotating"
-                                                                style="font-size: xxx-large">progress_activity</span>
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseTwo" aria-expanded="false"
+                                                        aria-controls="collapseTwo">
+                                                    <label for="users" class="col-md-4 col-form-label ">Eventuele
+                                                        gebruikers
+                                                        waarvoor je activiteit
+                                                        geldt</label>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseTwo" class="accordion-collapse collapse"
+                                                 data-bs-parent="#accordionExample">
+                                                <div class="accordion-body">
+                                                    <input id="users" name="users" type="hidden"
+                                                           value="{{ old('users') }}"
+                                                           class="user-select-window user-select-none form-control"
+                                                           placeholder="Kies een gebruiker uit de lijst"
+                                                           aria-label="user" aria-describedby="basic-addon1">
+                                                    <div class="user-select-window-popup no-shadow d-none mt-2"
+                                                         style="position: unset; display: block !important;">
+                                                        <h3>Selecteer gebruikers</h3>
+                                                        <div class="input-group">
+                                                            <label class="input-group-text" id="basic-addon1">
+                                                                <span
+                                                                    class="material-symbols-rounded">search</span></label>
+                                                            <input type="text" data-type="multiple" data-stayopen="true"
+                                                                   class="user-select-search form-control"
+                                                                   placeholder="Zoeken op naam, email, adres etc."
+                                                                   aria-label="Zoeken" aria-describedby="basic-addon1">
+                                                        </div>
+                                                        <div class="user-list no-scrolbar">
+                                                            <div
+                                                                class="w-100 h-100 d-flex justify-content-center align-items-center"><span
+                                                                    class="material-symbols-rounded rotating"
+                                                                    style="font-size: xxx-large">progress_activity</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -571,7 +623,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
                     </div>
                     <div>
                         @error('roles')
@@ -587,7 +638,7 @@
                         </span>
                         @enderror
                     </div>
-                        @endif
+                    @endif
 
                     <button
                         onclick="function handleButtonClick(button) {
@@ -604,7 +655,8 @@
                             handleButtonClick(this)"
                         class="btn mt-2 btn-success flex flex-row align-items-center justify-content-center">
                         <span class="button-text">Opslaan</span>
-                        <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span style="display: none" class="loading-spinner spinner-border spinner-border-sm"
+                              aria-hidden="true"></span>
                         <span style="display: none" class="loading-text" role="status">Laden...</span>
                     </button>
                 </form>

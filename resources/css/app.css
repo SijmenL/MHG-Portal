@@ -4,6 +4,10 @@
     scroll-behavior: auto !important;
 }
 
+.material-symbols-rounded {
+    user-select: none;
+}
+
 #app {
     min-height: 100vh;
     display: flex;
@@ -360,6 +364,12 @@ table, th, td, label {
     text-shadow: -5px 5px 16px rgba(0, 0, 0, 0.96);
     margin-bottom: 50px;
     padding: 10px;
+}
+
+.not-invited th {
+    background-color: #cdcdcd;
+    color: #616161;
+    font-style: italic;
 }
 
 .header-title {
@@ -1119,6 +1129,37 @@ th .form-control, .form-select {
     height: 100%;
 }
 
+.dropdown-item:hover {
+    background-color: var(--accent-color);
+    cursor: pointer;
+}
+
+
+
+.file td {
+    background-color: unset;
+}
+
+.file {
+    user-select: none;
+}
+
+.file:hover {
+    background-color: #ebedef !important;
+}
+
+.file:active {
+    background-color: #cdcfd1 !important;
+}
+
+.file-tools {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .event-title {
     font-size: 0.75rem;
     margin-top: 5px;
@@ -1166,6 +1207,8 @@ th .form-control, .form-select {
     font-weight: 1000;
     margin: -8px 0 0;
 }
+
+
 
 @media screen and (min-width: 992px) {
     .mobile-only {
@@ -1746,6 +1789,9 @@ th .form-control, .form-select {
     --primary-color: #0092df;
     --secondary-color: #e1e1e1;
     --accent-color: #CEE3F6;
+    --danger-color: #ff4136;
+    --warning-color: #ffc107;
+    --success-color: #198754;
     --title-color: #1c244b;
     --text-color: #000000;
     --alternarive-white: #f3f5f8;

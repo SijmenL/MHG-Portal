@@ -40,5 +40,9 @@ class Lesson extends Model
         return $this->hasMany(LessonTest::class);
     }
 
+    public function competences()
+    {
+        return $this->hasMany(LessonCompetence::class);
+    }
 
 }

@@ -66,7 +66,13 @@
                 <a class="btn btn-info quick-action"
                    href="{{ route('lessons.environment.lesson.results', $lesson->id) }}">
                     <span class="material-symbols-rounded">grading</span>
-                    <p>Resultaten</p>
+                    <p>Examens</p>
+                </a>
+
+                <a class="btn btn-info quick-action"
+                   href="{{ route('lessons.environment.lesson.competences', $lesson->id) }}">
+                    <span class="material-symbols-rounded">history_edu</span>
+                    <p>Competentielijst</p>
                 </a>
 
                 @if($isTeacher)

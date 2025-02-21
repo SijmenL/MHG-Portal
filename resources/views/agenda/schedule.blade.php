@@ -64,7 +64,7 @@
 
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="show-all"
-                                   @if($wantViewAll === 'true') checked @endif>
+                                   @if($wantViewAll === true) checked @endif>
                             <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging
                                 zien</label>
                         </div>

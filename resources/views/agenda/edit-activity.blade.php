@@ -417,22 +417,57 @@
                     <div class="mt-4">
                         <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">event_note</span>Extra's
                         </h2>
+                        <div class="w-100 d-flex flex-row-responsive align-items-end gap-2">
+
                         <div class="w-100">
-                            <label for="presence" class="col-form-label ">Laat de gebruikers zich aan of af melden voor
-                                deze activiteit <span
-                                    class="required-form">*</span></label>
-                            <select id="presence" type="text"
-                                    class="form-select @error('presence') is-invalid @enderror"
-                                    name="presence">
-                                <option value="0">Nee</option>
-                                <option value="1" selected>Ja</option>
-                            </select>
-                            @error('presence')
-                            <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                            @enderror
+                                <label for="presence" class="col-form-label">
+                                    Laat de gebruikers zich aan of af melden voor deze activiteit
+                                    <span class="required-form">*</span>
+                                </label>
+
+                                <select id="presence" class="form-select @error('presence') is-invalid @enderror"
+                                        name="presence">
+                                    <option @if($activity->presence === "0") selected @endif value="0">Nee</option>
+                                    <option @if($activity->presence !== "0") selected @endif value="1">Ja</option>
+                                </select>
+                                @error('presence')
+                                <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+                                @enderror
+                            </div>
+                            <div id="date-container" class="w-100 mt-2">
+                                <label for="presence-date" class="col-form-label">Deadline om aan- of af te melden: (wanneer dit veld leeg gelaten wordt zal er geen deadline op zitten)</label>
+                                <input type="datetime-local" id="presence-date" name="presence-date" value="{{ $activity->presence }}"
+                                       class="form-control @error('presence-date') is-invalid @enderror">
+                                @error('presence-date')
+                                <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+                                @enderror
+                            </div>
                         </div>
+
+                        <script>
+                            document.addEventListener("DOMContentLoaded", function () {
+                                const presenceSelect = document.getElementById("presence");
+                                const dateContainer = document.getElementById("date-container");
+
+                                function toggleDateInput() {
+                                    if (presenceSelect.value === "1") {
+                                        dateContainer.style.display = "block";
+                                    } else {
+                                        dateContainer.style.display = "none";
+                                    }
+                                }
+
+                                // Initial check on page load
+                                toggleDateInput();
+
+                                // Listen for changes
+                                presenceSelect.addEventListener("change", toggleDateInput);
+                            });
+                        </script>
 
                         @if(!isset($lesson))
 
@@ -443,8 +478,8 @@
                                     class="required-form">*</span></label>
                             <select id="public" type="text" class="form-select @error('public') is-invalid @enderror"
                                     name="public">
-                                <option value="0">Nee</option>
-                                <option value="1">Ja</option>
+                                <option @if($activity->public === false) selected @endif value="0">Nee</option>
+                                <option @if($activity->public === true) selected @endif value="1">Ja</option>
                             </select>
                             @error('public')
                             <span class="invalid-feedback" role="alert">

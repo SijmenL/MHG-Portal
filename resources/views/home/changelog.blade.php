@@ -16,11 +16,24 @@
             zelf ook nieuwe bugs aan toe!
         </div>
 
+        <h2>Update 3.2</h2>
+        <p class="fst-italic">14/02/2025</p>
+        <ul>
+            <li class="added">Verbeteringen aan de lesomgeving.</li>
+            <ul>
+                <li class="added">Bestanden kunnen in mapjes worden gezet</li>
+                <li class="added">Bestandsgrootte en datum van wijziging staat in het vernieuwde overzicht</li>
+                <li class="added">De competentie lijst. De CWO competenties kunnen hier op worden gezet en per deelnemer worden afgestreept.</li>
+            </ul>
+            <li class="added">Het aanmelden voor activiteiten kan nu een deadline bevatten.</li>
+            <li class="added">Algemene bugfixes en verbeteringen.</li>
+        </ul>
+
         <h2>Update 3.1</h2>
         <p class="fst-italic">03/02/2025</p>
         <ul>
+            <li class="added">Datum en tijd van de aan of afmelding in de agenda voor leiding.</li>
             <li class="added">Algemene bugfixes en verbeteringen.</li>
-            <li class="added">Datum en tijd van de aan of afmelding in de agenda.</li>
         </ul>
 
         <h2>Update 3.0</h2>
@@ -208,7 +221,7 @@
             <li class="removed">Wachtwoord vergeten is verwijderd, stuur een mailtje naar Team Admin in dit geval.</li>
         </ul>
 
-        <h2>Update 0.4 beta</h2>
+        <h2>Update 0.4</h2>
         <p class="fst-italic">29/12/2023</p>
         <ul>
             <li class="added">Portal verplaatst naar eigen subdomein (andere website)</li>
