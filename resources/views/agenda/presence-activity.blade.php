@@ -204,7 +204,7 @@
                             <tbody>
 
                             @foreach ($users as $all_user)
-                                <tr id="{{ $all_user->id }}">
+                                <tr id="{{ $all_user->id }}" @if($all_user->not_invited) class="not-invited" @endif>
                                     <th class="no-mobile">
                                         @if($all_user->profile_picture)
                                             <img alt="profielfoto" class="profle-picture zoomable-image"
@@ -242,7 +242,7 @@
                                                          $user->roles->contains('role', 'Ouderraad')
                                                          ))
                                     <th>
-                                        <p>{{ $all_user->presence['date'] ? \Carbon\Carbon::parse($all_user->presence['date'])->format('d-m-Y H:m:s') : '-' }}</p>
+                                        <p>{{ $all_user->presence['date'] ? \Carbon\Carbon::parse($all_user->presence['date'])->format('d-m-Y H:i:s') : '-' }}</p>
                                     </th>
                                     @endif
                                 </tr>

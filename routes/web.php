@@ -185,15 +185,24 @@ Route::middleware(['checkLesson'])->group(function () {
     Route::delete('/lessen/omgeving/{lessonId}/bestanden/{fileId}', [LessonController::class, 'filesDestroy'])->name('lessons.environment.lesson.files.destroy');
     Route::get('/lessen/omgeving/{lessonId}/bestanden/{fileId}/beschikbaarheid', [LessonController::class, 'toggleFileAccess'])->name('lessons.environment.lesson.files.toggle-access');
 
-    Route::get('/lessen/omgeving/{lessonId}/resultaten', [LessonController::class, 'results'])->name('lessons.environment.lesson.results');
-    Route::post('/lessen/omgeving/{lessonId}/resultaten', [LessonController::class, 'storeTest'])->name('lessons.environment.lesson.results.store');
-    Route::post('/lessen/omgeving/{lessonId}/resultaten/cijfers', [LessonController::class, 'storeGrades'])->name('lessons.environment.lesson.results.store.grades');
+    Route::get('/lessen/omgeving/{lessonId}/examens', [LessonController::class, 'results'])->name('lessons.environment.lesson.results');
+    Route::post('/lessen/omgeving/{lessonId}/examens', [LessonController::class, 'storeTest'])->name('lessons.environment.lesson.results.store');
+    Route::post('/lessen/omgeving/{lessonId}/examens/cijfers', [LessonController::class, 'storeGrades'])->name('lessons.environment.lesson.results.store.grades');
 
-    Route::get('/lessen/omgeving/{lessonId}/resultaten/{testId}/bewerk-examen', [LessonController::class, 'editExam'])->name('lessons.environment.lesson.results.edit.exam');
-    Route::post('/lessen/omgeving/{lessonId}/resultaten/{testId}/bewerk-examen', [LessonController::class, 'editExamStore'])->name('lessons.environment.lesson.results.edit.exam.store');
+    Route::get('/lessen/omgeving/{lessonId}/examens/{testId}/bewerk', [LessonController::class, 'editExam'])->name('lessons.environment.lesson.results.edit.exam');
+    Route::post('/lessen/omgeving/{lessonId}/examens/{testId}/bewerk', [LessonController::class, 'editExamStore'])->name('lessons.environment.lesson.results.edit.exam.store');
 
-    Route::get('/lessen/omgeving/{lessonId}/resultaten/{testId}/verwijder-examen', [LessonController::class, 'deleteExam'])->name('lessons.environment.lesson.results.exam.delete');
+    Route::get('/lessen/omgeving/{lessonId}/examens/{testId}/verwijder', [LessonController::class, 'deleteExam'])->name('lessons.environment.lesson.results.exam.delete');
 
+    Route::get('/lessen/omgeving/{lessonId}/competenties', [LessonController::class, 'competences'])->name('lessons.environment.lesson.competences');
+    Route::post('/lessen/omgeving/{lessonId}/competenties', [LessonController::class, 'storeCompetence'])->name('lessons.environment.lesson.competences.store');
+
+    Route::post('/lessen/omgeving/{lessonId}/competenties/update', [LessonController::class, 'updateCompetenceResult'])->name('lessons.environment.lesson.competences.update');
+
+    Route::get('/lessen/omgeving/{lessonId}/competenties/{competenceId}/bewerk', [LessonController::class, 'editCompetence'])->name('lessons.environment.lesson.competences.edit');
+    Route::post('/lessen/omgeving/{lessonId}/competenties/{competenceId}/bewerk', [LessonController::class, 'editCompetenceStore'])->name('lessons.environment.lesson.competences.edit.store');
+
+    Route::get('/lessen/omgeving/{lessonId}/competenties/{competenceId}/verwijder', [LessonController::class, 'deleteCompetence'])->name('lessons.environment.lesson.competences.delete');
 
     Route::get('/lessen/omgeving/{lessonId}/bewerk', [LessonController::class, 'editLesson'])->name('lessons.environment.lesson.edit');
     Route::post('/lessen/omgeving/{lessonId}/bewerk', [LessonController::class, 'editLessonStore'])->name('lessons.environment.lesson.edit.store');

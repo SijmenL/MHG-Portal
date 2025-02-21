@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Lesson;
+use App\Models\LessonCompetence;
 use App\Models\LessonFile;
 use App\Models\LessonTest;
 use App\Models\Log;
@@ -414,17 +415,15 @@ class LessonController extends Controller
     }
 
 
-    public function files($lessonId)
+    public function files(Request $request, $lessonId)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-
         $lesson = Lesson::findOrFail($lessonId);
-        $files = $lesson->files; // Fetch files associated with the lesson
 
-        // Define the roles that classify the user as a teacher
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
             $lesson->user_id === $user->id ||
@@ -433,32 +432,94 @@ class LessonController extends Controller
                 ->wherePivot('teacher', true)
                 ->exists();
 
-        // Sort the files first by access level and then alphabetically by file name
-        $files = $files->sort(function ($a, $b) use ($isTeacher) {
-            // Sort by access: teachers-first if $isTeacher is true
-            if ($a->access === 'teachers' && $b->access !== 'teachers') {
-                return $isTeacher ? -1 : 1;
-            }
-            if ($a->access !== 'teachers' && $b->access === 'teachers') {
-                return $isTeacher ? 1 : -1;
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = LessonFile::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->lesson_id !== (int)$lessonId) {
+                return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Deze map bestaat niet.');
             }
 
-            // Sort alphabetically by file_name within the same access level
+            if (isset($folderId)) {
+                if ($currentFolder->access === "teachers" && !$isTeacher) {
+                    return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Je hebt geen toegang tot deze map.');
+                }
+            }
+        }
+
+        // Check if the user has access to the lesson
+        if (!$this->checkLessonAccess($lessonId)) {
+            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
+        }
+
+        // Retrieve all files and folders related to the lesson
+        $files = $lesson->files;
+
+        // If a folder ID is provided, filter the files for that folder
+        $files = $files->where('folder_id', $folderId);
+
+
+        // Breadcrumb generation
+        $breadcrumbs = $this->generateBreadcrumbs($lesson, $folderId);
+
+        // Sort files by access level and name, but folders come first
+        $files = $files->sort(function ($a, $b) use ($user) {
+            // If both are folders or both are files, sort alphabetically
+            if ($a->type === 2 && $b->type !== 2) {
+                return -1; // Folder should come first
+            }
+            if ($a->type !== 2 && $b->type === 2) {
+                return 1; // File should come after folder
+            }
+
+            // If both are the same type (both folders or both files), sort alphabetically by file name
             return strcmp($a->file_name, $b->file_name);
         });
 
-        // Check if the user has access to the lesson
-        if ($this->checkLessonAccess($lessonId)) {
-            return view('lessons.environments.files', [
-                'user' => $user,
-                'roles' => $roles,
-                'lesson' => $lesson,
-                'files' => $files,
-                'isTeacher' => $isTeacher
-            ]);
-        } else {
-            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
+
+        return view('lessons.environments.files', [
+            'user' => $user,
+            'roles' => $roles,
+            'lesson' => $lesson,
+            'files' => $files,
+            'isTeacher' => $isTeacher,
+            'folderId' => $folderId,
+            'breadcrumbs' => $breadcrumbs,
+        ]);
+    }
+
+    /**
+     * Generate breadcrumbs based on folder hierarchy.
+     */
+    private function generateBreadcrumbs($lesson, $folderId)
+    {
+        $breadcrumbs = [];
+
+
+        // Continue with the folder structure
+        while ($folderId) {
+            // Get the current folder by its ID
+            $currentFolder = $lesson->files->where('id', $folderId)->first();
+
+            if (!$currentFolder) {
+                break; // Stop if folder is not found
+            }
+
+            // Add the current folder's name and ID to the breadcrumbs
+            $breadcrumbs[] = [
+                'name' => $currentFolder->file_name,
+                'url' => route('lessons.environment.lesson.files', ['lessonId' => $lesson->id, 'folder' => $currentFolder->id])
+            ];
+
+            // Move to the parent folder
+            $folderId = $currentFolder->folder_id;
         }
+
+        // Reverse the order to make it from root to current folder
+        $breadcrumbs = array_reverse($breadcrumbs);
+
+        return $breadcrumbs;
     }
 
 
@@ -471,6 +532,11 @@ class LessonController extends Controller
             'type' => 'required',
             'access' => 'required|string',
         ]);
+
+        $folderId = null;
+        if (isset($request->folder_id)) {
+            $folderId = $request->folder_id;
+        }
 
         if ($request->type === "0") {
             $request->validate([
@@ -497,6 +563,7 @@ class LessonController extends Controller
                     'file_name' => $originalFileName,
                     'file_path' => $path,
                     'access' => $request->access,
+                    'folder_id' => $folderId,
                     'type' => 0
                 ]);
 
@@ -511,6 +578,7 @@ class LessonController extends Controller
                 'file' => 'required|string', // Validate as a string (URL)
                 'title' => 'required|string', // Title is required
                 'access' => 'required|string', // Access is required
+
             ]);
 
             // Save the file information to the database
@@ -520,6 +588,7 @@ class LessonController extends Controller
                 'file_name' => $request->title, // Use the provided title
                 'file_path' => $request->file, // Save the URL as the file path
                 'access' => $request->access,
+                'folder_id' => $folderId,
                 'type' => 1, // URL type
             ]);
 
@@ -529,9 +598,33 @@ class LessonController extends Controller
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Url geüpload');
         }
+        if ($request->type === "2") {
+            $request->validate([
+                'title' => 'required|string', // Title is required
+                'access' => 'required|string', // Access is required
+            ]);
 
 
-        return redirect()->route('lessons.environment.lesson.files', $lesson->id)->with('success', 'Bestanden succesvol geüpload.');
+            // Save the file information to the database
+            $fileRecord = new LessonFile([
+                'lesson_id' => $lesson->id,
+                'user_id' => Auth::id(),
+                'file_name' => $request->title, // Use the provided title
+                'file_path' => "",
+                'access' => $request->access,
+                'folder_id' => $folderId,
+                'type' => 2,
+            ]);
+
+            $fileRecord->save();
+
+            // Log the action
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Map aangemaakt');
+        }
+
+
+        return redirect()->route('lessons.environment.lesson.files', ['lessonId' => $lesson->id, 'folder' => $request->folder_id])->with('success', 'Bestanden succesvol geüpload.');
     }
 
 
@@ -542,9 +635,11 @@ class LessonController extends Controller
 
         // Ensure the user is the teacher who uploaded the file or is a teacher for the lesson
         if ($file->user_id !== Auth::id() && !$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) {
-            return redirect()->route('files.index', $file->lesson_id)->with('error', 'Je hebt geen toestemming om dit bestand te verwijderen.');
+            return redirect()->route('lessons.environment.lesson.files', $file->lesson_id)->with('error', 'Je hebt geen toestemming om dit bestand te verwijderen.');
         }
 
+        // Recursive function to delete files in the folder
+        $this->deleteFolderContents($file);
 
         // Delete the file from storage
         Storage::disk('public')->delete($file->file_path);
@@ -552,11 +647,33 @@ class LessonController extends Controller
         // Delete the file record from the database
         $file->delete();
 
+        // Log the deletion
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lessonId, 'Bestand verwijderd');
 
-        return redirect()->route('lessons.environment.lesson.files', $file->lesson_id)->with('success', 'Bestand succesvol verwijderd.');
+        return redirect()->back()->with('success', 'Bestand succesvol verwijderd.');
     }
+
+    private function deleteFolderContents($folder)
+    {
+        // If the file is a folder (type 2), recursively delete its contents
+        if ($folder->type == 2) {
+            // Get all files inside this folder (those whose `folder_id` is this folder's ID)
+            $filesInFolder = LessonFile::where('folder_id', $folder->id)->get();
+
+            foreach ($filesInFolder as $file) {
+                // If the file is a folder itself, recursively delete its contents
+                $this->deleteFolderContents($file);
+
+                // Delete the file from storage
+                Storage::disk('public')->delete($file->file_path);
+
+                // Delete the file record from the database
+                $file->delete();
+            }
+        }
+    }
+
 
     public function toggleFileAccess($lessonId, $fileId)
     {
@@ -591,7 +708,7 @@ class LessonController extends Controller
             'Bestandstoegang aangepast naar: ' . $newAccess
         );
 
-        return redirect()->route('lessons.environment.lesson.files', $lessonId)
+        return redirect()->back()
             ->with('success', 'Toegang succesvol aangepast.');
     }
 
@@ -765,6 +882,193 @@ class LessonController extends Controller
         $lesson = Lesson::findOrFail($lessonId);
 
         return view('lessons.environments.planning', ['user' => $user, 'roles' => $roles, 'lesson' => $lesson]);
+    }
+
+    public function competences(Request $request, $lessonId)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $lesson = Lesson::findOrFail($lessonId);
+        $competences = $lesson->competences()->with('competenceResults')->get();
+
+        // Define the roles that classify the user as a teacher
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Check if the user is a teacher based on roles or lesson-specific permissions
+        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+            $lesson->user_id === $user->id ||
+            $lesson->users()
+                ->where('user_id', $user->id)
+                ->wherePivot('teacher', true)
+                ->exists();
+
+        // Determine which user's competences to load
+        $selectedUserId = $request->query('user');
+
+        if ($selectedUserId) {
+            // If a user ID is provided, only allow teachers to view other users' competences
+            if (!$isTeacher && $selectedUserId != $user->id) {
+                return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze gegevens.');
+            }
+
+            // Find the user from the lesson's users
+            $selectedUser = $lesson->users()->where('user_id', $selectedUserId)->first();
+        } else {
+            // If no user ID is provided, set it to the first user in the lesson's users list if the viewer is a teacher
+            if ($isTeacher) {
+                $selectedUser = $lesson->users()->first();
+            } else {
+                $selectedUser = $user; // Default to the current user
+            }
+        }
+
+        // If the selected user is null (e.g., invalid ID was provided), default to the current user
+        if (!$selectedUser) {
+            $selectedUser = $user;
+        }
+
+        if ($this->checkLessonAccess($lessonId)) {
+            return view('lessons.environments.competence', [
+                'user' => $user,
+                'roles' => $roles,
+                'lesson' => $lesson,
+                'competences' => $competences,
+                'isTeacher' => $isTeacher,
+                'selectedUser' => $selectedUser
+            ]);
+        } else {
+            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
+        }
+    }
+
+
+    public function storeCompetence(Request $request, $lessonId)
+    {
+        if (ForumController::validatePostData($request->input('description'))) {
+            try {
+                $this->validate($request, [
+                    'title' => 'required|string|max:255',
+                    'description' => 'required|string|max:65535',
+                ]);
+            } catch (ValidationException $e) {
+                return redirect()->route('lessons.environment.lesson.competences', [$lessonId, 'error=true']);
+            }
+
+            $lesson = Lesson::findOrFail($lessonId);
+            $lesson->competences()->create($request->all());
+
+            if ($this->checkLessonAccess($lessonId)) {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lessonId, 'Competentie toegevoegd');
+
+                return redirect()->route('lessons.environment.lesson.competences', $lessonId)->with('success', 'Competentie toegevoegd.');
+            } else {
+                return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
+            }
+
+        } else {
+            throw ValidationException::withMessages(['content' => 'Je competentie kan niet opgeslagen worden.']);
+        }
+    }
+
+    public function updateCompetenceResult(Request $request)
+    {
+        $user = Auth::user();
+
+        // Only allow teachers to update competence results
+        if (!$user->roles()->whereIn('role', ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'])->exists()) {
+            return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze gegevens.');
+        }
+
+        $competenceId = $request->input('competence_id');
+        $userId = $request->input('user_id');
+        $passed = $request->input('passed');
+
+        $competence = LessonCompetence::findOrFail($competenceId);
+
+        if ($passed) {
+            // Create or update the competence result
+            $competence->competenceResults()->updateOrCreate(
+                ['user_id' => $userId],
+                ['passed' => true]
+            );
+        } else {
+            // Remove the competence result
+            $competence->competenceResults()->where('user_id', $userId)->delete();
+        }
+
+        return response()->json(['message' => 'Competentie succesvol bijgewerkt']);
+    }
+
+
+    public function editCompetence($lessonId, $competenceId)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $lesson = Lesson::findOrFail($lessonId);
+        $competence = LessonCompetence::findOrFail($competenceId);
+
+        return view('lessons.environments.edit_competence', ['user' => $user, 'roles' => $roles, 'lesson' => $lesson, 'competence' => $competence]);
+    }
+
+    public function editCompetenceStore(Request $request, $lessonId, $competenceId)
+    {
+        if (ForumController::validatePostData($request->input('description'))) {
+            try {
+                $this->validate($request, [
+                    'title' => 'required|string|max:255',
+                    'description' => 'required|string|max:65535',
+                ]);
+            } catch (ValidationException $e) {
+                return redirect()->route('lessons.environment.lesson.competences.edit', $lessonId);
+            }
+
+            $lesson = Lesson::findOrFail($lessonId);
+            $competence = $lesson->competences()->findOrFail($competenceId);
+
+            // Update the test with the new data
+            $competence->update($request->all());
+
+            if ($this->checkLessonAccess($lessonId)) {
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lessonId, 'Competentie bewerkt');
+
+                return redirect()->route('lessons.environment.lesson.competences', [$lessonId])
+                    ->with('success', 'De competentie is bijgewerkt en opgeslagen.');
+            } else {
+                return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
+            }
+        } else {
+            throw ValidationException::withMessages(['content' => 'Je competentie kan niet opgeslagen worden.']);
+        }
+    }
+
+    public function deleteCompetence($lessonId, $competenceId)
+    {
+        try {
+            $lesson = Lesson::findOrFail($lessonId);
+            $competence = $lesson->competences()->findOrFail($competenceId);
+
+            // Check if the user has access to the lesson before deleting
+            if (!$this->checkLessonAccess($lessonId)) {
+                return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
+            }
+
+            // Delete all related test results
+            $competence->competenceResults()->delete();
+
+            // Delete the test
+            $competence->delete();
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lessonId, 'Competentie verwijderd');
+
+
+            return redirect()->route('lessons.environment.lesson.competences', $lessonId)->with('success', 'Competentie en resultaten verwijderd.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('lessons.environment.lesson.competences', [$lessonId])->with('error', 'Competentie niet gevonden.');
+        }
     }
 
 

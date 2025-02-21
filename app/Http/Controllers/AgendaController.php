@@ -136,7 +136,6 @@ class AgendaController extends Controller
                 $query->whereNull('lesson_id')
                     ->where('user_id', $user->id);
             })
-
             ->orderByRaw(
                 'CASE
             WHEN date_end >= ? THEN date_end
@@ -218,6 +217,7 @@ class AgendaController extends Controller
             'users' => 'string|nullable',
             'public' => 'boolean|required',
             'presence' => 'boolean|required',
+            'presence-date' => 'date|nullable',
             'price' => 'numeric|nullable',
             'location' => 'string|nullable',
             'organisator' => 'string|nullable',
@@ -248,6 +248,13 @@ class AgendaController extends Controller
 
             // Validate content for disallowed elements or styles
             if (ForumController::validatePostData($request->input('content'))) {
+
+                $presence = $request->input('presence');
+
+                if ($presence === "1" && $request->filled('presence-date')) {
+                    $presence = $request->input('presence-date');
+                }
+
                 // Update the activity
                 $activity->update([
                     'content' => $request->input('content'),
@@ -262,7 +269,7 @@ class AgendaController extends Controller
                     'users' => $users,
                     'image' => $newPictureName,
                     'public' => $request->input('public'),
-                    'presence' => $request->input('presence'),
+                    'presence' => $presence,
                     'lesson_id' => $request->input('lesson_id'),
                 ]);
 
@@ -396,7 +403,7 @@ class AgendaController extends Controller
         $currentDate = now();
 
         $activities = Activity::query()
-            ->where('presence', 1) // Filter by presence
+            ->where('presence', '!=', 0)
             ->when(empty($search), function ($query) use ($currentDate) {
                 // Include activities that are either upcoming or ongoing
                 $query->where(function ($query) use ($currentDate) {
@@ -452,7 +459,6 @@ class AgendaController extends Controller
 
         $selected_role = $request->query('role', 'none');
         $search = $request->query('search', '');
-
         $activity = Activity::find($id);
 
         if (!$activity || !$activity->presence) {
@@ -463,29 +469,44 @@ class AgendaController extends Controller
         $lesson = $lessonId ? Lesson::find($lessonId) : null;
 
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
-
-        // Check if the user is a teacher
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
             ($lesson && $lesson->user_id === $user->id) ||
-            ($lesson && $lesson->users()
-                    ->where('user_id', $user->id)
-                    ->wherePivot('teacher', true)
-                    ->exists());
+            ($lesson && $lesson->users()->where('user_id', $user->id)->wherePivot('teacher', true)->exists());
 
-        if (isset($lesson) && !$isTeacher) {
+        if ($lesson && !$isTeacher) {
             return redirect()->route('agenda.presence')->with('error', 'Geen toegang tot deze activiteit.');
         }
 
         $activityRoleIds = $activity->roles ? array_map('trim', explode(',', $activity->roles)) : [];
+        $activityUserIds = $activity->users ? array_map('trim', explode(',', $activity->users)) : [];
 
         $all_roles = Role::whereIn('id', $activityRoleIds)->get();
 
-        if (!in_array($selected_role, Role::whereIn('id', $activityRoleIds)->pluck('role')->toArray())) {
+        if (!in_array($selected_role, $all_roles->pluck('role')->toArray())) {
             $selected_role = 'none';
         }
 
-        // Retrieve users
-        $users = [];
+        // Fetch users by roles if roles exist
+// Fetch users by roles if roles exist
+        $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds, $selected_role) {
+            $query->whereIn('roles.id', $activityRoleIds);
+            if ($selected_role !== 'none') {
+                $query->where('role', $selected_role);
+            }
+        })->get();
+
+
+
+        // Fetch users by specific user IDs if no roles exist
+        $mentionedUsers = collect();
+        if (!empty($activityUserIds)) {
+            $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
+        }
+
+        // Fetch users who set presence but are not explicitly listed
+        $presenceUserIds = Presence::where('activity_id', $activity->id)->pluck('user_id')->toArray();
+        $usersWithPresence = User::whereIn('id', $presenceUserIds)->get();
+
         if (isset($lesson)) {
             $users = $lesson->users()
                 ->where(function ($query) use ($search) {
@@ -493,124 +514,61 @@ class AgendaController extends Controller
                         ->orWhere('users.infix', 'like', '%' . $search . '%')
                         ->orWhere('users.last_name', 'like', '%' . $search . '%');
                 })
-                ->orderBy('users.last_name', 'asc')
                 ->get();
 
-            // Ensure the $lesson->user_id user is included
+            // Ensure the lesson owner is included
             $lessonOwner = User::find($lesson->user_id);
-
             if ($lessonOwner && !$users->contains('id', $lessonOwner->id)) {
                 $users->push($lessonOwner);
             }
-
-            // Sort the collection again after adding the lesson owner
-            $users = $users->sortBy('last_name')->values();
-
         } else {
-            $activityRoleIds = !empty($activity->roles)
-                ? array_map('trim', explode(',', $activity->roles))
-                : [];
-
-            $activityUserIds = !empty($activity->users)
-                ? array_map('trim', explode(',', $activity->users))
-                : [];
-
-
-            if (isset($selected_role) && $selected_role !== 'none') {
-                $usersWithRoles = User::whereHas('roles', function ($query) use ($selected_role) {
-                    $query->where('role', $selected_role);
-                })
-                    ->where(function ($query) use ($search) {
-                        $query->where('name', 'like', '%' . $search . '%')
-                            ->orWhere('last_name', 'like', '%' . $search . '%')
-                            ->orWhere('email', 'like', '%' . $search . '%')
-                            ->orWhere('sex', 'like', '%' . $search . '%')
-                            ->orWhere('infix', 'like', '%' . $search . '%')
-                            ->orWhere('birth_date', 'like', '%' . $search . '%')
-                            ->orWhere('street', 'like', '%' . $search . '%')
-                            ->orWhere('postal_code', 'like', '%' . $search . '%')
-                            ->orWhere('city', 'like', '%' . $search . '%')
-                            ->orWhere('phone', 'like', '%' . $search . '%')
-                            ->orWhere('id', 'like', '%' . $search . '%')
-                            ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-                    })
-                    ->orderBy('last_name', 'asc')->get();
-            } else {
-                if (!empty($activityRoleIds)) {
-                    $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds) {
-                        $query->whereIn('role_id', $activityRoleIds);
-                    })
-                        ->where(function ($query) use ($search) {
-                            $query->where('name', 'like', '%' . $search . '%')
-                                ->orWhere('last_name', 'like', '%' . $search . '%')
-                                ->orWhere('email', 'like', '%' . $search . '%')
-                                ->orWhere('sex', 'like', '%' . $search . '%')
-                                ->orWhere('infix', 'like', '%' . $search . '%')
-                                ->orWhere('birth_date', 'like', '%' . $search . '%')
-                                ->orWhere('street', 'like', '%' . $search . '%')
-                                ->orWhere('postal_code', 'like', '%' . $search . '%')
-                                ->orWhere('city', 'like', '%' . $search . '%')
-                                ->orWhere('phone', 'like', '%' . $search . '%')
-                                ->orWhere('id', 'like', '%' . $search . '%')
-                                ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-                        })
-                        ->orderBy('last_name', 'asc')->get();
-                } else {
-                    $usersWithRoles = User::where(function ($query) use ($search) {
-                        $query->where('name', 'like', '%' . $search . '%')
-                            ->orWhere('last_name', 'like', '%' . $search . '%')
-                            ->orWhere('email', 'like', '%' . $search . '%')
-                            ->orWhere('sex', 'like', '%' . $search . '%')
-                            ->orWhere('infix', 'like', '%' . $search . '%')
-                            ->orWhere('birth_date', 'like', '%' . $search . '%')
-                            ->orWhere('street', 'like', '%' . $search . '%')
-                            ->orWhere('postal_code', 'like', '%' . $search . '%')
-                            ->orWhere('city', 'like', '%' . $search . '%')
-                            ->orWhere('phone', 'like', '%' . $search . '%')
-                            ->orWhere('id', 'like', '%' . $search . '%')
-                            ->orWhere('dolfijnen_name', 'like', '%' . $search . '%');
-                    })
-                        ->orderBy('last_name', 'asc')->get();
-                }
-            }
-
-            $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
-
+            // Combine all users, ensuring uniqueness
             $users = $usersWithRoles->merge($mentionedUsers)->unique('id');
-
-
         }
-        $userPresenceArray = $users->mapWithKeys(function ($user) use ($activity) {
-            $presenceRecord = Presence::where('activity_id', $activity->id)
-                ->where('user_id', $user->id)
-                ->first();
 
-            return [$user->id => [
-                'status' => $presenceRecord ? ($presenceRecord->presence ? 'present' : 'absent') : 'null',
-                'date' => $presenceRecord ? $presenceRecord->updated_at->toDateTimeString() : null
-            ]];
-        });
+// Include users with presence even if they weren't explicitly part of the activity
+        $users = $users->merge($usersWithPresence)->unique('id');
 
-        $users->each(function ($user) use ($userPresenceArray) {
+// Fetch presence data for all users
+        $userPresenceArray = Presence::where('activity_id', $activity->id)
+            ->whereIn('user_id', $users->pluck('id'))
+            ->get()
+            ->mapWithKeys(function ($presenceRecord) {
+                return [$presenceRecord->user_id => [
+                    'status' => $presenceRecord->presence ? 'present' : 'absent',
+                    'date' => $presenceRecord->updated_at->toDateTimeString()
+                ]];
+            });
+
+// Assign presence status and determine if the user was invited
+        $users->each(function ($user) use ($userPresenceArray, $usersWithRoles, $mentionedUsers, $lesson, $activity) {
             $user->presence = $userPresenceArray->get($user->id, ['status' => 'null', 'date' => null]);
+
+            $user->not_invited = !$usersWithRoles->contains('id', $user->id) &&
+                !$mentionedUsers->contains('id', $user->id) &&
+                (!$lesson || !$lesson->users->contains('id', $user->id)) &&
+                (!empty($activity->roles) || !empty($activity->users));
         });
 
+// If filtering by role, remove users who are not invited
+        if ($selected_role !== 'none') {
+            $users = $users->filter(function ($user) {
+                return !$user->not_invited;
+            });
+        }
 
-        // Sort users
+
+
+// Sort users
         $sortedUsers = $users->sort(function ($a, $b) {
             $presenceOrder = ['present' => 1, 'absent' => 2, 'null' => 3];
-
-            // Extract the presence status
             $aPresence = $presenceOrder[$a->presence['status']] ?? 3;
             $bPresence = $presenceOrder[$b->presence['status']] ?? 3;
 
-            if ($aPresence === $bPresence) {
-                return strcmp($a->last_name, $b->last_name);
-            }
-
-            return $aPresence <=> $bPresence;
-        });
-
+            return $aPresence === $bPresence
+                ? strcmp($a->last_name, $b->last_name)
+                : $aPresence <=> $bPresence;
+        })->values();
 
         return view('agenda.presence-activity', [
             'user' => $user,
@@ -622,6 +580,7 @@ class AgendaController extends Controller
             'search' => $search,
             'lesson' => $lesson,
         ]);
+
     }
 
 
@@ -675,9 +634,10 @@ class AgendaController extends Controller
             $canViewAll = true;
         }
 
-        $wantViewAll = $request->query('all', 'false');
+        $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
 
-        if ($wantViewAll === 'false') {
+
+        if ($wantViewAll === false) {
             $canViewAll = false;
         }
 
@@ -1031,9 +991,10 @@ class AgendaController extends Controller
             $canViewAll = true;
         }
 
-        $wantViewAll = $request->query('all', 'false');
+        $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
 
-        if ($wantViewAll === 'false') {
+
+        if ($wantViewAll === false) {
             $canViewAll = false;
         }
 
@@ -1213,7 +1174,29 @@ class AgendaController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $wantViewAll = $request->query('all', 'false');
+        $canViewAll = true;
+
+        // Check if the user has one of the roles that allow them to view all activities
+        if ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+            $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+            $user->roles->contains('role', 'Loodsen Stamoudste') ||
+            $user->roles->contains('role', 'Afterloodsen Organisator') ||
+            $user->roles->contains('role', 'Administratie') ||
+            $user->roles->contains('role', 'Bestuur') ||
+            $user->roles->contains('role', 'Praktijkbegeleider') ||
+            $user->roles->contains('role', 'Loodsen Mentor') ||
+            $user->roles->contains('role', 'Ouderraad') ||
+            $user->roles->contains('role', 'Loods') ||
+            $user->roles->contains('role', 'Afterloods')
+        ) {
+            $canViewAll = true;
+        } else {
+            $canViewAll = false;
+        }
+
+        $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
+
+
         $month = $request->query('month', '0');
         $view = $request->query('view', 'month');
 
@@ -1262,40 +1245,6 @@ class AgendaController extends Controller
         $isUserListed = in_array($user->id, $activityUserIds);
 
 
-        // Check if any child has access (either through roles or being listed)
-        $isChildHasAccess = false;
-        foreach ($user->children as $child) {
-            // Check if the child has role access
-            $childRoles = $child->roles->pluck('id')->toArray();
-
-            $childHasRoleAccess = !empty(array_intersect($childRoles, $activityRoleIds));
-            $childIsListed = in_array($child->id, $activityUserIds);
-
-            if ($childHasRoleAccess || $childIsListed) {
-                $isChildHasAccess = true;
-                break; // No need to check further if at least one child has access
-            }
-        }
-
-        // Check if the user is included directly in the activity's user_id
-        $isDirectUserAccess = in_array($user->id, array_map('trim', explode(',', $activity->user_id)));
-
-        // alloww everyone to view when there are no roles or users connected
-        if (empty($activityRoleIds) && empty($activityUserIds)) {
-            $isDirectUserAccess = true;
-        }
-
-        // Allow parents to access if they have role access, are listed, or if any child has access, or if directly added
-        if (!$hasRoleAccess && !$isUserListed && !$isChildHasAccess && !$isDirectUserAccess) {
-            // Log access attempt if denied
-            $log = new Log();
-            $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
-
-            return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
-        }
-
-        $canAlwaysView = $hasRoleAccess || $isUserListed || $isDirectUserAccess;
-
         $allowedChildren = [];
 
         foreach ($user->children as $child) {
@@ -1318,6 +1267,26 @@ class AgendaController extends Controller
             }
         }
 
+        // Check if the user is included directly in the activity's user_id
+        $isDirectUserAccess = in_array($user->id, array_map('trim', explode(',', $activity->user_id)));
+
+        // alloww everyone to view when there are no roles or users connected
+        if (empty($activityRoleIds) && empty($activityUserIds)) {
+            $isDirectUserAccess = true;
+        }
+
+        $canAlwaysView = $hasRoleAccess || $isUserListed || $isDirectUserAccess || $canViewAll;
+
+        // Allow parents to access if they have role access, are listed, or if any child has access, or if directly added
+        if (!$canAlwaysView) {
+            if (count($allowedChildren) === 0) {
+                // Log access attempt if denied
+                $log = new Log();
+                $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
+
+                return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
+            }
+        }
 
         // Return the activity view if access is granted
         return view('agenda.event', [
@@ -1385,6 +1354,7 @@ class AgendaController extends Controller
             'users' => 'string|nullable',
             'public' => 'boolean|required',
             'presence' => 'boolean|required',
+            'presence-date' => 'date|nullable',
             'price' => 'numeric|nullable',
             'location' => 'string|nullable',
             'organisator' => 'string|nullable',
@@ -1413,6 +1383,14 @@ class AgendaController extends Controller
 
             // Validate content for disallowed elements or styles
             if (ForumController::validatePostData($request->input('content'))) {
+
+                $presence = $request->input('presence');
+
+                if ($presence === "1" && $request->filled('presence-date')) {
+                    $presence = $request->input('presence-date');
+                }
+
+
                 // Create the activity
                 $activity = Activity::create([
                     'content' => $request->input('content'),
@@ -1427,7 +1405,7 @@ class AgendaController extends Controller
                     'users' => $users,
                     'image' => $newPictureName,
                     'public' => $request->input('public'),
-                    'presence' => $request->input('presence'),
+                    'presence' => $presence,
                     'lesson_id' => $request->input('lesson_id')
                 ]);
 
