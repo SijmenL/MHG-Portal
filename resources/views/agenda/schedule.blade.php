@@ -24,23 +24,43 @@
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
                 @if(isset($lesson))
-                    <h1 class="">Les planning</h1>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h1 class="">Planning</h1>
+                        @if($user && $isTeacher)
+                            <a href="{{ route('agenda.new', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule']) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">calendar_add_on</span>
+                                <span class="no-mobile">Agendapunt toevoegen</span></a>
+                        @endif
+                    </div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
                             <li class="breadcrumb-item"><a
                                     href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
                             </li>
-                            @if($isTeacher)
-                                <li class="breadcrumb-item"><a
-                                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
-                                </li>
-                            @endif
-                            <li class="breadcrumb-item active" aria-current="page">Les planning</li>
+                            <li class="breadcrumb-item active" aria-current="page">Planning</li>
                         </ol>
                     </nav>
                 @else
-                    <h1 class="">Mijn Agenda</h1>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h1 class="">Mijn Agenda</h1>
+                        @if($user &&
+                    ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                    $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                    $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                    $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                    $user->roles->contains('role', 'Administratie') ||
+                    $user->roles->contains('role', 'Bestuur')))
+
+                            <a href="{{ route('agenda.new', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule']) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">calendar_add_on</span>
+                                <span class="no-mobile">Agendapunt toevoegen</span></a>
+                        @endif
+                    </div>
 
                     @if($user &&
                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
@@ -54,13 +74,6 @@
                     $user->roles->contains('role', 'Ouderraad')) ||
                     $user->roles->contains('role', 'Loods') ||
                     $user->roles->contains('role', 'Afterloods'))
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Mijn agenda</li>
-                            </ol>
-                        </nav>
-
 
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="show-all"

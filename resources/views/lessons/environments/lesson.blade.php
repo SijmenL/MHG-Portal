@@ -12,7 +12,8 @@
 
 @section('content')
 
-    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/lessons/lesson-images/'.$lesson->image) }})">
+    <div class="header"
+         style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/lessons/lesson-images/'.$lesson->image) }})">
         <div>
             <p class="header-title">{{ $lesson->title }}</p>
         </div>
@@ -22,8 +23,8 @@
         <div class="d-flex flex-row justify-content-between align-items-center">
             <h1>{{ $lesson->title }}</h1>
             @if($isTeacher)
-            <a class="btn btn-outline-dark"
-               href="{{route('lessons.environment.lesson.edit', [$lesson->id])}}">Bewerken</a>
+                <a class="btn btn-outline-dark"
+                   href="{{route('lessons.environment.lesson.edit', [$lesson->id])}}">Bewerken</a>
             @endif
 
         </div>
@@ -75,19 +76,11 @@
                     <p>Competentielijst</p>
                 </a>
 
-                @if($isTeacher)
                 <a class="btn btn-info quick-action"
-                   href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">
+                   href="{{ route('agenda.month', ['lessonId' => $lesson->id]) }}">
                     <span class="material-symbols-rounded">event</span>
                     <p>Planning</p>
                 </a>
-                @else
-                    <a class="btn btn-info quick-action"
-                       href="{{ route('agenda.month', ['lessonId' => $lesson->id]) }}">
-                        <span class="material-symbols-rounded">event</span>
-                        <p>Planning</p>
-                    </a>
-                @endif
 
             </div>
         </div>

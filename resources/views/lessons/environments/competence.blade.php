@@ -157,6 +157,19 @@
 
                         <div class="d-flex flex-row no-scrollbar overflow-y-scroll" id="user-scroll-container">
                             @foreach($users as $user)
+
+                                @php
+
+                                    $isUserTeacher =
+                                        $lesson->user_id === $user->id ||
+                                        $lesson->users()
+                                            ->where('user_id', $user->id)
+                                            ->wherePivot('teacher', true)
+                                            ->exists();
+                                @endphp
+
+                                @if(!$isUserTeacher)
+
                                 <a href="{{ route('lessons.environment.lesson.competences', ['lessonId' => $lesson->id, 'user' => $user->id]) }}"
                                    class="d-flex @if($selectedUser->id === $user->id) bg-primary text-white @else bg-light text-black @endif
            text-decoration-none flex-column gap-1 justify-content-center align-items-center text-center m-2 p-2 rounded"
@@ -171,6 +184,7 @@
                                     @endif
                                     {{ $user->name.' '.$user->infix.' '.$user->last_name }}
                                 </a>
+                                @endif
                             @endforeach
                         </div>
 

@@ -4,7 +4,8 @@ namespace App\Exports;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Carbon\Carbon;
 
 class AgendaExport
 {
@@ -35,23 +36,41 @@ class AgendaExport
             // Add data
             $row = 2;
             foreach ($this->users as $user) {
-                $presenceStatus = match ($user["presence"]) {
+                $presenceStatus = match ($user["presence"] ?? 'null') {
                     'present' => 'Aangemeld',
                     'absent'  => 'Afgemeld',
                     default   => 'Niet gemeld',
                 };
 
-                $presenceDate = !empty($user["date"]) ? \Carbon\Carbon::parse($user["date"])->format('d-m-Y H:i') : '-';
+                // Determine presence date or use '-'
+                $presenceDate = $user["date"] !== '-' && !empty($user["date"])
+                    ? Carbon::parse($user["date"])->format('d-m-Y H:i')
+                    : '-';
 
                 $rowData = [
                     $user["name"],
-                    $user["infix"] ?? '',
-                    $user["last_name"] ?? '',
-                    $user["email"] ?? '',
+                    $user["infix"],
+                    $user["last_name"],
+                    $user["email"],
                     $presenceStatus,
                     $presenceDate,
                 ];
+
+                // Set the row data
                 $sheet->fromArray([$rowData], NULL, 'A' . $row);
+
+                // Apply background color to the "Aanwezig" (presence) column
+                $presenceColumn = 'E' . $row; // "E" column corresponds to 'Aanwezig'
+
+                // Apply colors based on the presence status
+                if ($presenceStatus == 'Aangemeld') {
+                    $sheet->getStyle($presenceColumn)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                    $sheet->getStyle($presenceColumn)->getFill()->getStartColor()->setARGB('FF00FF00'); // Green
+                } elseif ($presenceStatus == 'Afgemeld') {
+                    $sheet->getStyle($presenceColumn)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+                    $sheet->getStyle($presenceColumn)->getFill()->getStartColor()->setARGB('FFFF0000'); // Red
+                }
+
                 $row++;
             }
 
@@ -64,24 +83,22 @@ class AgendaExport
             $lastColumn = $sheet->getHighestColumn();
             $sheet->setAutoFilter("A1:{$lastColumn}1");
 
-            // **Save the file locally first for inspection**
+            // Return streamed response instead of saving
             $filename = 'presence_export_' . date('d-m-Y_H-i-s') . '.xlsx';
-            $filePath = storage_path('app/public/' . $filename); // Save to storage
 
-            $writer = new Xlsx($spreadsheet);
-            $writer->save($filePath);
-
-            // Check if the file was created and is valid
-            if (file_exists($filePath)) {
-                return response()->download($filePath, $filename)->deleteFileAfterSend(true);
-            }
-
-            return response()->json(['error' => 'Failed to create Excel file.'], 500);
+            return new StreamedResponse(function () use ($spreadsheet) {
+                $writer = new Xlsx($spreadsheet);
+                $writer->save('php://output'); // Direct output to browser
+            }, 200, [
+                "Content-Type" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "Content-Disposition" => "attachment; filename=\"$filename\"",
+                "Cache-Control" => "max-age=0",
+            ]);
 
         } catch (\Exception $e) {
-            // Log any errors
             \Log::error('Excel export failed: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to export Excel file.'], 500);
         }
     }
+
 }

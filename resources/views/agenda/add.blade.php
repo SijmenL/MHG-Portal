@@ -65,12 +65,20 @@
 
     <div class="container col-md-11">
         @if(!isset($lesson))
-            <h1>Voeg een activiteit toe</h1>
+            <h1>Agendapunt toevoegen</h1>
 
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Voeg een activiteit toe</li>
+                    @if($view === "month")
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll]) }}">Agenda</a>
+                        </li>
+                    @else
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll]) }}">Agenda</a>
+                        </li>
+                    @endif
+                    <li class="breadcrumb-item active" aria-current="page">Agendapunt toevoegen</li>
                 </ol>
             </nav>
         @else
@@ -80,9 +88,15 @@
                 <li class="breadcrumb-item"><a
                         href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
                 </li>
-                <li class="breadcrumb-item"><a
-                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
-                </li>
+                @if($view === "month")
+                    <li class="breadcrumb-item"><a
+                            href="{{ route('agenda.month', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll]) }}">Planning</a>
+                    </li>
+                @else
+                    <li class="breadcrumb-item"><a
+                            href="{{ route('agenda.schedule', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll]) }}">Planning</a>
+                    </li>
+                @endif
                 <li class="breadcrumb-item active" aria-current="page">Nieuw agendapunt</li>
             </ol>
         @endif
@@ -435,7 +449,8 @@
                                 @enderror
                             </div>
                             <div id="date-container" class="w-100 mt-2">
-                                <label for="presence-date" class="col-form-label">Deadline om aan- of af te melden: (wanneer dit veld leeg gelaten wordt zal er geen deadline op zitten)</label>
+                                <label for="presence-date" class="col-form-label">Deadline om aan- of af te melden:
+                                    (wanneer dit veld leeg gelaten wordt zal er geen deadline op zitten)</label>
                                 <input type="datetime-local" id="presence-date" name="presence-date"
                                        class="form-control @error('presence-date') is-invalid @enderror">
                                 @error('presence-date')

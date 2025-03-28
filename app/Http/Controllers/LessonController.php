@@ -66,7 +66,7 @@ class LessonController extends Controller
                 $query->where('title', 'LIKE', "%$search%")
                     ->orWhere('description', 'LIKE', "%$search%");
             })
-                ->orderBy('created_at', 'desc')
+                ->orderBy('updated_at', 'desc')
                 ->get();
         } else {
             $lessons = Lesson::whereHas('users', function ($query) use ($user) {
@@ -76,7 +76,7 @@ class LessonController extends Controller
                     $query->where('title', 'LIKE', "%$search%")
                         ->orWhere('description', 'LIKE', "%$search%");
                 })
-                ->orderBy('created_at', 'desc')
+                ->orderBy('updated_at', 'desc')
                 ->get();
         }
 
