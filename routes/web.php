@@ -48,6 +48,8 @@ Route::get('/agenda/public/activiteit/{id}', [AgendaController::class, 'agendaAc
 
 Route::post('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'handleActivityForm'])->name('agenda.activity.submit');
 
+Route::get('/agenda/feed/{token}.ics', [AgendaController::class, 'exportFeed'])->name('agenda.feed');
+
 
 Auth::routes(['register' => false, 'password.request' => false,]);
 
@@ -128,6 +130,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/agenda/activiteit/aanwezig/{id}/{user}', [AgendaController::class, 'agendaPresent'])->name('agenda.activity.present');
     Route::get('/agenda/activiteit/niet-aanwezig/{id}/{user}', [AgendaController::class, 'agendaAbsent'])->name('agenda.activity.absent');
+
+    Route::post('/agenda/token', [AgendaController::class, 'generateToken']);
+
 });
 
 Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
@@ -139,10 +144,13 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 
     Route::get('/agenda/delete/{id}', [AgendaController::class, 'deleteActivity'])->name('agenda.delete');
 
+
     Route::get('/agenda/aanwezigheid/{id}', [AgendaController::class, 'agendaPresenceActivity'])->name('agenda.presence.activity');
     Route::post('/agenda/aanwezigheid/export', [AgendaController::class, 'exportPresenceData'])->name('agenda.presence.export');
 
     Route::get('/agenda/inschrijvingen/{id}', [AgendaController::class, 'agendaSubmissionsActivity'])->name('agenda.submissions.activity');
+
+
 });
 
 

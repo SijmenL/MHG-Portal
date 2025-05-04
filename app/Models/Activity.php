@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Activity extends Model
 {
+    /**
+     * @var \Illuminate\Support\HigherOrderCollectionProxy|mixed
+     */
     protected $fillable = [
         'content',
         'public',
@@ -23,6 +26,8 @@ class Activity extends Model
         'repeat',
         'presence',
         'lesson_id',
+        'recurrence_rule',
+        'end_recurrence'
     ];
 
     protected $casts = [

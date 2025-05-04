@@ -4,49 +4,48 @@ let isMobile;
 let html;
 
 function init() {
-    console.log('loaded')
+    console.log('loaded');
 
-    html = document.querySelector('html')
-
+    html = document.querySelector('html');
 
     // Gather all event elements
     const events = document.querySelectorAll('.calendar-event');
 
-    // Create a lookup object to store events by ID
-    const eventsById = {};
+    // Create a lookup object to store events by composite key (id + start)
+    const eventsByKey = {};
     events.forEach(event => {
-        const eventId = event.dataset.eventId;
-        if (!eventsById[eventId]) {
-            eventsById[eventId] = [];
+        // Use a composite key based on event id and start date
+
+        const compositeKey = event.dataset.eventId + '-' + event.dataset.eventStartDate;
+        if (!eventsByKey[compositeKey]) {
+            eventsByKey[compositeKey] = [];
         }
-        eventsById[eventId].push(event);
+        eventsByKey[compositeKey].push(event);
     });
 
-
-    // Add event listeners to each event
+    // Add event listeners to each event using composite keys for lookup
     events.forEach(event => {
         event.addEventListener('mouseover', () => {
-            const eventId = event.dataset.eventId;
-            eventsById[eventId].forEach(event => {
-                event.classList.add('calendar-event-hovered'); // Add a class for styling
+            const compositeKey = event.dataset.eventId + '-' + event.dataset.eventStartDate;
+            eventsByKey[compositeKey].forEach(e => {
+                e.classList.add('calendar-event-hovered'); // Add a class for styling
             });
         });
 
         event.addEventListener('mouseout', () => {
-            const eventId = event.dataset.eventId;
-            eventsById[eventId].forEach(event => {
-                event.classList.remove('calendar-event-hovered');
+            const compositeKey = event.dataset.eventId + '-' + event.dataset.eventStartDate;
+            eventsByKey[compositeKey].forEach(e => {
+                e.classList.remove('calendar-event-hovered');
             });
         });
     });
 }
 
-
 function positionPopup(event) {
     const popup = document.getElementById('event-popup');
 
     popup.style.transform = 'unset'; // Center the popup both horizontally and vertically
-    popup.style.position = 'absolute'
+    popup.style.position = 'absolute';
 
     // Calculate the popup dimensions
     const popupWidth = popup.offsetWidth;
@@ -66,34 +65,29 @@ function positionPopup(event) {
     let popupLeft = mouseX + 15;
     let popupTop = mouseY + 15;
 
-    // Check if the popup would overflow on the right side
+    // Check for right overflow
     if ((popupLeft + popupWidth) > viewportWidth + scrollLeft) {
-        // If yes, position it to the left of the cursor
         popupLeft = mouseX - popupWidth - 15;
     }
 
-    // Check if the popup would overflow at the bottom
+    // Check for bottom overflow
     if ((popupTop + popupHeight) > viewportHeight + scrollTop) {
-        // If yes, position it above the cursor
         popupTop = mouseY - popupHeight - 15;
     }
 
-    // Check if the popup would overflow on the left side (when flipped)
+    // Check for left overflow (when flipped)
     if (popupLeft < scrollLeft) {
-        // If yes, flip back to the right
         popupLeft = mouseX + 15;
     }
 
-    // Check if the popup would overflow at the top (when flipped)
+    // Check for top overflow (when flipped)
     if (popupTop < scrollTop) {
-        // If yes, flip back to below the cursor
         popupTop = mouseY + 15;
     }
 
-    // Additional check to avoid navbar or top-fixed elements
-    const navbarOffset = 200; // Adjust this value based on your navbar height
+    // Avoid navbar or other top-fixed elements
+    const navbarOffset = 200; // Adjust based on your navbar height
     if (mouseY < navbarOffset) {
-        // Move the popup below the cursor if it's close to the top
         popupTop = mouseY + 15;
     }
 
@@ -102,7 +96,7 @@ function positionPopup(event) {
     popup.style.top = popupTop + 'px';
 }
 
-// Attach the event listeners to all calendar events
+// Attach event listeners to all calendar events for moving the popup
 document.querySelectorAll('.calendar-event').forEach(eventDiv => {
     eventDiv.addEventListener('mousemove', function (event) {
         isMobile = window.innerWidth < 768;
@@ -123,7 +117,7 @@ document.querySelectorAll('.calendar-event').forEach(eventDiv => {
 });
 
 function openDisplay(eventDiv) {
-    console.log(isMobile)
+    console.log(isMobile);
     const image = eventDiv.getAttribute('data-image');
     const title = eventDiv.getAttribute('data-title');
     const content = eventDiv.getAttribute('data-content');

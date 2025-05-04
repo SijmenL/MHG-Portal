@@ -116,7 +116,7 @@
                         const formattedDate = `${day}-${month}-${year}`;
 
                         // Generate the file name
-                        return `{{ $activity->title }} aanwezigheid ${formattedDate}.xlsx`;
+                        return `Aanwezigheid {{ $activity->title }} {{ date("d-m-Y", strtotime($activity->date_start)) }} [${formattedDate}].xlsx`;
                     }
                 </script>
 

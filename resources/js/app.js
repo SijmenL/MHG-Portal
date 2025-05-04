@@ -73,12 +73,12 @@ function deleteButtons() {
             popUpBody.appendChild(buttonContainer);
 
             let continueButton = document.createElement('a');
-            continueButton.classList.add('btn', 'btn-success');
+            continueButton.classList.add('btn', 'btn-outline-danger');
             continueButton.innerText = 'Ja, verwijderen';
             buttonContainer.appendChild(continueButton);
 
             let cancelButton = document.createElement('a');
-            cancelButton.classList.add('btn', 'btn-outline-danger');
+            cancelButton.classList.add('btn', 'btn-success');
             cancelButton.innerText = 'Nee, annuleren';
             buttonContainer.appendChild(cancelButton);
 

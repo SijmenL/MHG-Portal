@@ -78,7 +78,8 @@ class User extends Authenticatable
         'avg',
         'profile_picture',
         'member_date',
-        'dolfijnen_name'
+        'dolfijnen_name',
+        'calendar_token'
     ];
 
     /**
