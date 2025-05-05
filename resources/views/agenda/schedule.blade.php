@@ -7,7 +7,8 @@
 
 @section('content')
     @if(!isset($lesson))
-        <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/agenda/banner.jpg') }})">
+        <div class="header"
+             style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/agenda/banner.jpg') }})">
             <div>
                 <p class="header-title">Agenda</p>
             </div>
@@ -87,13 +88,16 @@
                     <div class="dropdown">
                         <button class="btn btn-primary text-white dropdown-toggle" type="button" id="calendarDropdown"
                                 data-bs-toggle="dropdown" aria-expanded="false">
-                            Exporteer de agenda
+                            Exporteer jouw agenda
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
-                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="google">Google Calendar</a>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="google">Google
+                                    Calendar</a>
                             </li>
-                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="ical">iCalendar</a></li>
-                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="outlook">Outlook 365</a></li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="ical">iCalendar</a>
+                            </li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="outlook">Outlook
+                                    365</a></li>
                             <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="download">Download
                                     bestand</a></li>
                         </ul>
@@ -116,21 +120,25 @@
                                 })
                                     .then(response => response.json())
                                     .then(data => {
-                                        console.log(data)
-
-                                        const encodedUrl = encodeURIComponent(data.calendar_url);
+                                        const token = data.token;
+                                        const webcalUrl = `webcal://${window.location.host}/agenda/feed/${token}.ics`;
+                                        const encodedWebcal = encodeURIComponent(webcalUrl);
+                                        const calendarName = encodeURIComponent('MHG Agenda');
 
                                         document.querySelectorAll('.calendar-link').forEach(link => {
                                             const type = link.dataset.type;
+
                                             if (type === 'google') {
-                                                link.href = `https://calendar.google.com/calendar/r?cid=${encodedUrl}`;
+                                                link.href = `https://calendar.google.com/calendar/u/0/r?cid=${webcalUrl}`;
                                             } else if (type === 'outlook') {
-                                                link.href = `https://outlook.office.com/calendar/0/deeplink/subscribe?url=${encodedUrl}`;
+                                                link.href = `https://outlook.office.com/owa?path=/calendar/action/compose&rru=addsubscription&url=${encodedWebcal}&name=${calendarName}`;
                                             } else if (type === 'ical') {
-                                                link.href = `webcall://${encodedUrl}`;
+                                                link.href = webcalUrl;
                                             } else {
-                                                link.href = `${data.calendar_url}`;
+                                                link.href = webcalUrl;
                                             }
+
+                                            link.setAttribute('target', '_blank');
                                         });
 
                                         tokenLoaded = true;
@@ -140,6 +148,7 @@
                                     });
                             });
                         });
+
                     </script>
                 @endif
 
@@ -270,28 +279,28 @@
                     </div>
                 @endif
 
-                    @php
-                        $linkParams = [
-                            'id' => $activity->id,
-                            'month' => $monthOffset,
-                            'all' => $wantViewAll,
-                            'startDate' => $activitiesStart->format('Y-m-d'),
-                            'view' => 'schedule',
-                        ];
+                @php
+                    $linkParams = [
+                        'id' => $activity->id,
+                        'month' => $monthOffset,
+                        'all' => $wantViewAll,
+                        'startDate' => $activitiesStart->format('Y-m-d'),
+                        'view' => 'schedule',
+                    ];
 
-                        if ($activity->lesson_id !== null) {
-                            $linkParams['lessonId'] = $activity->lesson_id;
-                        }
+                    if ($activity->lesson_id !== null) {
+                        $linkParams['lessonId'] = $activity->lesson_id;
+                    }
 
-                        $canAccessLesson = $activity->lesson_id === null || in_array($user->id, $lessonUsers) || $isTeacher;
-                    @endphp
+                    $canAccessLesson = $activity->lesson_id === null || in_array($user->id, $lessonUsers) || $isTeacher;
+                @endphp
 
-                    <a
-                        @if ($canAccessLesson)
-                            href="{{ route('agenda.activity', $linkParams) }}"
-                        @endif
-                        style="color: unset; text-decoration: none"
-                    >
+                <a
+                    @if ($canAccessLesson)
+                        href="{{ route('agenda.activity', $linkParams) }}"
+                    @endif
+                    style="color: unset; text-decoration: none"
+                >
 
 
                     <div class="d-flex flex-row">

@@ -358,26 +358,26 @@
                         </a>
                     @endif
 
-                    @if($user &&
-                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                     $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                     $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                     $user->roles->contains('role', 'Vrijwilliger') ||
-                     $user->roles->contains('role', 'Administratie') ||
-                     $user->roles->contains('role', 'Bestuur') ||
-                     $user->roles->contains('role', 'Praktijkbegeleider') ||
-                     $user->roles->contains('role', 'Loodsen Mentor') ||
-                     $user->roles->contains('role', 'Ouderraad') ||
-                     $user->roles->contains('role', 'Afterloods') ||
-                     $user->roles->contains('role', 'Loods') ||
-                     $user->roles->contains('role', 'Zeeverkenner')
-                     ))
-                        <a class="btn btn-info quick-action" href="{{ route('maintenance') }}">
-                            <span class="material-symbols-rounded">handyman</span>
-                            <p>Onderhoud</p>
-                        </a>
-                    @endif
+{{--                    @if($user &&--}}
+{{--                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||--}}
+{{--                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||--}}
+{{--                     $user->roles->contains('role', 'Loodsen Stamoudste') ||--}}
+{{--                     $user->roles->contains('role', 'Afterloodsen Organisator') ||--}}
+{{--                     $user->roles->contains('role', 'Vrijwilliger') ||--}}
+{{--                     $user->roles->contains('role', 'Administratie') ||--}}
+{{--                     $user->roles->contains('role', 'Bestuur') ||--}}
+{{--                     $user->roles->contains('role', 'Praktijkbegeleider') ||--}}
+{{--                     $user->roles->contains('role', 'Loodsen Mentor') ||--}}
+{{--                     $user->roles->contains('role', 'Ouderraad') ||--}}
+{{--                     $user->roles->contains('role', 'Afterloods') ||--}}
+{{--                     $user->roles->contains('role', 'Loods') ||--}}
+{{--                     $user->roles->contains('role', 'Zeeverkenner')--}}
+{{--                     ))--}}
+{{--                        <a class="btn btn-info quick-action" href="{{ route('maintenance') }}">--}}
+{{--                            <span class="material-symbols-rounded">handyman</span>--}}
+{{--                            <p>Onderhoud</p>--}}
+{{--                        </a>--}}
+{{--                    @endif--}}
 
                     @if($user &&
                         ($user->roles->contains('role', 'Dolfijnen Leiding') ||

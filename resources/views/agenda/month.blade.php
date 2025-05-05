@@ -92,7 +92,7 @@
                     <div class="dropdown">
                         <button class="btn btn-primary text-white dropdown-toggle" type="button" id="calendarDropdown"
                                 data-bs-toggle="dropdown" aria-expanded="false">
-                            Exporteer de agenda
+                            Exporteer jouw agenda
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
                             <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="google">Google Calendar</a>
@@ -121,21 +121,25 @@
                                 })
                                     .then(response => response.json())
                                     .then(data => {
-                                        console.log(data)
-
-                                        const encodedUrl = encodeURIComponent(data.calendar_url);
+                                        const token = data.token;
+                                        const webcalUrl = `webcal://${window.location.host}/agenda/feed/${token}.ics`;
+                                        const encodedWebcal = encodeURIComponent(webcalUrl);
+                                        const calendarName = encodeURIComponent('MHG Agenda');
 
                                         document.querySelectorAll('.calendar-link').forEach(link => {
                                             const type = link.dataset.type;
+
                                             if (type === 'google') {
-                                                link.href = `https://calendar.google.com/calendar/r?cid=${encodedUrl}`;
+                                                link.href = `https://calendar.google.com/calendar/u/0/r?cid=${webcalUrl}`;
                                             } else if (type === 'outlook') {
-                                                link.href = `https://outlook.office.com/calendar/0/deeplink/subscribe?url=${encodedUrl}`;
+                                                link.href = `https://outlook.office.com/owa?path=/calendar/action/compose&rru=addsubscription&url=${encodedWebcal}&name=${calendarName}`;
                                             } else if (type === 'ical') {
-                                                link.href = `webcall://${encodedUrl}`;
+                                                link.href = webcalUrl;
                                             } else {
-                                                link.href = `${data.calendar_url}`;
+                                                link.href = webcalUrl;
                                             }
+
+                                            link.setAttribute('target', '_blank');
                                         });
 
                                         tokenLoaded = true;
@@ -145,6 +149,8 @@
                                     });
                             });
                         });
+
+
                     </script>
 
                 @endif

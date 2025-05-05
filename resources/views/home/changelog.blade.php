@@ -16,6 +16,17 @@
             zelf ook nieuwe bugs aan toe!
         </div>
 
+        <h2>Update 3.3</h2>
+        <p class="fst-italic">04/05/2025</p>
+        <ul>
+            <li class="added">Verbeteringen aan de agenda.</li>
+            <ul>
+                <li class="added">Rare pagina's verwijderd</li>
+                <li class="added">Herhalende activiteiten zijn mogelijk</li>
+                <li class="added">Voeg de agenda toe aan je eigen agenda door te abonneren via iCal</li>
+            </ul>
+        </ul>
+
         <h2>Update 3.2</h2>
         <p class="fst-italic">14/02/2025</p>
         <ul>
