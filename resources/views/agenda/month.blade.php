@@ -11,7 +11,8 @@
 
 @section('content')
     @if(!isset($lesson))
-        <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/agenda/banner.jpg') }})">
+        <div class="header"
+             style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/agenda/banner.jpg') }})">
             <div>
                 <p class="header-title">Agenda</p>
             </div>
@@ -28,44 +29,57 @@
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
                 @if(isset($lesson))
-                    <h1 class="">Les planning</h1>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h1 class="">Planning</h1>
+                        @if($user && $isTeacher)
+                            <a href="{{ route('agenda.new', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'month']) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                                <span class="material-symbols-rounded me-2">calendar_add_on</span>
+                                <span class="no-mobile">Agendapunt toevoegen</span>
+                            </a>
+                        @endif
+                    </div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
                             <li class="breadcrumb-item"><a
                                     href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
                             </li>
-                            @if($isTeacher)
-                                <li class="breadcrumb-item"><a
-                                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
-                                </li>
-                            @endif
-                            <li class="breadcrumb-item active" aria-current="page">Les planning</li>
+                            <li class="breadcrumb-item active" aria-current="page">Planning</li>
                         </ol>
                     </nav>
                 @else
-                    <h1 class="">Mijn Agenda</h1>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h1 class="">Mijn Agenda</h1>
+                        @if($user &&
+                            ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                             $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                             $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                             $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                             $user->roles->contains('role', 'Administratie') ||
+                             $user->roles->contains('role', 'Bestuur'))
+                        )
+                            <a href="{{ route('agenda.new', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'month']) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                                <span class="material-symbols-rounded me-2">calendar_add_on</span>
+                                <span class="no-mobile">Agendapunt toevoegen</span>
+                            </a>
+                        @endif
+                    </div>
 
                     @if($user &&
-                    ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-                    $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                    $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                    $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                    $user->roles->contains('role', 'Administratie') ||
-                    $user->roles->contains('role', 'Bestuur') ||
-                    $user->roles->contains('role', 'Praktijkbegeleider') ||
-                    $user->roles->contains('role', 'Loodsen Mentor') ||
-                    $user->roles->contains('role', 'Ouderraad')) ||
-                    $user->roles->contains('role', 'Loods') ||
-                    $user->roles->contains('role', 'Afterloods'))
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Mijn agenda</li>
-                            </ol>
-                        </nav>
-
-
+                        ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                         $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                         $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                         $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                         $user->roles->contains('role', 'Administratie') ||
+                         $user->roles->contains('role', 'Bestuur') ||
+                         $user->roles->contains('role', 'Praktijkbegeleider') ||
+                         $user->roles->contains('role', 'Loodsen Mentor') ||
+                         $user->roles->contains('role', 'Ouderraad')) ||
+                         $user->roles->contains('role', 'Loods') ||
+                         $user->roles->contains('role', 'Afterloods')
+                    )
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="show-all"
                                    @if($wantViewAll === true) checked @endif>
@@ -75,6 +89,64 @@
                     @endif
 
                     <p>Welkom in jouw MHG Agenda! Hier vind je de komende activiteiten die voor jouw relevant zijn!</p>
+                    <div class="dropdown">
+                        <button class="btn btn-primary text-white dropdown-toggle" type="button" id="calendarDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Exporteer de agenda
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="google">Google Calendar</a>
+                            </li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="ical">iCalendar</a></li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="outlook">Outlook 365</a></li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="download">Download
+                                    bestand</a></li>
+                        </ul>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const dropdownButton = document.getElementById('calendarDropdown');
+                            let tokenLoaded = false;
+
+                            dropdownButton.addEventListener('click', function () {
+                                if (tokenLoaded) return;
+
+                                fetch('/agenda/token', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json',
+                                    }
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        console.log(data)
+
+                                        const encodedUrl = encodeURIComponent(data.calendar_url);
+
+                                        document.querySelectorAll('.calendar-link').forEach(link => {
+                                            const type = link.dataset.type;
+                                            if (type === 'google') {
+                                                link.href = `https://calendar.google.com/calendar/r?cid=${encodedUrl}`;
+                                            } else if (type === 'outlook') {
+                                                link.href = `https://outlook.office.com/calendar/0/deeplink/subscribe?url=${encodedUrl}`;
+                                            } else if (type === 'ical') {
+                                                link.href = `webcall://${encodedUrl}`;
+                                            } else {
+                                                link.href = `${data.calendar_url}`;
+                                            }
+                                        });
+
+                                        tokenLoaded = true;
+                                    })
+                                    .catch(error => {
+                                        console.error('Failed to fetch calendar token', error);
+                                    });
+                            });
+                        });
+                    </script>
+
                 @endif
 
                 <script>
@@ -90,21 +162,24 @@
                 <div id="nav">
                     <ul class="nav nav-tabs flex-row-reverse mb-4">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page"><span class="material-symbols-rounded"
-                                                                                 style="transform: translateY(5px)">calendar_view_month</span>
-                                Maand</a>
+                            <a class="nav-link active" aria-current="page">
+                                <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_view_month</span>
+                                Maand
+                            </a>
                         </li>
                         <li class="nav-item">
                             @if(isset($lesson))
                                 <a class="nav-link"
-                                   href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#nav"><span
-                                        class="material-symbols-rounded"
-                                        style="transform: translateY(5px)">calendar_today</span> Planning</a>
+                                   href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll, 'lessonId' => $lesson->id]) }}#nav">
+                                    <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_today</span>
+                                    Planning
+                                </a>
                             @else
                                 <a class="nav-link"
-                                   href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll]) }}#nav"><span
-                                        class="material-symbols-rounded"
-                                        style="transform: translateY(5px)">calendar_today</span> Planning</a>
+                                   href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll]) }}#nav">
+                                    <span class="material-symbols-rounded" style="transform: translateY(5px)">calendar_today</span>
+                                    Planning
+                                </a>
                             @endif
                         </li>
                     </ul>
@@ -166,13 +241,12 @@
                     for ($i = 1 - $firstDayOfWeek; $i <= $daysInMonth; $i++) {
                         if ($i > 0) {
                             $today = Carbon::create($year, $month, $i)->startOfDay();
-                            $activitiesForDay = $activities->filter(function ($activity) use ($today) {
+                            $activitiesForDayCount = $activities->filter(function ($activity) use ($today) {
                                 $start = Carbon::parse($activity->date_start)->startOfDay();
-                                $end = Carbon::parse($activity->date_end)->endOfDay();
+                                $end   = Carbon::parse($activity->date_end)->endOfDay();
                                 return $today->between($start, $end);
                             });
-
-                            $weekEventCounts[$currentWeek] = max($weekEventCounts[$currentWeek] ?? 0, $activitiesForDay->count());
+                            $weekEventCounts[$currentWeek] = max($weekEventCounts[$currentWeek] ?? 0, $activitiesForDayCount->count());
                         }
 
                         if (($i + $firstDayOfWeek) % 7 === 0) {
@@ -194,10 +268,18 @@
                 @for ($i = 1; $i <= $daysInMonth; $i++)
                     @php
                         $today = Carbon::create($year, $month, $i)->startOfDay();
+                        // Filter events for this day…
                         $activitiesForDay = $activities->filter(function ($activity) use ($today) {
                             $start = Carbon::parse($activity->date_start)->startOfDay();
-                            $end = Carbon::parse($activity->date_end)->endOfDay();
+                            $end   = Carbon::parse($activity->date_end)->endOfDay();
                             return $today->between($start, $end);
+                        });
+
+                        // Only one event per unique (id + startDate) combination will pass.
+                        $activitiesForDay = $activitiesForDay->unique(function($item) {
+                            return $item->id . '-' . Carbon::parse($item->date_start)->format('Y-m-d');
+                        })->sortBy(function ($activity) {
+                            return Carbon::parse($activity->date_start);
                         });
 
                         $maxEventsInWeek = $weekEventCounts[$currentWeek] ?? 0;
@@ -214,15 +296,14 @@
                         <p class="calendar-cell-text">{{ $i }}</p>
 
                         @if ($activitiesForDay->isNotEmpty())
-                            @foreach ($activitiesForDay as $activity)
+                            @foreach ($activitiesForDay as $index => $activity)
                                 @php
                                     $start = Carbon::parse($activity->date_start)->startOfDay();
-                                    $end = Carbon::parse($activity->date_end)->endOfDay();
+                                    $end   = Carbon::parse($activity->date_end)->endOfDay();
                                     $isFirstDay = $today->isSameDay($start);
-                                    $isLastDay = $today->isSameDay($end);
+                                    $isLastDay  = $today->isSameDay($end);
 
                                     $activityClass = 'calendar-event';
-
                                     if ($isFirstDay && $isLastDay) {
                                         $activityClass .= ' calendar-event-single';
                                     } else {
@@ -236,41 +317,31 @@
                                             $activityClass .= ' calendar-event-monday';
                                         }
                                     }
-
                                     if ($activity->should_highlight) {
                                         $activityClass .= ' calendar-event-highlight';
                                     }
 
-                                    // If lesson_id exists, check if we need to load the lesson and its users
-                                    $lessonActivity = $activity->lesson; // Load the related lesson
+                                    // If lesson_id exists, load lesson info and adjust classes accordingly.
+                                    $lessonActivity = $activity->lesson;
                                     $lessonUsers = $lessonActivity ? $lessonActivity->users->pluck('id')->toArray() : [];
-
-                                    // Check if lesson exists and user is part of the lesson's users
-                                        if ($activity->lesson_id !== null) {
-                                            if (!$isTeacher) {
-                                                // If the user is not a teacher, check if the user is in the lesson
-                                                if (!in_array($user->id, $lessonUsers)) {
-                                                    // User is not in the lesson users, disable the event highlight
-                                                    $activityClass .= ' calendar-event-highlight-disabled';
-                                                } else {
-                                                    // User is in the lesson users, mark as a lesson-related event
-                                                    $activityClass .= ' calendar-event-lesson';
-                                                }
+                                    if ($activity->lesson_id !== null) {
+                                        if (!$isTeacher) {
+                                            if (!in_array($user->id, $lessonUsers)) {
+                                                $activityClass .= ' calendar-event-highlight-disabled';
                                             } else {
-                                                // If the user is a teacher, always mark as a lesson-related event
                                                 $activityClass .= ' calendar-event-lesson';
                                             }
+                                        } else {
+                                            $activityClass .= ' calendar-event-lesson';
                                         }
+                                    }
 
-                                    // Handle the image and content for the activity
                                     $activityImage = $activity->image;
                                     $activityContent = $activity->content;
                                     $activityTitle = $activity->title;
-
-                                    // Format the start and end dates/times
+                                    $activitiesStart = Carbon::parse($activity->date_start);
                                     $activitiestart = Carbon::parse($activity->date_start);
-                                    $activityEnd = Carbon::parse($activity->date_end);
-
+                                    $activityEnd   = Carbon::parse($activity->date_end);
                                     if ($activitiestart->isSameDay($activityEnd)) {
                                         $formattedStart = $activitiestart->format('H:i');
                                         $formattedEnd = $activityEnd->format('H:i');
@@ -278,47 +349,41 @@
                                         $formattedStart = $activitiestart->format('d-m H:i');
                                         $formattedEnd = $activityEnd->format('d-m H:i');
                                     }
+
+                                    // Build route parameters and pass the occurrence's start date.
+                                    $routeParams = [
+                                        'month'     => $monthOffset,
+                                        'all'       => $wantViewAll,
+                                        'view'      => 'month',
+                                        'startDate' => $activitiesStart->format('Y-m-d'),
+                                        'id'        => $activity->id,
+                                    ];
+                                    if ($activity->lesson_id !== null) {
+                                        $routeParams['lessonId'] = $lessonActivity->id;
+                                    }
+
+                                    // Construct a composite key to fetch the correct positioning.
+                                    $compositeKey = $activity->id . '-' . $activitiesStart->format('Y-m-d');
                                 @endphp
 
-
-                                <a
-                                    @if($activity->lesson_id !== null)
-                                        @if(in_array($user->id, $lessonUsers) || $isTeacher)
-                                        href="{{ route('agenda.activity', [
-            'month' => $monthOffset,
-            'all' => $wantViewAll,
-            'view' => 'month',
-            'lessonId' => $lessonActivity->id,
-            $activity->id
-        ]) }}"
-                                    @endif
-                                    @else
-                                            href="{{ route('agenda.activity', [
-            'month' => $monthOffset,
-            'all' => $wantViewAll,
-            'view' => 'month',
-            $activity->id,
-        ]) }}"
-                                    @endif
-                                    style="top: {{ 40 + ($activityPositions[$activity->id] ?? 0) * 35 }}px;"
-
-                                    data-event-id="{{ $activity->id }}"
-                                    data-event-start="{{ $formattedStart }}"
-                                    data-event-end="{{ $formattedEnd }}"
-                                    @if(isset($activityImage))
-                                        data-image="{{ asset('files/agenda/agenda_images/'.$activityImage) }}"
-                                    @endif
-                                    data-content="{{ \Str::limit(strip_tags(html_entity_decode($activityContent)), 200, '...') }}"
-                                    data-title="{{ $activityTitle }}"
-                                    class="{{ $activityClass }}">
-
+                                <a href="{{ route('agenda.activity', $routeParams) }}"
+                                   style="top: {{ 40 + ($activityPositions[$compositeKey] ?? 0) * 35 }}px;"
+                                   data-event-id="{{ $activity->id }}"
+                                   data-event-start="{{ $formattedStart }}"
+                                   data-event-start-date="{{ $activitiesStart->format('Y-m-d') }}"
+                                   data-event-end="{{ $formattedEnd }}"
+                                   @if(isset($activityImage))
+                                       data-image="{{ asset('files/agenda/agenda_images/'.$activityImage) }}"
+                                   @endif
+                                   data-content="{{ \Str::limit(strip_tags(html_entity_decode($activityContent)), 200, '...') }}"
+                                   data-title="{{ $activityTitle }}"
+                                   class="{{ $activityClass }}">
                                     @if ($isFirstDay || ($isMonday && !$isLastDay))
                                         <div class="calendar-event-title">
                                             <span>{{ $activityTitle }} </span>
                                         </div>
                                     @endif
                                 </a>
-
                             @endforeach
                         @endif
                     </div>
@@ -344,5 +409,6 @@
             </div>
 
         </div>
+
     </div>
 @endsection

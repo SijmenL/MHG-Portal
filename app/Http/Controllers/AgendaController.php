@@ -8,154 +8,22 @@ use App\Models\ActivityFormElement;
 use App\Models\ActivityFormResponses;
 use App\Models\Lesson;
 use App\Models\Log;
-use App\Models\News;
 use App\Models\Presence;
 use App\Models\Role;
+use App\Models\ActivityException;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use MailerSend\Common\Roles;
+use Spatie\IcalendarGenerator\Components\Calendar;
+use Spatie\IcalendarGenerator\Components\Event;
+
 
 class AgendaController extends Controller
 {
-
-    public function home()
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-
-        return view('agenda.home', ['user' => $user, 'roles' => $roles]);
-    }
-
-    // Inschrijvingen & aanwezigheid
-    public function agendaSubmissions(Request $request)
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-        $search = $request->query('search', '');
-        $currentDate = now();
-
-        $activities = Activity::query()
-            ->with('activityFormElements') // Eager load the formElements relationship
-            ->whereHas('activityFormElements') // Ensure activities have related form elements
-            ->when(empty($search), function ($query) use ($currentDate) {
-                // Include events that are starting today or in the future or that are ongoing
-                $query->where(function ($query) use ($currentDate) {
-                    $query->where('date_start', '>=', $currentDate->startOfDay())
-                        ->orWhere('date_end', '>=', $currentDate->startOfDay());
-                });
-            })
-            ->when($search, function ($query, $search) {
-                // Include past activities when searching
-                $query->where(function ($query) use ($search) {
-                    $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('content', 'like', "%{$search}%")
-                        ->orWhere('date_start', 'like', "%{$search}%")
-                        ->orWhere('date_end', 'like', "%{$search}%")
-                        ->orWhere('location', 'like', "%{$search}%")
-                        ->orWhere('price', 'like', "%{$search}%")
-                        ->orWhere('organisator', 'like', "%{$search}%");
-                });
-            })
-            ->orderByRaw(
-                'CASE
-            WHEN date_end >= ? THEN date_end
-            WHEN date_start >= ? THEN date_start
-            ELSE NULL
-        END ASC,
-        date_start ASC',
-                [$currentDate->startOfDay(), $currentDate->startOfDay()]
-            )
-            ->paginate(10);
-
-
-        return view('agenda.submissions', [
-            'user' => $user,
-            'roles' => $roles,
-            'search' => $search,
-            'activities' => $activities
-        ]);
-    }
-
-    public function edit(Request $request)
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-        $lessonId = $request->query('lessonId');
-        $lesson = $lessonId ? Lesson::find($lessonId) : null;
-
-        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
-
-        // Check if the user is a teacher based on roles or lesson-specific permissions
-        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            ($lesson && $lesson->user_id === $user->id) ||
-            ($lesson && $lesson->users()
-                    ->where('user_id', $user->id)
-                    ->wherePivot('teacher', true)
-                    ->exists());
-
-        if ($isTeacher === false) {
-            return redirect()->route('agenda.edit')->with('error', 'Deze activiteit bestaat niet.');
-        }
-
-        $search = $request->query('search', '');
-        $currentDate = now();
-
-        $activities = Activity::query()
-            ->when(empty($search), function ($query) use ($currentDate) {
-                // Include activities that are either upcoming or ongoing (date_end is in the future)
-                $query->where(function ($query) use ($currentDate) {
-                    $query->where('date_start', '>=', $currentDate->startOfDay())
-                        ->orWhere('date_end', '>=', $currentDate->startOfDay());
-                });
-            })
-            ->when($search, function ($query, $search) {
-                // Include past activities when searching
-                $query->where(function ($query) use ($search) {
-                    $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('content', 'like', "%{$search}%")
-                        ->orWhere('date_start', 'like', "%{$search}%")
-                        ->orWhere('date_end', 'like', "%{$search}%")
-                        ->orWhere('location', 'like', "%{$search}%")
-                        ->orWhere('price', 'like', "%{$search}%")
-                        ->orWhere('organisator', 'like', "%{$search}%");
-                });
-            })
-            // When lessonId is provided, include activities with that lesson_id, regardless of the user
-            ->when($lessonId, function ($query) use ($lessonId) {
-                $query->where('lesson_id', $lessonId);
-            })
-            // Exclude activities with a lesson_id when lessonId is null
-            ->when(!$lessonId && !$user->roles->contains('role', 'Administratie'), function ($query) use ($user) {
-                $query->whereNull('lesson_id')
-                    ->where('user_id', $user->id);
-            })
-            ->orderByRaw(
-                'CASE
-            WHEN date_end >= ? THEN date_end
-            WHEN date_start >= ? THEN date_start
-            ELSE NULL
-        END ASC,
-        date_start ASC',
-                [$currentDate->startOfDay(), $currentDate->startOfDay()] // Ensure both parameters are passed
-            )
-            ->paginate(10);
-
-        return view('agenda.edit', [
-            'user' => $user,
-            'roles' => $roles,
-            'search' => $search,
-            'activities' => $activities,
-            'lesson' => $lesson
-        ]);
-    }
-
 
     public function editActivity(Request $request, $id)
     {
@@ -185,7 +53,7 @@ class AgendaController extends Controller
 
         // Check if the activity is attached to a lesson and no lessonId is provided in the URI
         if ((int)$activity->lesson_id !== (int)$lessonId) {
-            return redirect()->route('agenda.edit')->with('error', 'Deze activiteit is gekoppeld aan een les, maar de les-ID ontbreekt.');
+            return redirect()->back()->with('error', 'Deze activiteit is gekoppeld aan een les, maar de les-ID ontbreekt.');
         }
 
         // Ownership or teacher check
@@ -195,24 +63,74 @@ class AgendaController extends Controller
             }
         }
 
-        return view('agenda.edit-activity', [
+        $month = $request->query('month', '0');
+        $wantViewAll = $request->query('all', '0');
+        $view = $request->query('view', 'month');
+
+        if (isset($activity) && $activity->recurrence_rule !== null) {
+            $dateStart = $request->query('startDate');
+
+            if (!$dateStart || !$activity->recurrence_rule) {
+                return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
+            }
+
+            if (!self::isValidRepetitionDate($activity, $dateStart)) {
+                return redirect()->route('agenda.month')->with('error', 'Deze herhaling van de activiteit bestaat niet.');
+            }
+
+
+// Update activity dates for the current occurrence
+            // Update activity dates for the current occurrence
+            $originalStart = \Carbon\Carbon::parse($activity->date_start);
+            $originalEnd = \Carbon\Carbon::parse($activity->date_end);
+
+            $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
+
+            $duration = $originalEnd->diffInSeconds($originalStart);
+
+            $activity->date_start = $requestedStart->toDateTimeString();
+            $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();
+
+            // If there's a “deadline” stored in presence, shift it too
+            if ($activity->presence !== null && $activity->presence !== "1" && $activity->presence !== "0") {
+                $originalDeadline = Carbon::parse($activity->presence);
+
+                $deadlineOffset = $originalDeadline->getTimestamp() - $originalStart->getTimestamp();
+                $newDeadline = $requestedStart->copy()->addSeconds($deadlineOffset);
+
+                $activity->presence = $newDeadline->toDateTimeString();
+            }
+        }
+
+        return view('agenda.edit', [
             'user' => $user,
             'roles' => $roles,
             'activity' => $activity,
             'all_roles' => $all_roles,
             'lesson' => $lesson,
+            'monthOffset' => $month,
+            'wantViewAll' => $wantViewAll,
+            'view' => $view
         ]);
     }
 
-
     public function editActivitySave(Request $request, $id)
     {
-        // Validate the request inputs
+        $month = $request->input('month', '0');
+        $wantViewAll = $request->input('all', '0');
+        $view = $request->input('view', 'month');
+
+        // 1) User’s choice + the occurrence date
+        $editType = $request->input('edit_type', 'all');      // 'all', 'following', or 'single'
+        $occurrenceDate = $request->input('occurrence_date');       // 'YYYY-MM-DD'
+
+        // 2) Validate
         $validatedData = $request->validate([
             'title' => 'string|required',
             'content' => 'string|max:65535|nullable',
             'date_start' => 'date|required',
             'date_end' => 'date|required',
+            'reoccurrence' => 'string|required',
             'roles' => 'array|nullable',
             'users' => 'string|nullable',
             'public' => 'boolean|required',
@@ -226,106 +144,181 @@ class AgendaController extends Controller
             'form_types' => 'nullable|array',
             'form_options' => 'nullable|array',
             'is_required' => 'nullable|array',
-            'lesson_id' => 'nullable'
+            'lesson_id' => 'nullable',
         ]);
 
         try {
-            // Find the activity to update
             $activity = Activity::findOrFail($id);
 
-            // Process image upload
-            $newPictureName = $activity->image; // Keep the existing image by default
+            // Image upload (unchanged)
+            $newPictureName = $activity->image;
             if ($request->hasFile('image')) {
-                // If a new image is uploaded, generate a new file name
                 $newPictureName = time() . '.' . $request->file('image')->extension();
-                $destinationPath = 'files/agenda/agenda_images';
-                $request->file('image')->move(public_path($destinationPath), $newPictureName);
+                $destPath = 'files/agenda/agenda_images';
+                $request->file('image')->move(public_path($destPath), $newPictureName);
             }
 
-            // Handle roles and users input
-            $roles = $request->input('roles') ? implode(', ', $request->input('roles')) : null;
-            $users = $request->input('users') ? implode(', ', array_map('trim', array_filter(explode(',', $request->input('users'))))) : null;
+            // Roles & users implode
+            $roles = $request->input('roles')
+                ? implode(', ', $request->input('roles'))
+                : null;
+            $users = $request->input('users')
+                ? implode(',', array_map('trim', array_filter(explode(',', $request->input('users')))))
+                : null;
 
-            // Validate content for disallowed elements or styles
-            if (ForumController::validatePostData($request->input('content'))) {
+            // Content validation
+            if (!ForumController::validatePostData($request->input('content'))) {
+                throw ValidationException::withMessages([
+                    'content' => 'Je agendapunt kan niet opgeslagen worden.'
+                ]);
+            }
 
-                $presence = $request->input('presence');
+            // Presence date logic
+            $presence = $request->input('presence');
+            if ($presence === "1" && $request->filled('presence-date')) {
+                $presence = $request->input('presence-date');
+            }
 
-                if ($presence === "1" && $request->filled('presence-date')) {
-                    $presence = $request->input('presence-date');
-                }
+            // Shared data
+            $data = [
+                'title' => $request->input('title'),
+                'content' => $request->input('content'),
+                'date_start' => $request->input('date_start'),
+                'date_end' => $request->input('date_end'),
+                'recurrence_rule' => $request->input('reoccurrence'),
+                'roles' => $roles,
+                'users' => $users,
+                'public' => $request->input('public'),
+                'presence' => $presence,
+                'price' => $request->input('price'),
+                'location' => $request->input('location'),
+                'organisator' => $request->input('organisator'),
+                'lesson_id' => $request->input('lesson_id'),
+                'image' => $newPictureName,
+            ];
 
-                // Update the activity
+            // Compute original start time and duration
+            $origStart = Carbon::parse($activity->date_start);
+            $origEnd = Carbon::parse($activity->date_end);
+            $durationSec = $origEnd->diffInSeconds($origStart);
+
+            $log = new Log();
+
+// 3) Branch by editType
+            if ($editType === 'all' || !$activity->recurrence_rule) {
+                // Entire series
+                $activity->update($data);
+
+            } elseif ($editType === 'following') {
+
+                // fetch *all* exceptions on the original activity
+                $originalExceptions = ActivityException::where('activity_id', $activity->id)->get();
+
+                // 3b) Clone new series starting at occurrenceDate + original time
+                $new = $activity->replicate();
+                $new->fill($data);
+
+                // Preserve original time‐of‐day
+                $newStart = Carbon::parse("{$occurrenceDate} " . $origStart->format('H:i:s'));
+                $new->date_start = $newStart->toDateTimeString();
+                $new->date_end = $newStart->copy()->addSeconds($durationSec)->toDateTimeString();
+
+                $new->save();
+
+// Trim original up to the chosen date
                 $activity->update([
-                    'content' => $request->input('content'),
-                    'price' => $request->input('price'),
-                    'organisator' => $request->input('organisator'),
-                    'location' => $request->input('location'),
-                    'date_start' => $request->input('date_start'),
-                    'date_end' => $request->input('date_end'),
-                    'title' => $request->input('title'),
-                    'user_id' => Auth::id(),
-                    'roles' => $roles,
-                    'users' => $users,
-                    'image' => $newPictureName,
-                    'public' => $request->input('public'),
-                    'presence' => $presence,
-                    'lesson_id' => $request->input('lesson_id'),
+                    'end_recurrence' => $occurrenceDate,
                 ]);
 
-                // Log the update of the activity
-                $log = new Log();
-                $log->createLog(auth()->user()->id, 2, 'Update activity', 'agenda', 'Activity id: ' . $activity->id, '');
+                // re‐insert exceptions for the new activity
+                foreach ($originalExceptions as $ex) {
+                    ActivityException::create([
+                        'activity_id' => $new->id,
+                        'date' => $ex->date,
+                    ]);
+                }
 
-                // Handle form elements (if provided)
-                if (isset($validatedData['form_labels'])) {
-                    // Clear existing form elements associated with the activity
-                    ActivityFormElement::where('activity_id', $activity->id)->delete();
+                $activity = $new;
 
-                    foreach ($validatedData['form_labels'] as $index => $label) {
-                        $type = $validatedData['form_types'][$index];
-                        $isRequired = isset($validatedData['is_required'][$index]);
+            } else { // single
+                // 3c) Exception row for *this* date
+                ActivityException::create([
+                    'activity_id' => $activity->id,
+                    'date' => $occurrenceDate,
+                ]);
 
-                        $optionsString = null;
-                        // If the field type is select, radio, or checkbox, save options
-                        if (in_array($type, ['select', 'radio', 'checkbox']) && isset($validatedData['form_options'][$index])) {
-                            $optionsString = implode(',', $validatedData['form_options'][$index]);
-                        }
+                // 3d) Clone one‐off event
+                $new = $activity->replicate();
+                $new->fill($data);
+                $new->recurrence_rule = null;
 
-                        // Create new form element
-                        ActivityFormElement::create([
-                            'option_value' => $optionsString,
-                            'activity_id' => $activity->id,
-                            'label' => $label,
-                            'type' => $type,
-                            'is_required' => $isRequired,
-                        ]);
+                $newStart = Carbon::parse("{$occurrenceDate} " . $origStart->format('H:i:s'));
+                $new->date_start = $newStart->toDateTimeString();
+                $new->date_end = $newStart->copy()->addSeconds($durationSec)->toDateTimeString();
+
+                $new->save();
+
+                $activity = $new;
+            }
+
+
+            // 4) Form elements (unchanged)
+            ActivityFormElement::where('activity_id', $activity->id)->delete();
+            if (isset($validatedData['form_labels'])) {
+                foreach ($validatedData['form_labels'] as $i => $label) {
+                    $type = $validatedData['form_types'][$i];
+                    $isRequired = isset($validatedData['is_required'][$i]);
+                    $opts = null;
+                    if (in_array($type, ['select', 'radio', 'checkbox'])
+                        && isset($validatedData['form_options'][$i])) {
+                        $opts = implode(',', $validatedData['form_options'][$i]);
                     }
 
-                    // Log the creation of the form elements
-                    $log->createLog(auth()->user()->id, 2, 'Update activity form', 'agenda', 'Activity id: ' . $activity->id, 'Er is een inschrijfformulier bijgewerkt.');
+                    ActivityFormElement::create([
+                        'activity_id' => $activity->id,
+                        'label' => $label,
+                        'type' => $type,
+                        'option_value' => $opts,
+                        'is_required' => $isRequired,
+                    ]);
                 }
-
-
-                // Check if lesson_id is provided in the request
-                $lessonId = $request->input('lesson_id');
-
-                // If lesson_id is present, include it in the redirect, otherwise just use the activity ID
-                if ($lessonId) {
-                    return redirect()->route('agenda.edit', ['id' => $activity->id, 'lessonId' => $lessonId])
-                        ->with('success', 'Je agendapunt is bijgewerkt!');
-                } else {
-                    return redirect()->route('agenda.edit', ['id' => $activity->id])
-                        ->with('success', 'Je agendapunt is bijgewerkt!');
-                }
-
-            } else {
-                throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
+                $log->createLog(
+                    Auth::id(), 2,
+                    'Update activity form',
+                    'agenda',
+                    'Activity id: ' . $activity->id,
+                    'Inschrijfformulier aangepast'
+                );
             }
+
+            $log->createLog(
+                Auth::id(), 2,
+                'Update activity',
+                'agenda',
+                'Activity id: ' . $activity->id,
+                ''
+            );
+
+            // 5) Redirect back
+
+
+            return redirect()
+                ->route(
+                    'agenda.activity',
+                    ['id' => $activity->id, 'startDate' => $occurrenceDate, 'month' => $month, 'all' => $wantViewAll, 'view' => $view, ''] +
+                    ($request->input('lesson_id')
+                        ? ['lessonId' => $request->input('lesson_id')]
+                        : []
+                    )
+                )
+                ->with('success', 'Je agendapunt is bijgewerkt!');
+
         } catch (ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Er is een fout opgetreden bij het opslaan van je agendapunt. Probeer het opnieuw.')->withInput();
+            return redirect()->back()
+                ->with('error', 'Er is een fout opgetreden. Probeer opnieuw.')
+                ->withInput();
         }
     }
 
@@ -342,7 +335,7 @@ class AgendaController extends Controller
         $activity = Activity::find($id);
 
         if (!$activity) {
-            return redirect()->route('agenda.submissions')->with('error', 'Activiteit niet gevonden.');
+            return abort(404);
         }
 
         // Retrieve all form submissions for this activity
@@ -351,14 +344,9 @@ class AgendaController extends Controller
             ->get()
             ->groupBy('submitted_id');
 
-        if ($formSubmissions->count() < 1) {
-            return redirect()->route('agenda.submissions')->with('error', 'Activiteit niet gevonden.');
-        }
-
-        // Apply search filter to the grouped form submissions
+        // Apply search filter regardless of count
         if (!empty($search)) {
             $formSubmissions = $formSubmissions->filter(function ($group) use ($search) {
-                // Keep the group if any entry within the group matches the search term
                 return $group->contains(function ($entry) use ($search) {
                     return stripos($entry->response, $search) !== false;
                 });
@@ -366,88 +354,12 @@ class AgendaController extends Controller
         }
 
         // Return view with activity and grouped form submission data
-        return view('agenda.submissions-activity', [
+        return view('agenda.submissions', [
             'activity' => $activity,
-            'formSubmissions' => $formSubmissions, // This is now grouped by submitted_id
+            'formSubmissions' => $formSubmissions,
             'user' => $user,
             'roles' => $roles,
             'search' => $search,
-        ]);
-    }
-
-
-    public function agendaPresence(Request $request)
-    {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-
-        $search = $request->query('search', '');
-
-        $lessonId = $request->query('lessonId');
-        $lesson = $lessonId ? Lesson::find($lessonId) : null;
-
-        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
-
-        // Check if the user is a teacher based on roles or lesson-specific permissions
-        $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            ($lesson && $lesson->user_id === $user->id) ||
-            ($lesson && $lesson->users()
-                    ->where('user_id', $user->id)
-                    ->wherePivot('teacher', true)
-                    ->exists());
-
-        if (isset($lesson) && $isTeacher === false) {
-            return redirect()->route('agenda.presence')->with('error', 'Deze activiteit bestaat niet.');
-        }
-
-        $currentDate = now();
-
-        $activities = Activity::query()
-            ->where('presence', '!=', 0)
-            ->when(empty($search), function ($query) use ($currentDate) {
-                // Include activities that are either upcoming or ongoing
-                $query->where(function ($query) use ($currentDate) {
-                    $query->where('date_start', '>=', $currentDate->startOfDay())
-                        ->orWhere('date_end', '>=', $currentDate->startOfDay());
-                });
-            })
-            ->when($search, function ($query, $search) {
-                // Include past activities when searching
-                $query->where(function ($query) use ($search) {
-                    $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('content', 'like', "%{$search}%")
-                        ->orWhere('date_start', 'like', "%{$search}%")
-                        ->orWhere('date_end', 'like', "%{$search}%")
-                        ->orWhere('location', 'like', "%{$search}%")
-                        ->orWhere('price', 'like', "%{$search}%")
-                        ->orWhere('organisator', 'like', "%{$search}%");
-                });
-            })
-            ->when($lessonId, function ($query) use ($lessonId) {
-                // Show all activities connected to the lesson when viewing from a lesson
-                $query->where('lesson_id', $lessonId);
-            })
-            ->when(!$lessonId, function ($query) use ($user) {
-                // Only show activities created by the user when not viewing from a lesson
-                $query->whereNull('lesson_id');
-            })
-            ->orderByRaw(
-                'CASE
-            WHEN date_end >= ? THEN date_end
-            WHEN date_start >= ? THEN date_start
-            ELSE NULL
-        END ASC,
-        date_start ASC',
-                [$currentDate->startOfDay(), $currentDate->startOfDay()] // Ensure both parameters are passed
-            )
-            ->paginate(10);
-
-        return view('agenda.presence', [
-            'user' => $user,
-            'roles' => $roles,
-            'search' => $search,
-            'activities' => $activities,
-            'lesson' => $lesson
         ]);
     }
 
@@ -487,34 +399,46 @@ class AgendaController extends Controller
         }
 
         // Fetch users by roles if roles exist
-// Fetch users by roles if roles exist
         $usersWithRoles = User::whereHas('roles', function ($query) use ($activityRoleIds, $selected_role) {
             $query->whereIn('roles.id', $activityRoleIds);
             if ($selected_role !== 'none') {
                 $query->where('role', $selected_role);
             }
-        })->get();
+        });
 
+        // Fetch users by specific user IDs
+        $mentionedUsers = User::whereIn('id', $activityUserIds);
 
-
-        // Fetch users by specific user IDs if no roles exist
-        $mentionedUsers = collect();
-        if (!empty($activityUserIds)) {
-            $mentionedUsers = User::whereIn('id', $activityUserIds)->get();
+        // If the user has picked a specific role, require it here too
+        if ($selected_role !== 'none') {
+            $mentionedUsers->whereHas('roles', function ($q) use ($selected_role) {
+                $q->where('role', $selected_role);
+            });
         }
 
-        // Fetch users who set presence but are not explicitly listed
-        $presenceUserIds = Presence::where('activity_id', $activity->id)->pluck('user_id')->toArray();
-        $usersWithPresence = User::whereIn('id', $presenceUserIds)->get();
 
-        if (isset($lesson)) {
-            $users = $lesson->users()
-                ->where(function ($query) use ($search) {
-                    $query->where('users.name', 'like', '%' . $search . '%')
-                        ->orWhere('users.infix', 'like', '%' . $search . '%')
-                        ->orWhere('users.last_name', 'like', '%' . $search . '%');
-                })
-                ->get();
+        // If the activity has neither roles nor users, show all users
+        if (empty($activityRoleIds) && empty($activityUserIds) && !isset($lesson)) {
+            $allUsersQuery = User::query();
+            if (!empty($search)) {
+                $allUsersQuery->where(function ($q) use ($search) {
+                    $q->where('users.name', 'like', "%{$search}%")
+                        ->orWhere('users.infix', 'like', "%{$search}%")
+                        ->orWhere('users.last_name', 'like', "%{$search}%");
+                });
+            }
+            $users = $allUsersQuery->get();
+        } elseif (isset($lesson)) {
+            // Lesson case: override with lesson's users
+            $lessonUsersQuery = $lesson->users();
+            if (!empty($search)) {
+                $lessonUsersQuery->where(function ($q) use ($search) {
+                    $q->where('users.name', 'like', "%{$search}%")
+                        ->orWhere('users.infix', 'like', "%{$search}%")
+                        ->orWhere('users.last_name', 'like', "%{$search}%");
+                });
+            }
+            $users = $lessonUsersQuery->get();
 
             // Ensure the lesson owner is included
             $lessonOwner = User::find($lesson->user_id);
@@ -522,55 +446,88 @@ class AgendaController extends Controller
                 $users->push($lessonOwner);
             }
         } else {
-            // Combine all users, ensuring uniqueness
-            $users = $usersWithRoles->merge($mentionedUsers)->unique('id');
+            // Combine role-based and mentioned users
+            if (!empty($search)) {
+                $usersWithRoles->where(function ($q) use ($search) {
+                    $q->where('users.name', 'like', "%{$search}%")
+                        ->orWhere('users.infix', 'like', "%{$search}%")
+                        ->orWhere('users.last_name', 'like', "%{$search}%");
+                });
+                $mentionedUsers->where(function ($q) use ($search) {
+                    $q->where('users.name', 'like', "%{$search}%")
+                        ->orWhere('users.infix', 'like', "%{$search}%")
+                        ->orWhere('users.last_name', 'like', "%{$search}%");
+                });
+            }
+
+            $users = $usersWithRoles->get()
+                ->merge($mentionedUsers->get())
+                ->unique('id');
         }
 
-// Include users with presence even if they weren't explicitly part of the activity
+        // Fetch users who set presence but are not part of the above sets
+        $dateOccurrence = $request->query('startDate');
+
+        $presenceUserIds = Presence::where('activity_id', $activity->id)
+            ->where('date_occurrence', $dateOccurrence)
+            ->pluck('user_id')->toArray();
+
+        $usersWithPresence = User::whereIn('id', $presenceUserIds)
+            ->when(!empty($search), function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('infix', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
+            })
+            ->get();
+
+        // Merge in presence-only users
+        if (!isset($users)) {
+            $users = collect();
+        }
         $users = $users->merge($usersWithPresence)->unique('id');
 
-// Fetch presence data for all users
+        // Fetch presence data
         $userPresenceArray = Presence::where('activity_id', $activity->id)
+            ->where('date_occurrence', $dateOccurrence)
             ->whereIn('user_id', $users->pluck('id'))
             ->get()
-            ->mapWithKeys(function ($presenceRecord) {
-                return [$presenceRecord->user_id => [
-                    'status' => $presenceRecord->presence ? 'present' : 'absent',
-                    'date' => $presenceRecord->updated_at->toDateTimeString()
+            ->mapWithKeys(function ($p) {
+                return [$p->user_id => [
+                    'status' => $p->presence ? 'present' : 'absent',
+                    'date' => $p->updated_at->toDateTimeString(),
                 ]];
             });
 
-// Assign presence status and determine if the user was invited
-        $users->each(function ($user) use ($userPresenceArray, $usersWithRoles, $mentionedUsers, $lesson, $activity) {
-            $user->presence = $userPresenceArray->get($user->id, ['status' => 'null', 'date' => null]);
-
-            $user->not_invited = !$usersWithRoles->contains('id', $user->id) &&
-                !$mentionedUsers->contains('id', $user->id) &&
-                (!$lesson || !$lesson->users->contains('id', $user->id)) &&
-                (!empty($activity->roles) || !empty($activity->users));
+        // Assign presence and invited flag
+        $users->each(function ($u) use ($userPresenceArray, $usersWithRoles, $mentionedUsers, $lesson, $activity) {
+            $u->presence = $userPresenceArray->get($u->id, ['status' => 'null', 'date' => null]);
+            $u->not_invited = !$usersWithRoles->pluck('id')->contains($u->id)
+                && !$mentionedUsers->pluck('id')->contains($u->id)
+                && (!$lesson || !$lesson->users->pluck('id')->contains($u->id))
+                && (!empty($activity->roles) || !empty($activity->users));
         });
 
-// If filtering by role, remove users who are not invited
+        // Filter by selected role if needed
         if ($selected_role !== 'none') {
-            $users = $users->filter(function ($user) {
-                return !$user->not_invited;
-            });
+            $users = $users->filter(fn($u) => !$u->not_invited);
         }
 
-
-
-// Sort users
+        // Sort users by presence then last name
         $sortedUsers = $users->sort(function ($a, $b) {
-            $presenceOrder = ['present' => 1, 'absent' => 2, 'null' => 3];
-            $aPresence = $presenceOrder[$a->presence['status']] ?? 3;
-            $bPresence = $presenceOrder[$b->presence['status']] ?? 3;
-
-            return $aPresence === $bPresence
+            $order = ['present' => 1, 'absent' => 2, 'null' => 3];
+            $ap = $order[$a->presence['status']] ?? 3;
+            $bp = $order[$b->presence['status']] ?? 3;
+            return $ap === $bp
                 ? strcmp($a->last_name, $b->last_name)
-                : $aPresence <=> $bPresence;
+                : $ap <=> $bp;
         })->values();
 
-        return view('agenda.presence-activity', [
+        // Preserve query params
+        $month = $request->query('month', '0');
+        $wantViewAll = $request->query('all', '0');
+        $view = $request->query('view', 'month');
+
+        return view('agenda.presence', [
             'user' => $user,
             'roles' => $roles,
             'activity' => $activity,
@@ -579,8 +536,10 @@ class AgendaController extends Controller
             'selected_role' => $selected_role,
             'search' => $search,
             'lesson' => $lesson,
-        ]);
-
+            'monthOffset' => $month,
+            'wantViewAll' => $wantViewAll,
+            'view' => $view,
+        ])->with('#presence');
     }
 
 
@@ -593,24 +552,70 @@ class AgendaController extends Controller
         // Ensure presence data is correctly mapped and sanitized
         $usersData = collect($usersData)->map(function ($user) {
             return [
-                'ID' => $user['id'],
-                'Name' => $user['name'],
-                'Presence' => $user['presence'] ?? 'null',
-                'Date' => isset($user['date']) && !empty($user['date'])
+                'id' => $user['id'] ?? null,
+                'name' => $user['name'] ?? 'Unknown',
+                'infix' => $user['infix'] ?? '', // Ensure this exists
+                'last_name' => $user['last_name'] ?? '', // Ensure this exists
+                'email' => $user['email'] ?? '', // Ensure this exists
+                'presence' => $user['presence'] ?? 'null',
+                'date' => !empty($user['date'])
                     ? \Carbon\Carbon::parse($user['date'])->format('d-m-Y H:i')
-                    : '-', // Use default '-' if no date present
+                    : '-',
             ];
         });
 
-        // Check data structure by logging (for debugging)
-        \Log::info('Users Data:', $usersData->toArray());
 
         // Export data to Excel
         $export = new AgendaExport($usersData->toArray(), $activityName);
         return $export->export();
     }
 
+    protected function expandRecurringActivity($activity, $rangeStart, $rangeEnd)
+    {
+        $occurrences = [];
 
+        if (empty($activity->recurrence_rule) || !in_array($activity->recurrence_rule, ['daily', 'weekly', 'monthly'])) {
+            return [$activity];
+        }
+
+        $originalStart = Carbon::parse($activity->date_start);
+        $originalEnd = Carbon::parse($activity->date_end);
+        $duration = $originalEnd->diffInSeconds($originalStart);
+
+        $lastOccurrence = $activity->end_recurrence ? Carbon::parse($activity->end_recurrence)->endOfDay() : Carbon::maxValue();
+
+        $currentOccurrenceStart = $originalStart->copy();
+
+        while ($currentOccurrenceStart->lte($rangeEnd) && $currentOccurrenceStart->lte($lastOccurrence)) {
+            $currentOccurrenceEnd = $currentOccurrenceStart->copy()->addSeconds($duration);
+
+            if ($currentOccurrenceStart->between($rangeStart, $rangeEnd)) {
+                $clone = clone $activity;
+                $clone->date_start = $currentOccurrenceStart->copy();
+                $clone->date_end = $currentOccurrenceEnd->copy();
+                $occurrences[] = $clone;
+            }
+
+            switch ($activity->recurrence_rule) {
+                case 'daily':
+                    $currentOccurrenceStart->addDay();
+                    break;
+                case 'weekly':
+                    $currentOccurrenceStart->addWeek();
+                    break;
+                case 'monthly':
+                    $currentOccurrenceStart->addMonth();
+                    break;
+            }
+        }
+
+        return $occurrences;
+    }
+
+
+    /**
+     * Agenda Month view (authenticated users)
+     */
     public function agendaMonth(Request $request)
     {
         $user = Auth::user();
@@ -618,8 +623,8 @@ class AgendaController extends Controller
         $rolesIDList = $roles->pluck('id')->toArray();
         $canViewAll = false;
 
-        // Check if the user has one of the roles that allow them to view all activities
-        if ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+        if (
+            $user->roles->contains('role', 'Dolfijnen Leiding') ||
             $user->roles->contains('role', 'Zeeverkenners Leiding') ||
             $user->roles->contains('role', 'Loodsen Stamoudste') ||
             $user->roles->contains('role', 'Afterloodsen Organisator') ||
@@ -635,8 +640,6 @@ class AgendaController extends Controller
         }
 
         $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
-
-
         if ($wantViewAll === false) {
             $canViewAll = false;
         }
@@ -657,16 +660,10 @@ class AgendaController extends Controller
 
         $monthName = $calculatedDate->translatedFormat('F');
 
-
-        // Fetch activities for the calculated month and year
         $lessonId = $request->query('lessonId');
         $lesson = Lesson::find($lessonId);
-
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
 
-
-        // Check if the user is a teacher based on roles or lesson-specific permissions
-        $isTeacher = false;
         $isTeacher = false;
         if (isset($lesson)) {
             $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
@@ -677,105 +674,130 @@ class AgendaController extends Controller
                     ->exists();
         }
 
-        $activities = Activity::when($lessonId, function ($query) use ($lessonId, $isTeacher, $lesson) {
-            // If lessonId is provided, filter by lesson_id
+        // For the month view, set the display period for the whole month.
+        $rangeStart = Carbon::create($calculatedYear, $calculatedMonth, 1)->startOfDay();
+        $rangeEnd = Carbon::create($calculatedYear, $calculatedMonth, 1)->endOfMonth()->endOfDay();
+
+        // Retrieve activities that might belong to this month.
+        $fetchedActivities = Activity::when($lessonId, function ($query) use ($lessonId) {
             return $query->where('lesson_id', $lessonId);
         })
             ->where(function ($query) use ($calculatedYear, $calculatedMonth) {
-                $query->whereYear('date_start', $calculatedYear)
-                    ->whereMonth('date_start', $calculatedMonth)
+                $query->where(function ($query) use ($calculatedYear, $calculatedMonth) {
+                    $query->whereYear('date_start', $calculatedYear)
+                        ->whereMonth('date_start', $calculatedMonth);
+                })
                     ->orWhere(function ($query) use ($calculatedYear, $calculatedMonth) {
                         $query->whereYear('date_end', $calculatedYear)
                             ->whereMonth('date_end', $calculatedMonth);
+                    })
+                    ->orWhere(function ($query) {
+                        $query->whereNotNull('recurrence_rule');
                     });
             })
+            ->get();
+
+        // Load exceptions for single-instance deletions
+        $exceptionsByActivity = ActivityException::whereIn('activity_id', $fetchedActivities->pluck('id'))
             ->get()
-            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $lesson, $isTeacher, $lessonId) {
-                // Check if the activity is associated with a lesson
-                if (isset($activity->lesson_id)) {
-                    if (isset($activity->lesson->users)) {
-                        // Fetch the lesson and its associated users
-                        $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
-
-                        if (!isset($lessonId) && !$isTeacher) {
-                            // If the user is in the lesson's users, allow visibility; otherwise, hide it
-                            if (in_array($user->id, $lessonUsers) || $canViewAll) {
-                                return true; // User has access to the lesson
-                            } else {
-                                return false; // Hide the activity if the user has no access to the lesson
-                            }
-                        } else {
-                            return true;
-                        }
-                    } else {
-                        return false;
-                    }
-                } else {
-                    // Check if activity has roles or users
-                    $activityRoleIds = !empty($activity->roles)
-                        ? array_map('trim', explode(',', $activity->roles))
-                        : [];
-
-                    $activityUserIds = !empty($activity->users)
-                        ? array_map('trim', explode(',', $activity->users))
-                        : [];
-
-                    // Default behavior if both roles and users are null: available for everyone without highlighting
-                    if (empty($activityRoleIds) && empty($activityUserIds)) {
-                        $activity->should_highlight = false;
-                        return true; // Keep activity available
-                    }
-                }
-
-                // If no lesson is connected, proceed with roles and user access checks
-                $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
-                $isUserListed = in_array($user->id, $activityUserIds);
-
-                // Check if any child has role access
-                $isChildHasAccess = false;
-
-                foreach ($user->children as $child) {
-                    // Get the role IDs for the child
-                    $childRoleIds = $child->roles->pluck('id')->toArray();
-
-                    // Check if the child has access based on roles or user IDs
-                    if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
-                        $isChildHasAccess = true;
-                        break; // Stop checking if any child has access
-                    }
-                }
-
-                if ($canViewAll) {
-                    // Highlight only if there are roles or users and the user doesn't have access
-                    $activity->should_highlight = (!$hasRoleAccess && !$isUserListed);
-                    return true; // Keep activity in the list
-                } else {
-                    // Hide activity if the user doesn't have access, but allow visibility if their child has access
-                    return $hasRoleAccess || $isUserListed || $isChildHasAccess;
-                }
+            ->groupBy('activity_id')
+            ->map(function ($group) {
+                return $group->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
             });
+
+
+        // Expand recurring events—even if the original date is far in the past.
+        $activities = collect();
+        foreach ($fetchedActivities as $activity) {
+            $occurrences = $this->expandRecurringActivity($activity, $rangeStart, $rangeEnd);
+
+            // get exception-dates array for this activity (or empty array)
+            $skipDates = $exceptionsByActivity[$activity->id] ?? [];
+
+            foreach ($occurrences as $occurrence) {
+                // skip if this occurrence date was “deleted”
+                $occDate = \Carbon\Carbon::parse($occurrence->date_start)->toDateString();
+                if (in_array($occDate, $skipDates, true)) {
+                    continue;
+                }
+                $activities->push($occurrence);
+            }
+        }
+
+        // Filter activities based on roles and lesson permissions.
+        $activities = $activities->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $lesson, $isTeacher, $lessonId) {
+            if (isset($activity->lesson_id)) {
+                if (isset($activity->lesson->users)) {
+                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
+                    if (!isset($lessonId) && !$isTeacher) {
+                        return in_array($user->id, $lessonUsers) || $canViewAll;
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                $activityRoleIds = !empty($activity->roles)
+                    ? array_map('trim', explode(',', $activity->roles))
+                    : [];
+                $activityUserIds = !empty($activity->users)
+                    ? array_map('trim', explode(',', $activity->users))
+                    : [];
+                if (empty($activityRoleIds) && empty($activityUserIds)) {
+                    $activity->should_highlight = false;
+                    return true;
+                }
+            }
+
+            $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+            $isUserListed = in_array($user->id, $activityUserIds);
+            $isChildHasAccess = false;
+            foreach ($user->children as $child) {
+                $childRoleIds = $child->roles->pluck('id')->toArray();
+                if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+                    $isChildHasAccess = true;
+                    break;
+                }
+            }
+            if ($canViewAll) {
+                $activity->should_highlight = (!$hasRoleAccess && !$isUserListed);
+                return true;
+            } else {
+                return $hasRoleAccess || $isUserListed || $isChildHasAccess;
+            }
+        });
+
+        // After expanding and filtering events…
+        $activities = $activities->sortBy('date_start')->values();
 
 
         $globalRowTracker = [];
         $activityPositions = [];
-
         foreach ($activities as $activity) {
+            // Get the occurrence start and end (normalized to start/end of day)
             $startDate = Carbon::parse($activity->date_start)->startOfDay();
             $endDate = Carbon::parse($activity->date_end)->endOfDay();
-            $position = 0; // Initialize position
 
+            // Build a composite key using the event id and the occurrence date
+            // Using the occurrence date (here formatted as Y-m-d) allows repeated events on different days
+            $compositeKey = $activity->id . '-' . $startDate->format('Y-m-d');
+
+            $position = 0;
             $conflictFound = true;
-
-            // Find a non-conflicting position
             while ($conflictFound) {
-                $conflictFound = !$this->trackEventPosition($activity->id, $startDate, $endDate, $position, $globalRowTracker);
+                // Instead of passing $activity->id, we pass the composite key.
+                $conflictFound = !$this->trackEventPosition($compositeKey, $startDate, $endDate, $position, $globalRowTracker);
                 if ($conflictFound) {
                     $position++;
                 }
             }
-
-            $activityPositions[$activity->id] = $position;
+            // Use the composite key for storing the calculated position
+            $activityPositions[$compositeKey] = $position;
         }
+
 
         return view('agenda.month', [
             'user' => $user,
@@ -793,17 +815,18 @@ class AgendaController extends Controller
             'monthName' => $monthName,
             'activities' => $activities,
             'wantViewAll' => $wantViewAll,
-            'activityPositions' => $activityPositions,
             'lesson' => $lesson,
-            'isTeacher' => $isTeacher
+            'isTeacher' => $isTeacher,
+            'activityPositions' => $activityPositions,
         ]);
     }
 
-
+    /**
+     * Public month view.
+     */
     public function agendaMonthPublic(Request $request)
     {
         $monthOffset = $request->query('month', 0);
-
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
         $calculatedDate = $baseDate->copy()->addMonthsNoOverflow($monthOffset);
@@ -814,41 +837,85 @@ class AgendaController extends Controller
         $firstDayOfMonth = Carbon::create($calculatedYear, $calculatedMonth, 1);
         $daysInMonth = $firstDayOfMonth->daysInMonth;
         $firstDayOfWeek = ($firstDayOfMonth->dayOfWeek + 6) % 7;
-
         $monthName = $calculatedDate->translatedFormat('F');
 
-        // Fetch activities for the calculated month and year
-        $activities = Activity::where(function ($query) use ($calculatedYear, $calculatedMonth) {
+        // Set the display period for the month.
+        $rangeStart = Carbon::create($calculatedYear, $calculatedMonth, 1)->startOfDay();
+        $rangeEnd = Carbon::create($calculatedYear, $calculatedMonth, 1)->endOfMonth()->endOfDay();
+
+        $fetchedActivities = Activity::where(function ($query) use ($calculatedYear, $calculatedMonth) {
             $query->whereYear('date_start', $calculatedYear)
                 ->whereMonth('date_start', $calculatedMonth)
                 ->orWhere(function ($query) use ($calculatedYear, $calculatedMonth) {
                     $query->whereYear('date_end', $calculatedYear)
                         ->whereMonth('date_end', $calculatedMonth);
-                });
+                })
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('recurrence_rule');
+                });;
         })
             ->where('public', true)
             ->get();
 
+        // Load exceptions for single-instance deletions
+        $exceptionsByActivity = ActivityException::whereIn('activity_id', $fetchedActivities->pluck('id'))
+            ->get()
+            ->groupBy('activity_id')
+            ->map(function ($group) {
+                return $group->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+            });
+
+
+        // Expand recurring events—even if the original date is far in the past.
+        $activities = collect();
+        foreach ($fetchedActivities as $activity) {
+            $occurrences = $this->expandRecurringActivity($activity, $rangeStart, $rangeEnd);
+            $skipDates = $exceptionsByActivity[$activity->id] ?? [];
+
+            foreach ($occurrences as $occurrence) {
+                $occDate = Carbon::parse($occurrence->date_start)->toDateString();
+
+                // Skip single-instance exceptions
+                if (in_array($occDate, $skipDates, true)) {
+                    continue;
+                }
+
+                // Skip occurrences after end_recurrence if set
+                if (!is_null($activity->end_recurrence)) {
+                    $endRec = Carbon::parse($activity->end_recurrence)->endOfDay();
+                    if (Carbon::parse($occurrence->date_start)->gt($endRec)) {
+                        continue;
+                    }
+                }
+
+                $activities->push($occurrence);
+            }
+        }
 
         $globalRowTracker = [];
         $activityPositions = [];
-
         foreach ($activities as $activity) {
+            // Get the occurrence start and end (normalized to start/end of day)
             $startDate = Carbon::parse($activity->date_start)->startOfDay();
             $endDate = Carbon::parse($activity->date_end)->endOfDay();
-            $position = 0; // Initialize position
 
+            // Build a composite key using the event id and the occurrence date
+            // Using the occurrence date (here formatted as Y-m-d) allows repeated events on different days
+            $compositeKey = $activity->id . '-' . $startDate->format('Y-m-d');
+
+            $position = 0;
             $conflictFound = true;
-
-            // Find a non-conflicting position
             while ($conflictFound) {
-                $conflictFound = !$this->trackEventPosition($activity->id, $startDate, $endDate, $position, $globalRowTracker);
+                // Instead of passing $activity->id, we pass the composite key.
+                $conflictFound = !$this->trackEventPosition($compositeKey, $startDate, $endDate, $position, $globalRowTracker);
                 if ($conflictFound) {
                     $position++;
                 }
             }
-
-            $activityPositions[$activity->id] = $position;
+            // Use the composite key for storing the calculated position
+            $activityPositions[$compositeKey] = $position;
         }
 
         return view('agenda.public.month', [
@@ -867,53 +934,327 @@ class AgendaController extends Controller
         ]);
     }
 
-    // Function to track event positions and detect conflicts
-    private function trackEventPosition($eventId, $startDate, $endDate, $position, &$globalRowTracker)
+    /**
+     * Agenda Schedule view (authenticated users) with a 3-month period.
+     */
+    public function agendaSchedule(Request $request)
     {
-        $conflictFound = false;
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $rolesIDList = $roles->pluck('id')->toArray();
+        $canViewAll = false;
 
+        if (
+            $user->roles->contains('role', 'Dolfijnen Leiding') ||
+            $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+            $user->roles->contains('role', 'Loodsen Stamoudste') ||
+            $user->roles->contains('role', 'Afterloodsen Organisator') ||
+            $user->roles->contains('role', 'Administratie') ||
+            $user->roles->contains('role', 'Bestuur') ||
+            $user->roles->contains('role', 'Praktijkbegeleider') ||
+            $user->roles->contains('role', 'Loodsen Mentor') ||
+            $user->roles->contains('role', 'Loods') ||
+            $user->roles->contains('role', 'Afterloods') ||
+            $user->roles->contains('role', 'Ouderraad')
+        ) {
+            $canViewAll = true;
+        }
+
+        $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
+        if ($wantViewAll === false) {
+            $canViewAll = false;
+        }
+
+        $monthOffset = $request->query('month', 0);
+        $dayOffset = $request->query('day', 0);
+
+        Carbon::setLocale('nl');
+        $baseDate = Carbon::now();
+        $calculatedDate = $baseDate->copy()->addMonths($monthOffset)->addDays($dayOffset);
+        $monthName = $calculatedDate->translatedFormat('F');
+        $calculatedYear = $calculatedDate->year;
+
+        $rangeStart = $calculatedDate->copy()->startOfMonth()->startOfDay();
+        $rangeEnd = $calculatedDate->copy()->addMonths(5)->endOfMonth()->endOfDay();
+
+        $lessonId = $request->query('lessonId');
+        $lesson = Lesson::find($lessonId);
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Determine if current user is teacher for this lesson
+        $isTeacher = false;
+        if (isset($lesson)) {
+            $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty()
+                || $lesson->user_id === $user->id
+                || $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists();
+        }
+
+        $fetchedActivities = Activity::query()
+            ->when($lessonId, fn($q) => $q->where('lesson_id', $lessonId))
+            ->where(function ($query) use ($rangeStart, $rangeEnd) {
+                $query->whereBetween('date_start', [$rangeStart, $rangeEnd])
+                    ->orWhere(function ($q) use ($rangeStart, $rangeEnd) {
+                        $q->whereIn('recurrence_rule', ['daily', 'weekly', 'monthly'])
+                            ->where(function ($q2) use ($rangeStart) {
+                                $q2->whereNull('end_recurrence')
+                                    ->orWhere('end_recurrence', '>=', $rangeStart);
+                            })
+                            ->where('date_start', '<=', $rangeEnd);
+                    });
+            })
+            ->orderBy('date_start')
+            ->get();
+
+
+        // Load exceptions for single-instance deletions
+        $exceptionsByActivity = ActivityException::whereIn('activity_id', $fetchedActivities->pluck('id'))
+            ->get()
+            ->groupBy('activity_id')
+            ->map(function ($group) {
+                return $group->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+            });
+
+        // Expand recurring events
+        $activities = collect();
+        foreach ($fetchedActivities as $activity) {
+            $occurrences = $this->expandRecurringActivity($activity, $rangeStart, $rangeEnd);
+            $skipDates = $exceptionsByActivity[$activity->id] ?? [];
+
+            foreach ($occurrences as $occurrence) {
+                $occDate = Carbon::parse($occurrence->date_start)->toDateString();
+
+                // Skip single-instance exceptions
+                if (in_array($occDate, $skipDates, true)) {
+                    continue;
+                }
+
+                // Skip beyond end_recurrence
+                if (!is_null($activity->end_recurrence)) {
+                    $endRec = Carbon::parse($activity->end_recurrence)->endOfDay();
+                    if (Carbon::parse($occurrence->date_start)->gt($endRec)) {
+                        continue;
+                    }
+                }
+
+
+                $activities->push($occurrence);
+            }
+        }
+
+        $childrenIds = $user->children->pluck('id')->toArray();
+        $activities = $activities->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds, $isTeacher, $lessonId) {
+            if (isset($activity->lesson_id)) {
+                if (isset($activity->lesson->users)) {
+                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
+                    if (!isset($lessonId) && !$isTeacher) {
+                        return in_array($user->id, $lessonUsers) || $canViewAll;
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+            $activityRoleIds = !empty($activity->roles)
+                ? array_map('trim', explode(',', $activity->roles))
+                : [];
+            $activityUserIds = !empty($activity->users)
+                ? array_map('trim', explode(',', $activity->users))
+                : [];
+
+            if (empty($activityRoleIds) && empty($activityUserIds)) {
+                $activity->should_highlight = false;
+                return true;
+            } else {
+                $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+                $isUserListed = in_array($user->id, $activityUserIds);
+                $isChildListed = !empty(array_intersect($childrenIds, $activityUserIds));
+                $isChildHasAccess = false;
+                foreach ($user->children as $child) {
+                    $childRoleIds = $child->roles->pluck('id')->toArray();
+                    if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+                        $isChildHasAccess = true;
+                        break;
+                    }
+                }
+                if ($canViewAll) {
+                    $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
+                    return true;
+                } else {
+                    return $hasRoleAccess || $isUserListed || $isChildListed || $isChildHasAccess;
+                }
+            }
+        });
+
+        $activities = $activities->sortBy('date_start')->values();
+
+        return view('agenda.schedule', [
+            'activities' => $activities,
+            'roles' => $roles,
+            'user' => $user,
+            'monthOffset' => $monthOffset,
+            'monthName' => $monthName,
+            'year' => $calculatedYear,
+            'dayOffset' => $dayOffset,
+            'wantViewAll' => $wantViewAll,
+            'lesson' => $lesson,
+            'isTeacher' => $isTeacher,
+        ]);
+    }
+
+    /**
+     * Public schedule view with a 3-month period.
+     */
+    public function agendaSchedulePublic(Request $request)
+    {
+        $monthOffset = $request->query('month', 0);
+        $limit = $request->query('limit', null);
+
+        Carbon::setLocale('nl');
+        $baseDate = Carbon::now();
+        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+        $monthName = $calculatedDate->translatedFormat('F');
+        $calculatedYear = $calculatedDate->year;
+
+        // Use a 3-month display period.
+        $rangeStart = $calculatedDate->copy()->startOfMonth()->startOfDay();
+        $rangeEnd = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
+
+        $query = Activity::where(function ($q) use ($rangeStart, $rangeEnd) {
+            $q->whereBetween('date_start', [$rangeStart, $rangeEnd])
+                ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
+                    $q2->whereIn('recurrence_rule', ['daily', 'weekly', 'monthly'])
+                        ->where(function ($q3) use ($rangeStart) {
+                            $q3->whereNull('end_recurrence')
+                                ->orWhere('end_recurrence', '>=', $rangeStart);
+                        })
+                        ->where('date_start', '<=', $rangeEnd);
+                });
+        })
+            ->where('public', true)
+            ->orderBy('date_start');
+
+        if ($limit !== null) {
+            $query->limit($limit);
+        }
+
+        $fetchedActivities = $query->get();
+
+
+        // Load exceptions for single-instance deletions
+        $exceptionsByActivity = ActivityException::whereIn('activity_id', $fetchedActivities->pluck('id'))
+            ->get()
+            ->groupBy('activity_id')
+            ->map(function ($group) {
+                return $group->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+            });
+
+
+        // Expand recurring events—even if the original date is far in the past.
+        $activities = collect();
+        foreach ($fetchedActivities as $activity) {
+            $occurrences = $this->expandRecurringActivity($activity, $rangeStart, $rangeEnd);
+            $skipDates = $exceptionsByActivity[$activity->id] ?? [];
+
+            foreach ($occurrences as $occurrence) {
+                $occDate = Carbon::parse($occurrence->date_start)->toDateString();
+
+                // Skip single-instance exceptions
+                if (in_array($occDate, $skipDates, true)) {
+                    continue;
+                }
+
+                // Skip occurrences after end_recurrence if set
+                if (!is_null($activity->end_recurrence)) {
+                    $endRec = Carbon::parse($activity->end_recurrence)->endOfDay();
+                    if (Carbon::parse($occurrence->date_start)->gt($endRec)) {
+                        continue;
+                    }
+                }
+
+                if ($activity->recurrence_rule === 'none') {
+                    $requestedDate = $request->query('dateStart');
+                    if ($requestedDate && $occDate !== Carbon::parse($requestedDate)->toDateString()) {
+                        continue;
+                    }
+                }
+
+                $activities->push($occurrence);
+            }
+        }
+
+        $activities = $activities->sortBy('date_start')->values();
+
+        return view('agenda.public.schedule', [
+            'activities' => $activities,
+            'monthOffset' => $monthOffset,
+            'monthName' => $monthName,
+            'year' => $calculatedYear,
+            'limit' => $limit,
+        ]);
+    }
+
+    // Function to track event positions and detect conflicts
+    private function trackEventPosition($event, $startDate, $endDate, $position, &$globalRowTracker)
+    {
+        // Compute a unique identifier using the event's ID and its own date_start timestamp.
+        // This works even if the event doesn't have a dedicated "occurrence_id" property.
+        if (is_object($event)) {
+            $identifier = $event->id . '-' . Carbon::parse($event->date_start)->timestamp;
+        } else {
+            $identifier = $event;
+        }
+
+        // Check each day in the event range to see if the position is free.
         for ($day = $startDate->copy(); $day->lte($endDate); $day->addDay()) {
             $formattedDay = $day->format('Y-m-d');
-
             if (!isset($globalRowTracker[$formattedDay])) {
                 $globalRowTracker[$formattedDay] = [];
             }
-
             if (isset($globalRowTracker[$formattedDay][$position])) {
-                $conflictFound = true;
-                break;
+                // Conflict found on this day.
+                return false;
             }
         }
 
-        if ($conflictFound) {
-            return false;
-        }
-
+        // If no conflict, mark the position as occupied for each day in the event range.
         for ($day = $startDate->copy(); $day->lte($endDate); $day->addDay()) {
             $formattedDay = $day->format('Y-m-d');
-            $globalRowTracker[$formattedDay][$position] = $eventId;
+            $globalRowTracker[$formattedDay][$position] = $identifier;
         }
 
         return true;
     }
 
-    public function agendaPresent($activityId, $userId)
+
+    public function agendaPresent(Request $request, $activityId, $userId)
     {
         // Retrieve the specified user
         $user = User::findOrFail($userId);
+        $dateOccurrence = $request->query('startDate');
 
         // Check if the user is either the authenticated user or a child of the authenticated user
         if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
             $presence = Presence::where('user_id', $userId)
                 ->where('activity_id', $activityId)
+                ->where('date_occurrence', $dateOccurrence)
                 ->first();
 
             if ($presence) {
                 $presence->update(['presence' => 1]);
+                $presence->update(['date_occurrence' => $dateOccurrence]);
             } else {
                 Presence::create([
                     'user_id' => $userId,
                     'activity_id' => $activityId,
+                    'date_occurrence' => $dateOccurrence,
                     'presence' => 1,
                 ]);
             }
@@ -932,23 +1273,27 @@ class AgendaController extends Controller
         }
     }
 
-    public function agendaAbsent($activityId, $userId)
+    public function agendaAbsent(Request $request, $activityId, $userId)
     {
         // Retrieve the specified user
         $user = User::findOrFail($userId);
+        $dateOccurrence = $request->query('startDate');
 
         // Check if the user is either the authenticated user or a child of the authenticated user
         if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
             $presence = Presence::where('user_id', $userId)
                 ->where('activity_id', $activityId)
+                ->where('date_occurrence', $dateOccurrence)
                 ->first();
 
             if ($presence) {
                 $presence->update(['presence' => 0]);
+                $presence->update(['date_occurrence' => $dateOccurrence]);
             } else {
                 Presence::create([
                     'user_id' => $userId,
                     'activity_id' => $activityId,
+                    'date_occurrence' => $dateOccurrence,
                     'presence' => 0,
                 ]);
             }
@@ -967,205 +1312,37 @@ class AgendaController extends Controller
         }
     }
 
-
-    public function agendaSchedule(Request $request)
+    private function isValidRepetitionDate(Activity $activity, string $requestedDate): bool
     {
-        $user = Auth::user();
-        $roles = $user->roles()->orderBy('role', 'asc')->get();
-        $rolesIDList = $roles->pluck('id')->toArray();
-        $canViewAll = false;
+        $startDate = \Carbon\Carbon::parse($activity->date_start)->startOfDay();
+        $targetDate = \Carbon\Carbon::parse($requestedDate)->startOfDay();
 
-        // Check if the user has one of the roles that allow them to view all activities
-        if ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-            $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-            $user->roles->contains('role', 'Loodsen Stamoudste') ||
-            $user->roles->contains('role', 'Afterloodsen Organisator') ||
-            $user->roles->contains('role', 'Administratie') ||
-            $user->roles->contains('role', 'Bestuur') ||
-            $user->roles->contains('role', 'Praktijkbegeleider') ||
-            $user->roles->contains('role', 'Loodsen Mentor') ||
-            $user->roles->contains('role', 'Loods') ||
-            $user->roles->contains('role', 'Afterloods') ||
-            $user->roles->contains('role', 'Ouderraad')
-        ) {
-            $canViewAll = true;
+        // Always allow the original start date
+        if ($targetDate->equalTo($startDate)) {
+            return true;
         }
 
-        $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
-
-
-        if ($wantViewAll === false) {
-            $canViewAll = false;
+        // If the target is before the original, it's invalid
+        if ($targetDate->lessThan($startDate)) {
+            return false;
         }
 
-        // Retrieve query parameters for offsets, default to 0 if not set
-        $monthOffset = $request->query('month', 0);
-        $dayOffset = $request->query('day', 0);
+        switch ($activity->recurrence_rule) {
+            case 'daily':
+                return true; // Already filtered earlier if before original
 
-        // Set locale to Dutch
-        Carbon::setLocale('nl');
+            case 'weekly':
+                return $startDate->diffInWeeks($targetDate) * 7 === $startDate->diffInDays($targetDate);
 
-        // Calculate the date based on the offsets
-        $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset)->addDays($dayOffset);
+            case 'monthly':
+                return $startDate->day === $targetDate->day &&
+                    $startDate->lessThanOrEqualTo($targetDate);
 
-        // Get the month name and year for display
-        $monthName = $calculatedDate->translatedFormat('F');
-        $calculatedYear = $calculatedDate->year;
-
-        // Calculate the start and end date for the 3-month period
-        $startDate = $calculatedDate->copy()->startOfMonth()->startOfDay();
-        $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
-
-        // Fetch the IDs of the user's children
-        $childrenIds = $user->children->pluck('id')->toArray();
-
-        // Retrieve activities between the start of the calculated month and 3 months later
-        $lessonId = $request->query('lessonId'); // Retrieve the lesson ID from the URI query parameters
-        $lesson = Lesson::find($lessonId);
-
-        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
-
-        // Check if the user is a teacher based on roles or lesson-specific permissions
-        $isTeacher = false;
-        if (isset($lesson)) {
-            $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-                $lesson->user_id === $user->id ||
-                $lesson->users()
-                    ->where('user_id', $user->id)
-                    ->wherePivot('teacher', true)
-                    ->exists();
+            case null:
+            case 'none':
+            default:
+                return false;
         }
-
-
-        $activities = Activity::when($lessonId, function ($query) use ($lessonId, $isTeacher) {
-            // If lessonId is provided, filter by lesson_id
-            return $query->where('lesson_id', $lessonId);
-        })
-            ->whereBetween('date_start', [$startDate, $endDate])
-            ->orderBy('date_start')
-            ->get()
-            ->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds, $isTeacher) {
-                if (isset($activity->lesson_id)) {
-                    if (isset($activity->lesson->users)) {
-                        // Fetch the lesson and its associated users
-                        $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
-
-                        if (!isset($lessonId) && !$isTeacher) {
-                            // If the user is in the lesson's users, allow visibility; otherwise, hide it
-                            if (in_array($user->id, $lessonUsers) || $canViewAll) {
-                                return true; // User has access to the lesson
-                            } else {
-                                return false; // Hide the activity if the user has no access to the lesson
-                            }
-                        } else {
-                            return true;
-                        }
-                    } else {
-                        return false;
-                    }
-                }
-                // Check if activity has roles or users
-                $activityRoleIds = !empty($activity->roles)
-                    ? array_map('trim', explode(',', $activity->roles))
-                    : [];
-
-                $activityUserIds = !empty($activity->users)
-                    ? array_map('trim', explode(',', $activity->users))
-                    : [];
-
-                // Default behavior if both roles and users are null: available for everyone without highlighting
-                if (empty($activityRoleIds) && empty($activityUserIds)) {
-                    $activity->should_highlight = false;
-                    return true; // Keep activity available for everyone
-                } else {
-                    // If the user can view all, check if it should be highlighted
-                    $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
-                    $isUserListed = in_array($user->id, $activityUserIds);
-                    $isChildListed = !empty(array_intersect($childrenIds, $activityUserIds)); // Check if any child is listed
-
-                    // Check if any child has role access
-                    $isChildHasAccess = false;
-                    foreach ($user->children as $child) {
-                        $childRoleIds = $child->roles->pluck('id')->toArray();
-                        if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
-                            $isChildHasAccess = true;
-                            break; // Stop checking if any child has access
-                        }
-                    }
-
-                    if ($canViewAll) {
-                        // Highlight only if there are roles or users and the user doesn't have access
-                        $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
-                        return true; // Keep activity in the list
-                    } else {
-                        // Hide activity if the user doesn't have access, but allow visibility if their child has access
-                        return $hasRoleAccess || $isUserListed || $isChildListed || $isChildHasAccess;
-                    }
-                }
-
-            });
-
-
-        // Return view with activities data
-        return view('agenda.schedule', [
-            'activities' => $activities,
-            'roles' => $roles,
-            'user' => $user,
-            'monthOffset' => $monthOffset,
-            'monthName' => $monthName,
-            'year' => $calculatedYear,
-            'dayOffset' => $dayOffset,
-            'wantViewAll' => $wantViewAll,
-            'lesson' => $lesson,
-            'isTeacher' => $isTeacher
-        ]);
-    }
-
-
-    public function agendaSchedulePublic(Request $request)
-    {
-        // Retrieve query parameters for offsets, default to 0 if not set
-        $monthOffset = $request->query('month', 0);
-
-        // Retrieve the limit parameter, default to null
-        $limit = $request->query('limit', null);
-
-        // Set locale to Dutch
-        Carbon::setLocale('nl');
-
-        // Calculate the date based on the offsets
-        $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
-
-        // Get the month name and year for display
-        $monthName = $calculatedDate->translatedFormat('F');
-        $calculatedYear = $calculatedDate->year;
-
-        // Calculate the start and end date for the 3-month period
-        $startDate = $calculatedDate->copy()->startOfMonth()->startOfDay();
-        $endDate = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
-
-        // Retrieve activities between the start of the calculated month and 3 months later
-        $query = Activity::whereBetween('date_start', [$startDate, $endDate])
-            ->orderBy('date_start')
-            ->where('public', true);
-
-        // Apply limit only if it's not null
-        if ($limit !== null) {
-            $query->limit($limit);
-        }
-
-        $activities = $query->get();
-
-        // Return view with activities data
-        return view('agenda.public.schedule', [
-            'activities' => $activities,
-            'monthOffset' => $monthOffset,
-            'monthName' => $monthName,
-            'year' => $calculatedYear,
-            'limit' => $limit
-        ]);
     }
 
 
@@ -1174,10 +1351,8 @@ class AgendaController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
-        $canViewAll = true;
-
-        // Check if the user has one of the roles that allow them to view all activities
-        if ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+        // Determine if the user can view all activities
+        $canViewAll = ($user->roles->contains('role', 'Dolfijnen Leiding') ||
             $user->roles->contains('role', 'Zeeverkenners Leiding') ||
             $user->roles->contains('role', 'Loodsen Stamoudste') ||
             $user->roles->contains('role', 'Afterloodsen Organisator') ||
@@ -1187,16 +1362,9 @@ class AgendaController extends Controller
             $user->roles->contains('role', 'Loodsen Mentor') ||
             $user->roles->contains('role', 'Ouderraad') ||
             $user->roles->contains('role', 'Loods') ||
-            $user->roles->contains('role', 'Afterloods')
-        ) {
-            $canViewAll = true;
-        } else {
-            $canViewAll = false;
-        }
+            $user->roles->contains('role', 'Afterloods'));
 
         $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
-
-
         $month = $request->query('month', '0');
         $view = $request->query('view', 'month');
 
@@ -1205,6 +1373,40 @@ class AgendaController extends Controller
         // Fetch the activity using the provided id
         $activity = Activity::find($id);
 
+        if (isset($activity) && $activity->recurrence_rule !== null) {
+            $dateStart = $request->query('startDate');
+
+            if (!$dateStart || !$activity->recurrence_rule) {
+                return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
+            }
+
+            if (!self::isValidRepetitionDate($activity, $dateStart)) {
+                return redirect()->route('agenda.month')->with('error', 'Deze herhaling van de activiteit bestaat niet.');
+            }
+
+
+            // Update activity dates for the current occurrence
+            $originalStart = \Carbon\Carbon::parse($activity->date_start);
+            $originalEnd = \Carbon\Carbon::parse($activity->date_end);
+
+            $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
+
+            $duration = $originalEnd->diffInSeconds($originalStart);
+
+            $activity->date_start = $requestedStart->toDateTimeString();
+            $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();
+
+            // If there's a “deadline” stored in presence, shift it too
+            if ($activity->presence !== null && $activity->presence !== "1" && $activity->presence !== "0") {
+                $originalDeadline = Carbon::parse($activity->presence);
+
+                $deadlineOffset = $originalDeadline->getTimestamp() - $originalStart->getTimestamp();
+                $newDeadline = $requestedStart->copy()->addSeconds($deadlineOffset);
+
+                $activity->presence = $newDeadline->toDateTimeString();
+            }
+        }
+
         if (!$activity) {
             return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
         }
@@ -1212,16 +1414,18 @@ class AgendaController extends Controller
         // Fetch user's presence status for the activity
         $userPresence = Presence::where('user_id', $user->id)
             ->where('activity_id', $activity->id)
+            ->where('date_occurrence', date("Y-m-d", strtotime($activity->date_start)))
             ->first();
-        $presenceStatus = $userPresence ? $userPresence->presence : null;
 
-        // Retrieve activities between the start of the calculated month and 3 months later
-        $lessonId = $request->query('lessonId'); // Retrieve the lesson ID from the URI query parameters
+
+        $presenceStatus = $userPresence?->presence;
+
+        // Retrieve lesson if provided in query parameters.
+        $lessonId = $request->query('lessonId');
         $lesson = Lesson::find($lessonId);
 
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
 
-        // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = false;
         if (isset($lesson)) {
             $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
@@ -1231,65 +1435,55 @@ class AgendaController extends Controller
                     ->wherePivot('teacher', true)
                     ->exists();
         }
+
         // Fetch roles and users for the activity
         $activityRoleIds = !empty($activity->roles)
             ? array_map('trim', explode(',', $activity->roles))
             : [];
-
         $activityUserIds = !empty($activity->users)
             ? array_map('trim', explode(',', $activity->users))
             : [];
 
-        // Determine if the user has access to the activity
         $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
         $isUserListed = in_array($user->id, $activityUserIds);
 
-
         $allowedChildren = [];
-
         foreach ($user->children as $child) {
-            // Get the role IDs for the child
             $childRoleIds = $child->roles->pluck('id')->toArray();
-
-            // Check if the child has access based on roles or user IDs
             if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
 
-                // Fetch child's presence status for the activity
-                $childPresence = Presence::where('user_id', $child->id)
-                    ->where('activity_id', $activity->id)
-                    ->first();
+                if ($activity->recurrence_rule !== null) {
+                    $childPresence = Presence::where('user_id', $child->id)
+                        ->where('activity_id', $activity->id)
+                        ->where('date_occurrence', date("Y-m-d", strtotime($activity->date_start)))
+                        ->first();
+                } else {
+                    $childPresence = Presence::where('user_id', $child->id)
+                        ->where('activity_id', $activity->id)
+                        ->first();
+                }
 
-                // Set a 'presence_status' attribute on the child to store their presence status
+
                 $child->presence_status = $childPresence ? $childPresence->presence : null;
-
-                // Add child with presence status to the allowed children array
                 $allowedChildren[] = $child;
             }
         }
 
-        // Check if the user is included directly in the activity's user_id
+        // Check if the user is directly included via user_id.
         $isDirectUserAccess = in_array($user->id, array_map('trim', explode(',', $activity->user_id)));
-
-        // alloww everyone to view when there are no roles or users connected
         if (empty($activityRoleIds) && empty($activityUserIds)) {
             $isDirectUserAccess = true;
         }
 
         $canAlwaysView = $hasRoleAccess || $isUserListed || $isDirectUserAccess || $canViewAll;
-
-        // Allow parents to access if they have role access, are listed, or if any child has access, or if directly added
-        if (!$canAlwaysView) {
-            if (count($allowedChildren) === 0) {
-                // Log access attempt if denied
-                $log = new Log();
-                $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
-
-                return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
-            }
+        if (!$canAlwaysView && count($allowedChildren) === 0) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
+            return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
         }
 
-        // Return the activity view if access is granted
-        return view('agenda.event', [
+        // Pass the requested startDate along to the view. (For recurring events it represents the occurrence.)
+        return view('agenda.activity', [
             'user' => $user,
             'roles' => $roles,
             'activity' => $activity,
@@ -1310,14 +1504,70 @@ class AgendaController extends Controller
         $month = $request->query('month', '0');
         $view = $request->query('view', 'month');
 
-        // Fetch the activity with the provided id, but only if it's public
+        // Fetch the public activity by id
         $activity = Activity::where('id', $id)
-            ->where('public', true)  // Check if the activity is public
-            ->first();  // Get the first matching record or null
+            ->where('public', true)
+            ->first();
 
-        // If the activity is not found or not public, set it to null
+        $dateStart = $request->query('dateStart');
+        if (!$dateStart || !$activity->recurrence_rule) {
+            return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        if (!self::isValidRepetitionDate($activity, $dateStart)) {
+            return redirect()->route('agenda.month')->with('error', 'Deze herhaling van de activiteit bestaat niet.');
+        }
+
+// Update activity dates for the current occurrence
+// Update activity dates for the current occurrence
+        $originalStart = \Carbon\Carbon::parse($activity->date_start);
+        $originalEnd = \Carbon\Carbon::parse($activity->date_end);
+
+        $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
+
+        $duration = $originalEnd->diffInSeconds($originalStart);
+
+        $activity->date_start = $requestedStart->toDateTimeString();
+        $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();
+
+        // If there's a “deadline” stored in presence, shift it too
+        if ($activity->presence !== null && $activity->presence !== "1" && $activity->presence !== "0") {
+            $originalDeadline = Carbon::parse($activity->presence);
+
+            $deadlineOffset = $originalDeadline->getTimestamp() - $originalStart->getTimestamp();
+            $newDeadline = $requestedStart->copy()->addSeconds($deadlineOffset);
+
+            $activity->presence = $newDeadline->toDateTimeString();
+        }
+
+
         if (!$activity) {
-            $activity = null;
+            return view('agenda.public.event', [
+                'activity' => null,
+                'month' => $month,
+                'view' => $view
+            ]);
+        }
+
+        // Check for startDate parameter
+        $requestedStartDate = $request->query('startDate');
+        if (!empty($activity->recurrence_rule)) {
+            // For recurring events, a valid startDate must be provided.
+            if (!$requestedStartDate) {
+                // If startDate isn’t provided, consider the occurrence non‑existent.
+                $activity = null;
+            } else {
+                try {
+                    $occurrenceStart = Carbon::parse($requestedStartDate)->startOfDay();
+                } catch (\Exception $e) {
+                    $activity = null;
+                }
+            }
+        } else {
+            // For non‑recurring events, if a startDate is provided, treat it as invalid.
+            if ($requestedStartDate) {
+                $activity = null;
+            }
         }
 
         return view('agenda.public.event', [
@@ -1338,12 +1588,19 @@ class AgendaController extends Controller
         $lessonId = $request->query('lessonId'); // Retrieve the lesson ID from the URI query parameters
         $lesson = Lesson::find($lessonId);
 
+        $month = $request->query('month', '0');
+        $wantViewAll = $request->query('all', '0');
+        $view = $request->query('view', 'month');
 
-        return view('agenda.add', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'lesson' => $lesson]);
+        return view('agenda.add', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles, 'lesson' => $lesson, 'monthOffset' => $month, 'wantViewAll' => $wantViewAll, 'view' => $view]);
     }
 
     public function createAgendaSave(Request $request)
     {
+        $month = $request->query('month', '0');
+        $wantViewAll = $request->query('all', '0');
+        $view = $request->query('view', 'month');
+
         // Validate the request inputs
         $validatedData = $request->validate([
             'title' => 'string|required',
@@ -1361,6 +1618,7 @@ class AgendaController extends Controller
             'image' => 'mimes:jpeg,png,jpg,gif,webp|max:6000',
             'lesson_id' => 'integer|nullable',
 
+            'reoccurrence' => 'string',
 
             'form_labels' => 'nullable|array',
             'form_types' => 'nullable|array',
@@ -1406,7 +1664,8 @@ class AgendaController extends Controller
                     'image' => $newPictureName,
                     'public' => $request->input('public'),
                     'presence' => $presence,
-                    'lesson_id' => $request->input('lesson_id')
+                    'lesson_id' => $request->input('lesson_id'),
+                    'recurrence_rule' => $request->input('reoccurrence')
                 ]);
 
                 // Log the creation of the activity
@@ -1414,7 +1673,7 @@ class AgendaController extends Controller
                 $log->createLog(auth()->user()->id, 2, 'Create activity', 'agenda', 'Activity id: ' . $activity->id, '');
 
                 // Handle form elements (if provided)
-                if (isset($validatedData['form_labels'])) {
+                if (isset($validatedData['form_labels']) && $request->input('reoccurrence') === "never") {
                     foreach ($validatedData['form_labels'] as $index => $label) {
                         $type = $validatedData['form_types'][$index];
                         $isRequired = isset($validatedData['is_required'][$index]);
@@ -1440,9 +1699,9 @@ class AgendaController extends Controller
                 }
 
                 if ($request->input('lesson_id') === null) {
-                    return redirect()->route('agenda.new')->with('success', 'Je agendapunt is opgeslagen!');
+                    return redirect()->route('agenda.activity', ['id' => $activity->id, 'month' => $month, 'all' => $wantViewAll, 'view' => $view])->with('success', 'Je agendapunt is opgeslagen!');
                 } else {
-                    return redirect()->route('agenda.month', ['lessonId' => $request->input('lesson_id')])->with('success', 'Je agendapunt is opgeslagen!');
+                    return redirect()->route('agenda.activity', ['id' => $activity->id, 'lessonId' => $request->input('lesson_id'), 'month' => $month, 'all' => $wantViewAll, 'view' => $view])->with('success', 'Je agendapunt is opgeslagen!');
                 }
             } else {
                 throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
@@ -1459,8 +1718,12 @@ class AgendaController extends Controller
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
+        $type = $request->query('type', 'all');
+
+
         $lessonId = $request->query('lessonId');
         $lesson = $lessonId ? Lesson::find($lessonId) : null;
+
 
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
 
@@ -1493,16 +1756,224 @@ class AgendaController extends Controller
 
         Presence::where('activity_id', $activity->id)->delete();
 
-        $activity->delete();
+        if (isset($type)) {
+            switch ($type) {
+                case 'all':
+                    // Delete recurring rule entirely
+                    $activity->delete();
+                    break;
+
+                case 'following':
+                    $end = $request->query('end_date');
+                    // Set the recurrence_rule end to this occurrence
+                    $activity->end_recurrence = $end;
+                    $activity->save();
+                    break;
+
+                case 'single':
+                    $date = $request->query('date');
+                    // Insert into exceptions table
+                    ActivityException::create([
+                        'activity_id' => $activity->id,
+                        'date' => $date,
+                    ]);
+                    break;
+            }
+        } else {
+
+            $activity->delete();
+        }
 
         $log = new Log();
         $log->createLog(auth()->user()->id, 2, 'Delete activity', 'activity', $activity->title, '');
 
+        $month = $request->query('month', '0');
+        $wantViewAll = $request->query('all', '0');
+        $view = $request->query('view', 'month');
+
         if (isset($lesson)) {
-            return redirect()->route('agenda.edit', ['lessonId' => $lesson->id])->with('success', 'Je agendapunt is verwijderd');
+            if ($view === 'month') {
+                return redirect()->route('agenda.month', ['lessonId' => $lesson->id, 'month' => $month, 'all' => $wantViewAll])->with('success', 'Je agendapunt is verwijderd');
+            } else {
+                return redirect()->route('agenda.schedule', ['lessonId' => $lesson->id, 'month' => $month, 'all' => $wantViewAll])->with('success', 'Je agendapunt is verwijderd');
+            }
         } else {
-            return redirect()->route('agenda.edit')->with('success', 'Je activiteit is verwijderd');
+            if ($view === 'month') {
+                return redirect()->route('agenda.month', ['month' => $month, 'all' => $wantViewAll])->with('success', 'Je activiteit is verwijderd');
+            } else {
+                return redirect()->route('agenda.schedule', ['month' => $month, 'all' => $wantViewAll])->with('success', 'Je activiteit is verwijderd');
+            }
         }
     }
 
+
+    public function generateToken(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->calendar_token) {
+            $user->calendar_token = Str::uuid();;
+            $user->save();
+        }
+
+        return response()->json([
+            'calendar_url' => route('agenda.feed', ['token' => $user->calendar_token]),
+        ]);
+    }
+
+    public function exportFeed(Request $request, $token)
+    {
+        $user = User::where('calendar_token', $token)->firstOrFail();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+        $rolesIDList = $roles->pluck('id')->toArray();
+        $canViewAll = false;
+
+        $monthOffset = 0;
+
+        Carbon::setLocale('nl');
+        $baseDate = Carbon::now();
+        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+
+        $rangeStart = $calculatedDate->copy()->startOfMonth()->addMonths(-1)->startOfDay();
+        $rangeEnd = $calculatedDate->copy()->addMonths(5)->endOfMonth()->endOfDay();
+
+        $lessonId = $request->query('lessonId');
+        $lesson = Lesson::find($lessonId);
+        $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
+
+        // Determine if current user is teacher for this lesson
+        $isTeacher = false;
+        if (isset($lesson)) {
+            $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty()
+                || $lesson->user_id === $user->id
+                || $lesson->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('teacher', true)
+                    ->exists();
+        }
+
+        $fetchedActivities = Activity::query()
+            ->when($lessonId, fn($q) => $q->where('lesson_id', $lessonId))
+            ->where(function ($query) use ($rangeStart, $rangeEnd) {
+                $query->whereBetween('date_start', [$rangeStart, $rangeEnd])
+                    ->orWhere(function ($q) use ($rangeStart, $rangeEnd) {
+                        $q->whereIn('recurrence_rule', ['daily', 'weekly', 'monthly'])
+                            ->where(function ($q2) use ($rangeStart) {
+                                $q2->whereNull('end_recurrence')
+                                    ->orWhere('end_recurrence', '>=', $rangeStart);
+                            })
+                            ->where('date_start', '<=', $rangeEnd);
+                    });
+            })
+            ->orderBy('date_start')
+            ->get();
+
+
+        // Load exceptions for single-instance deletions
+        $exceptionsByActivity = ActivityException::whereIn('activity_id', $fetchedActivities->pluck('id'))
+            ->get()
+            ->groupBy('activity_id')
+            ->map(function ($group) {
+                return $group->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+            });
+
+        // Expand recurring events
+        $activities = collect();
+        foreach ($fetchedActivities as $activity) {
+            $occurrences = $this->expandRecurringActivity($activity, $rangeStart, $rangeEnd);
+            $skipDates = $exceptionsByActivity[$activity->id] ?? [];
+
+            foreach ($occurrences as $occurrence) {
+                $occDate = Carbon::parse($occurrence->date_start)->toDateString();
+
+                // Skip single-instance exceptions
+                if (in_array($occDate, $skipDates, true)) {
+                    continue;
+                }
+
+                // Skip beyond end_recurrence
+                if (!is_null($activity->end_recurrence)) {
+                    $endRec = Carbon::parse($activity->end_recurrence)->endOfDay();
+                    if (Carbon::parse($occurrence->date_start)->gt($endRec)) {
+                        continue;
+                    }
+                }
+
+
+                $activities->push($occurrence);
+            }
+        }
+
+        $childrenIds = $user->children->pluck('id')->toArray();
+        $activities = $activities->filter(function ($activity) use ($user, $rolesIDList, $canViewAll, $childrenIds, $isTeacher, $lessonId) {
+            if (isset($activity->lesson_id)) {
+                if (isset($activity->lesson->users)) {
+                    $lessonUsers = $activity->lesson->users->pluck('id')->toArray() ?? [];
+                    if (!isset($lessonId) && !$isTeacher) {
+                        return in_array($user->id, $lessonUsers) || $canViewAll;
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+            $activityRoleIds = !empty($activity->roles)
+                ? array_map('trim', explode(',', $activity->roles))
+                : [];
+            $activityUserIds = !empty($activity->users)
+                ? array_map('trim', explode(',', $activity->users))
+                : [];
+
+            if (empty($activityRoleIds) && empty($activityUserIds)) {
+                $activity->should_highlight = false;
+                return true;
+            } else {
+                $hasRoleAccess = !empty(array_intersect($rolesIDList, $activityRoleIds));
+                $isUserListed = in_array($user->id, $activityUserIds);
+                $isChildListed = !empty(array_intersect($childrenIds, $activityUserIds));
+                $isChildHasAccess = false;
+                foreach ($user->children as $child) {
+                    $childRoleIds = $child->roles->pluck('id')->toArray();
+                    if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
+                        $isChildHasAccess = true;
+                        break;
+                    }
+                }
+                if ($canViewAll) {
+                    $activity->should_highlight = !$hasRoleAccess && !$isUserListed;
+                    return true;
+                } else {
+                    return $hasRoleAccess || $isUserListed || $isChildListed || $isChildHasAccess;
+                }
+            }
+        });
+
+        $activities = $activities->sortBy('date_start')->values();
+
+        $calendar = Calendar::create()
+            ->name('MHG Agenda')
+            ->description('Jouw persoonlijke MHG Agenda')
+            ->refreshInterval(60);
+
+
+        foreach ($activities as $act) {
+            $event = Event::create()
+                ->name($act->title)
+                ->description(strip_tags(html_entity_decode($act->content)))
+                ->createdAt(Carbon::parse($act->created_at))
+                ->startsAt(Carbon::parse($act->date_start))
+                ->endsAt(Carbon::parse($act->date_end));
+
+            $calendar->event($event);
+        }
+
+
+        return response($calendar->get(), 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="mhg-calender.ics"',
+        ]);
+    }
 }

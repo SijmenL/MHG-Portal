@@ -24,23 +24,43 @@
         <div class="d-flex flex-row-responsive align-items-center gap-5" style="width: 100%">
             <div class="" style="width: 100%;">
                 @if(isset($lesson))
-                    <h1 class="">Les planning</h1>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h1 class="">Planning</h1>
+                        @if($user && $isTeacher)
+                            <a href="{{ route('agenda.new', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule']) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">calendar_add_on</span>
+                                <span class="no-mobile">Agendapunt toevoegen</span></a>
+                        @endif
+                    </div>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('lessons') }}">Lessen</a></li>
                             <li class="breadcrumb-item"><a
                                     href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
                             </li>
-                            @if($isTeacher)
-                                <li class="breadcrumb-item"><a
-                                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
-                                </li>
-                            @endif
-                            <li class="breadcrumb-item active" aria-current="page">Les planning</li>
+                            <li class="breadcrumb-item active" aria-current="page">Planning</li>
                         </ol>
                     </nav>
                 @else
-                    <h1 class="">Mijn Agenda</h1>
+                    <div class="d-flex flex-row justify-content-between align-items-center">
+                        <h1 class="">Mijn Agenda</h1>
+                        @if($user &&
+                    ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                    $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                    $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                    $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                    $user->roles->contains('role', 'Administratie') ||
+                    $user->roles->contains('role', 'Bestuur')))
+
+                            <a href="{{ route('agenda.new', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule']) }}"
+                               class="d-flex flex-row align-items-center justify-content-center btn btn-info">
+                            <span
+                                class="material-symbols-rounded me-2">calendar_add_on</span>
+                                <span class="no-mobile">Agendapunt toevoegen</span></a>
+                        @endif
+                    </div>
 
                     @if($user &&
                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
@@ -54,13 +74,6 @@
                     $user->roles->contains('role', 'Ouderraad')) ||
                     $user->roles->contains('role', 'Loods') ||
                     $user->roles->contains('role', 'Afterloods'))
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Mijn agenda</li>
-                            </ol>
-                        </nav>
-
 
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="show-all"
@@ -71,6 +84,63 @@
                     @endif
 
                     <p>Welkom in jouw MHG Agenda! Hier vind je de komende activiteiten die voor jouw relevant zijn!</p>
+                    <div class="dropdown">
+                        <button class="btn btn-primary text-white dropdown-toggle" type="button" id="calendarDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Exporteer de agenda
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="google">Google Calendar</a>
+                            </li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="ical">iCalendar</a></li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="outlook">Outlook 365</a></li>
+                            <li><a class="dropdown-item calendar-link" target="_blank" href="#" data-type="download">Download
+                                    bestand</a></li>
+                        </ul>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const dropdownButton = document.getElementById('calendarDropdown');
+                            let tokenLoaded = false;
+
+                            dropdownButton.addEventListener('click', function () {
+                                if (tokenLoaded) return;
+
+                                fetch('/agenda/token', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json',
+                                    }
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        console.log(data)
+
+                                        const encodedUrl = encodeURIComponent(data.calendar_url);
+
+                                        document.querySelectorAll('.calendar-link').forEach(link => {
+                                            const type = link.dataset.type;
+                                            if (type === 'google') {
+                                                link.href = `https://calendar.google.com/calendar/r?cid=${encodedUrl}`;
+                                            } else if (type === 'outlook') {
+                                                link.href = `https://outlook.office.com/calendar/0/deeplink/subscribe?url=${encodedUrl}`;
+                                            } else if (type === 'ical') {
+                                                link.href = `webcall://${encodedUrl}`;
+                                            } else {
+                                                link.href = `${data.calendar_url}`;
+                                            }
+                                        });
+
+                                        tokenLoaded = true;
+                                    })
+                                    .catch(error => {
+                                        console.error('Failed to fetch calendar token', error);
+                                    });
+                            });
+                        });
+                    </script>
                 @endif
 
                 <script>
@@ -200,16 +270,29 @@
                     </div>
                 @endif
 
-                <a
-                    @if($activity->lesson_id !== null)
-                        @if(in_array($user->id, $lessonUsers) || $isTeacher)
-                            href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'lessonId' => $activity->lesson_id, 'id' => $activity->id]) }}"
-                    @endif
-                    @else
-                        href="{{ route('agenda.activity', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule', 'id' => $activity->id]) }}"
-                    @endif
-                    style="color: unset; text-decoration: none"
-                >
+                    @php
+                        $linkParams = [
+                            'id' => $activity->id,
+                            'month' => $monthOffset,
+                            'all' => $wantViewAll,
+                            'startDate' => $activitiesStart->format('Y-m-d'),
+                            'view' => 'schedule',
+                        ];
+
+                        if ($activity->lesson_id !== null) {
+                            $linkParams['lessonId'] = $activity->lesson_id;
+                        }
+
+                        $canAccessLesson = $activity->lesson_id === null || in_array($user->id, $lessonUsers) || $isTeacher;
+                    @endphp
+
+                    <a
+                        @if ($canAccessLesson)
+                            href="{{ route('agenda.activity', $linkParams) }}"
+                        @endif
+                        style="color: unset; text-decoration: none"
+                    >
+
 
                     <div class="d-flex flex-row">
                         <div style="width: 50px"

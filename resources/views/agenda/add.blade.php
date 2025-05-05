@@ -65,12 +65,20 @@
 
     <div class="container col-md-11">
         @if(!isset($lesson))
-            <h1>Voeg een activiteit toe</h1>
+            <h1>Agendapunt toevoegen</h1>
 
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('agenda') }}">Agenda</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Voeg een activiteit toe</li>
+                    @if($view === "month")
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll]) }}">Agenda</a>
+                        </li>
+                    @else
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll]) }}">Agenda</a>
+                        </li>
+                    @endif
+                    <li class="breadcrumb-item active" aria-current="page">Agendapunt toevoegen</li>
                 </ol>
             </nav>
         @else
@@ -80,9 +88,15 @@
                 <li class="breadcrumb-item"><a
                         href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
                 </li>
-                <li class="breadcrumb-item"><a
-                        href="{{ route('lessons.environment.lesson.planning', $lesson->id) }}">Planning</a>
-                </li>
+                @if($view === "month")
+                    <li class="breadcrumb-item"><a
+                            href="{{ route('agenda.month', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll]) }}">Planning</a>
+                    </li>
+                @else
+                    <li class="breadcrumb-item"><a
+                            href="{{ route('agenda.schedule', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll]) }}">Planning</a>
+                    </li>
+                @endif
                 <li class="breadcrumb-item active" aria-current="page">Nieuw agendapunt</li>
             </ol>
         @endif
@@ -158,9 +172,79 @@
                         </div>
                     </div>
 
+                    <div class="mt-4">
+                        <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">date_range</span>Datum &
+                            Tijd</h2>
+                        <div class="d-flex flex-row-responsive gap-2 justify-content-between align-items-center">
+                            <div class="w-100">
+                                <label for="date_start" class="col-md-4 col-form-label ">Start datum en tijd <span
+                                        class="required-form">*</span></label>
+                                <input id="date_start" value="{{ old('date_start') }}" type="datetime-local"
+                                       class="form-control @error('date_start') is-invalid @enderror" name="date_start">
+                                @error('date_start')
+                                <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+
+                            <div class="w-100">
+                                <label for="date_end" class="col-md-4 col-form-label ">Eind datum en tijd <span
+                                        class="required-form">*</span></label>
+                                <input id="date_end" value="{{ old('date_end') }}" type="datetime-local"
+                                       class="form-control @error('date_end') is-invalid @enderror" name="date_end">
+                                @error('date_end')
+                                <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="w-100">
+                            <label for="reoccurrence" class="col-form-label">
+                                Herhaal deze activiteit
+                                <span class="required-form">*</span>
+                            </label>
+                            <select id="reoccurrence" class="form-select @error('reoccurrence') is-invalid @enderror"
+                                    name="reoccurrence">
+                                <option value="never" selected>Nooit</option>
+                                <option value="daily">Dagelijks</option>
+                                <option value="weekly">Wekelijks</option>
+                                <option value="monthly">Maandelijks</option>
+                            </select>
+                            @error('reoccurrence')
+                            <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const reoccurrenceSelect = document.getElementById('reoccurrence');
+
+                            // Function to check value and do something
+                            function handleReoccurrenceChange() {
+                                const value = reoccurrenceSelect.value;
+
+                                if (value !== 'never') {
+                                    document.getElementById('custom-form').classList.add('d-none');
+                                } else {
+                                    document.getElementById('custom-form').classList.remove('d-none');
+                                }
+                            }
+
+                            // Run on initial load
+                            handleReoccurrenceChange();
+
+                            // Run when the value changes
+                            reoccurrenceSelect.addEventListener('change', handleReoccurrenceChange);
+                        });
+                    </script>
 
                     @if(!isset($lesson))
-                        <div class="mt-4">
+                        <div class="mt-4" id="custom-form">
                             <div class="d-flex flex-row-responsive justify-content-between align-items-center">
                                 <h2 class="flex-row gap-3"><span
                                         class="material-symbols-rounded me-2">app_registration</span>Inschrijfformulier
@@ -383,35 +467,7 @@
                         </div>
                     @endif
 
-                    <div class="mt-4">
-                        <h2 class="flex-row gap-3"><span class="material-symbols-rounded me-2">date_range</span>Datum &
-                            Tijd</h2>
-                        <div class="d-flex flex-row-responsive gap-2 justify-content-between align-items-center">
-                            <div class="w-100">
-                                <label for="date_start" class="col-md-4 col-form-label ">Start datum en tijd <span
-                                        class="required-form">*</span></label>
-                                <input id="date_start" value="{{ old('date_start') }}" type="datetime-local"
-                                       class="form-control @error('date_start') is-invalid @enderror" name="date_start">
-                                @error('date_start')
-                                <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
 
-                            <div class="w-100">
-                                <label for="date_end" class="col-md-4 col-form-label ">Eind datum en tijd <span
-                                        class="required-form">*</span></label>
-                                <input id="date_end" value="{{ old('date_end') }}" type="datetime-local"
-                                       class="form-control @error('date_end') is-invalid @enderror" name="date_end">
-                                @error('date_end')
-                                <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
 
 
                     <div class="mt-4">
@@ -435,7 +491,8 @@
                                 @enderror
                             </div>
                             <div id="date-container" class="w-100 mt-2">
-                                <label for="presence-date" class="col-form-label">Deadline om aan- of af te melden: (wanneer dit veld leeg gelaten wordt zal er geen deadline op zitten)</label>
+                                <label for="presence-date" class="col-form-label">Deadline om aan- of af te melden:
+                                    (wanneer dit veld leeg gelaten wordt zal er geen deadline op zitten)</label>
                                 <input type="datetime-local" id="presence-date" name="presence-date"
                                        class="form-control @error('presence-date') is-invalid @enderror">
                                 @error('presence-date')

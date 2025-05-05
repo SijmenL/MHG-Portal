@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Presence extends Model
 {
-    protected $fillable = ['user_id', 'activity_id', 'presence'];
+    protected $fillable = ['user_id', 'activity_id', 'presence', 'date_occurrence'];
 
     // A response belongs to an event
     public function activity()

@@ -193,11 +193,8 @@
                                                     <tbody>
                                                     @foreach ($lesson->users as $user)
                                                         @php
-                                                            // Define the roles that classify the user as a teacher
-                                                            $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
 
-                                                            // Check if the user is a teacher based on roles or lesson-specific permissions
-                                                            $isUserTeacher = $user->roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
+                                                            $isUserTeacher =
                                                                 $lesson->user_id === $user->id ||
                                                                 $lesson->users()
                                                                     ->where('user_id', $user->id)

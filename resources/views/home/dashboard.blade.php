@@ -305,35 +305,6 @@
         @endif
 
         <div class="d-flex flex-column gap-5">
-{{--            <div class="bg-info rounded p-3">--}}
-{{--                    <div class="d-flex flex-row flex-wrap gap-4 justify-content-center">--}}
-{{--                        @foreach($newsItems as $news_item)--}}
-{{--                            <a class="text-black text-decoration-none" href="{{ route('news.item', $news_item->id) }}">--}}
-{{--                                <div class="card">--}}
-{{--                                    <p class="badge rounded-pill bg-info text-black"--}}
-{{--                                       style="position: absolute; top: 15px; right: 15px; font-size: 1rem">{{ $news_item->category }}</p>--}}
-{{--                                    <img alt="Nieuws afbeelding" class="card-img-top"--}}
-{{--                                         src="{{ asset('/files/news/news_images/'.$news_item->image.' ') }}">--}}
-{{--                                    <div class="card-body d-flex flex-column justify-content-between">--}}
-{{--                                        <div>--}}
-{{--                                            <p style="font-weight: bolder">{{ $news_item->title }}</p>--}}
-{{--                                            <p>{{ $news_item->description }}</p>--}}
-{{--                                        </div>--}}
-{{--                                        <div>--}}
-{{--                                            <a href="{{ route('news.item', $news_item->id) }}" class="d-flex flex-row gap-2 align-items-center text-decoration-none text-black"><span--}}
-{{--                                                    class="material-symbols-rounded me-2">chevron_right</span>Lees verder!</a>--}}
-{{--                                        </div>--}}
-{{--                                    </div>--}}
-{{--                                    <div class="card-footer d-flex flex-column gap-1">--}}
-{{--                                        <p>{{ $news_item->date->format('d-m-Y') }}</p>--}}
-{{--                                    </div>--}}
-{{--                                </div>--}}
-{{--                            </a>--}}
-{{--                        @endforeach--}}
-{{--                    </div>--}}
-
-{{--            </div>--}}
-
             <div class="bg-light rounded-2 p-3">
                 <h2>Acties</h2>
                 <div class="quick-action-bar">
@@ -387,26 +358,26 @@
                         </a>
                     @endif
 
-{{--                    @if($user &&--}}
-{{--                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||--}}
-{{--                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||--}}
-{{--                     $user->roles->contains('role', 'Loodsen Stamoudste') ||--}}
-{{--                     $user->roles->contains('role', 'Afterloodsen Organisator') ||--}}
-{{--                     $user->roles->contains('role', 'Vrijwilliger') ||--}}
-{{--                     $user->roles->contains('role', 'Administratie') ||--}}
-{{--                     $user->roles->contains('role', 'Bestuur') ||--}}
-{{--                     $user->roles->contains('role', 'Praktijkbegeleider') ||--}}
-{{--                     $user->roles->contains('role', 'Loodsen Mentor') ||--}}
-{{--                     $user->roles->contains('role', 'Ouderraad') ||--}}
-{{--                     $user->roles->contains('role', 'Afterloods') ||--}}
-{{--                     $user->roles->contains('role', 'Loods') ||--}}
-{{--                     $user->roles->contains('role', 'Zeeverkenner')--}}
-{{--                     ))--}}
-{{--                        <a class="btn btn-info quick-action" href="{{ route('maintenance') }}">--}}
-{{--                            <span class="material-symbols-rounded">handyman</span>--}}
-{{--                            <p>Onderhoud</p>--}}
-{{--                        </a>--}}
-{{--                    @endif--}}
+                    @if($user &&
+                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||
+                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                     $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                     $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                     $user->roles->contains('role', 'Vrijwilliger') ||
+                     $user->roles->contains('role', 'Administratie') ||
+                     $user->roles->contains('role', 'Bestuur') ||
+                     $user->roles->contains('role', 'Praktijkbegeleider') ||
+                     $user->roles->contains('role', 'Loodsen Mentor') ||
+                     $user->roles->contains('role', 'Ouderraad') ||
+                     $user->roles->contains('role', 'Afterloods') ||
+                     $user->roles->contains('role', 'Loods') ||
+                     $user->roles->contains('role', 'Zeeverkenner')
+                     ))
+                        <a class="btn btn-info quick-action" href="{{ route('maintenance') }}">
+                            <span class="material-symbols-rounded">handyman</span>
+                            <p>Onderhoud</p>
+                        </a>
+                    @endif
 
                     @if($user &&
                         ($user->roles->contains('role', 'Dolfijnen Leiding') ||
@@ -511,31 +482,12 @@
                         </a>
                     @endif
 
-                    @if($user && $user->accepted === 1 &&
-                        ($user->roles->contains('role', 'Dolfijnen Leiding') ||
-                        $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                        $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                        $user->roles->contains('role', 'Loods') ||
-                        $user->roles->contains('role', 'Afterloods') ||
-                        $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                        $user->roles->contains('role', 'Administratie') ||
-                        $user->roles->contains('role', 'Bestuur') ||
-                        $user->roles->contains('role', 'Praktijkbegeleider') ||
-                        $user->roles->contains('role', 'Loodsen Mentor') ||
-                        $user->roles->contains('role', 'Ouderraad'))
-                        )
-                        <a class="btn btn-secondary quick-action" href="{{ route('agenda') }}">
-                            <span class="material-symbols-rounded">event</span>
-                            <p>Agenda</p>
-                        </a>
-                    @else
                         @if($user->accepted === 1)
                             <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
                                 <span class="material-symbols-rounded">event</span>
                                 <p>Agenda</p>
                             </a>
                         @endif
-                    @endif
                 </div>
             </div>
         </div>
