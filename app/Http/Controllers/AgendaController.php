@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
+use Spatie\IcalendarGenerator\Properties\TextProperty;
 
 
 class AgendaController extends Controller
@@ -465,12 +466,17 @@ class AgendaController extends Controller
                 ->unique('id');
         }
 
+        $dateOccurrence = null;
+
         // Fetch users who set presence but are not part of the above sets
-        $dateOccurrence = $request->query('startDate');
+        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+            $dateOccurrence = $request->query('startDate');
+        }
 
         $presenceUserIds = Presence::where('activity_id', $activity->id)
             ->where('date_occurrence', $dateOccurrence)
             ->pluck('user_id')->toArray();
+
 
         $usersWithPresence = User::whereIn('id', $presenceUserIds)
             ->when(!empty($search), function ($q) use ($search) {
@@ -1238,7 +1244,12 @@ class AgendaController extends Controller
     {
         // Retrieve the specified user
         $user = User::findOrFail($userId);
-        $dateOccurrence = $request->query('startDate');
+        $activity = Activity::findOrFail($activityId);
+
+        $dateOccurrence = null;
+        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+            $dateOccurrence = $request->query('startDate');
+        }
 
         // Check if the user is either the authenticated user or a child of the authenticated user
         if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
@@ -1277,7 +1288,13 @@ class AgendaController extends Controller
     {
         // Retrieve the specified user
         $user = User::findOrFail($userId);
-        $dateOccurrence = $request->query('startDate');
+        $activity = Activity::findOrFail($activityId);
+
+        $dateOccurrence = null;
+
+        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+            $dateOccurrence = $request->query('startDate');
+        }
 
         // Check if the user is either the authenticated user or a child of the authenticated user
         if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
@@ -1411,13 +1428,21 @@ class AgendaController extends Controller
             return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
         }
 
+        $userPresence = null;
+
+        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+            $userPresence = Presence::where('user_id', $user->id)
+                ->where('activity_id', $activity->id)
+                ->where('date_occurrence', date("Y-m-d", strtotime($activity->date_start)))
+                ->first();
+        } else {
+            $userPresence = Presence::where('user_id', $user->id)
+                ->where('activity_id', $activity->id)
+                ->first();
+        }
+
+
         // Fetch user's presence status for the activity
-        $userPresence = Presence::where('user_id', $user->id)
-            ->where('activity_id', $activity->id)
-            ->where('date_occurrence', date("Y-m-d", strtotime($activity->date_start)))
-            ->first();
-
-
         $presenceStatus = $userPresence?->presence;
 
         // Retrieve lesson if provided in query parameters.
@@ -1817,6 +1842,7 @@ class AgendaController extends Controller
         }
 
         return response()->json([
+            'token' => $user->calendar_token,
             'calendar_url' => route('agenda.feed', ['token' => $user->calendar_token]),
         ]);
     }
@@ -1954,15 +1980,23 @@ class AgendaController extends Controller
         $activities = $activities->sortBy('date_start')->values();
 
         $calendar = Calendar::create()
-            ->name('MHG Agenda')
+            ->name("MHG Agenda van ".$user->name)
             ->description('Jouw persoonlijke MHG Agenda')
-            ->refreshInterval(60);
+            ->appendProperty(TextProperty::create('CALSCALE', 'GREGORIAN'))
+            ->appendProperty(TextProperty::create('METHOD', 'PUBLISH'))
+            ->refreshInterval(30);
 
 
         foreach ($activities as $act) {
+
+            $desc = strip_tags(html_entity_decode($act->content));
+            $desc = preg_replace("/\r\n|\r|\n/", '\\n', $desc);
+            $desc = preg_replace('/\s+/', ' ', $desc);
+
+
             $event = Event::create()
                 ->name($act->title)
-                ->description(strip_tags(html_entity_decode($act->content)))
+                ->description($desc)
                 ->createdAt(Carbon::parse($act->created_at))
                 ->startsAt(Carbon::parse($act->date_start))
                 ->endsAt(Carbon::parse($act->date_end));
