@@ -394,6 +394,9 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
     Route::get('/loodsen/flunkyball', [LoodsenController::class, 'flunkyball'])->name('loodsen.flunkyball');
     Route::get('/loodsen/flunkyball/flunkydj', [LoodsenController::class, 'flunkydj'])->name('loodsen.flunkyball.flunkydj');
     Route::get('/loodsen/flunkyball/regels', [LoodsenController::class, 'rules'])->name('loodsen.flunkyball.rules');
+
+    Route::get('/loodsen/foutecd', [LoodsenController::class, 'foutecd'])->name('loodsen.foutecd');
+
 });
 
 Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad,Loodsen Mentor'])->group(function () {

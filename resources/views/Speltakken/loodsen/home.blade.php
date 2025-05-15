@@ -50,10 +50,10 @@
                                 <img style="filter: unset" alt="flunkyball" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">
                                 <p>Flunkyball</p>
                             </a>
-{{--                            <a class="btn btn-info quick-action disabled" href="">--}}
-{{--                                <img style="filter: unset" alt="loodsenbar" src="{{ asset('files/loodsen/logo-bar.webp') }}">--}}
-{{--                                <p>Loodsenbar</p>--}}
-{{--                            </a>--}}
+                            <a class="btn btn-info quick-action" href="{{ route('loodsen.foutecd') }}">
+                                <span class="material-symbols-rounded">eject</span>
+                                <p>Foute CD Speler</p>
+                            </a>
                     </div>
                 </div>
             </div>

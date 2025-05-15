@@ -524,6 +524,7 @@ table, th, td, label {
 .flunky-background {
     background-color: var(--accent-color);
     min-height: 75vh;
+    margin-bottom: -20px;
 }
 
 #button-display {

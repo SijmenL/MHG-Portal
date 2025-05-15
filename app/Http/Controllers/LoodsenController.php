@@ -589,4 +589,13 @@ class LoodsenController extends Controller
 
         return view('speltakken.loodsen.flunkyball.rules', ['user' => $user, 'all_music' => $all_music]);
     }
+
+    public function foutecd()
+    {
+        $user = Auth::user();
+
+        $albums = '/albums.json';
+
+        return view('speltakken.loodsen.foutecd.home', ['user' => $user, 'albums' => $albums]);
+    }
 }
