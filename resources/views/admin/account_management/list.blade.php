@@ -5,7 +5,7 @@
 @section('content')
     <div id="popUp" class="popup d-none" style="margin-top: -122px">
         <div class="popup-body">
-            <h2>Exporteer gebruikers</h2>
+            <h2>Exporteer leden</h2>
             <p>Alle leden die aan de criteria voldoen worden geëxporteerd.</p>
             <div class="bg-light rounded-2 p-3">
                 <h2>Opties</h2>
@@ -19,8 +19,8 @@
                             <p>Excel</p>
                         </button>
                     </form>
-                    <a class="btn btn-info quick-action" href="mailto:?bcc=@foreach($users as $user_adres){{$user_adres->email}}@unless($loop->last),@endunless @endforeach">
-
+                    <a class="btn btn-info quick-action"
+                       href="mailto:?bcc={{ $user_ids->pluck('email')->implode(',') }}">
                     <span class="material-symbols-rounded">mail</span>
                         <p>Mail</p>
                     </a>
@@ -34,13 +34,13 @@
 
 
     <div class="container col-md-11">
-        <h1>Gebruikers</h1>
+        <h1>Leden</h1>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Gebruikers</li>
+                <li class="breadcrumb-item active" aria-current="page">Leden</li>
             </ol>
         </nav>
 
@@ -89,7 +89,13 @@
             </div>
         </form>
 
+
         @if($users->count() > 0)
+            <p>
+                {{ $user_ids->count() }}
+                {{ $user_ids->count() === 1 ? 'lid gevonden' : 'leden gevonden' }}.
+            </p>
+
             <div class=" no-scrolbar" style="max-width: 100vw">
                 <table class="table table-striped">
                     <thead class="thead-dark table-bordered table-hover">
@@ -150,7 +156,7 @@
             {{ $users->links() }}
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <span class="material-symbols-rounded me-2">person_off</span>Geen gebruikers gevonden...
+                <span class="material-symbols-rounded me-2">person_off</span>Geen leden gevonden...
             </div>
         @endif
     </div>

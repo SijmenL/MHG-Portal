@@ -264,7 +264,8 @@
                                         </tr>
                                         <tr>
                                             <td style="padding-top: 20px;">
-                                            <p class="footer-text">Alle rechten voorbehouden | Waterscouting MHG © 2024</p>
+                                            <p class="footer-text">Alle rechten voorbehouden | Waterscouting MHG ©
+                                                {{ date("Y") }}</p>
                                             </td>
                                         </tr>
                                     </tbody></table>

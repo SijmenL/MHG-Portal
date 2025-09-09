@@ -13,7 +13,7 @@
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a
-                        href="{{route('admin.account-management')}}">Gebruikers</a></li>
+                        href="{{route('admin.account-management')}}">Leden</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Bewerk @if($account !== null)
                         {{$account->name}} {{$account->infix}} {{$account->last_name}}
                     @endif</li>
@@ -144,7 +144,7 @@
                                        class="user-select-window form-control @error('children') is-invalid @enderror"
                                        name="children" autocomplete="children">
                                 <div class="user-select-window-popup d-none">
-                                    <h3>Selecteer gebruikers</h3>
+                                    <h3>Selecteer Leden</h3>
                                     <div class="input-group">
                                         <label class="input-group-text" id="basic-addon1">
                                             <span class="material-symbols-rounded">search</span></label>
@@ -173,7 +173,7 @@
                                        class="user-select-window form-control @error('parents') is-invalid @enderror" name="parents"
                                        autocomplete="parents">
                                 <div class="user-select-window-popup d-none">
-                                    <h3>Selecteer gebruikers</h3>
+                                    <h3>Selecteer Leden</h3>
                                     <div class="input-group">
                                         <label class="input-group-text" id="basic-addon1">
                                             <span class="material-symbols-rounded">search</span></label>

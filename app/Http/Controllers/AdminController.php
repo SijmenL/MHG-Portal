@@ -37,6 +37,34 @@ class AdminController extends Controller
         return view('admin.admin', ['user' => $user, 'roles' => $roles, 'contact' => $contact, 'news' => $news, 'signup' => $signup]);
     }
 
+    // Notifications
+    public function notifications()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        return view('admin.notifications.send', ['user' => $user, 'roles' => $roles]);
+    }
+
+    public function notificationsSend(Request $request)
+    {
+        $request->validate([
+            'users' => 'integer|required',
+            'display_text' => 'string|required',
+        ]);
+
+        $user = User::findOrFail($request->users);
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Send notification', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, $request->display_text);
+
+        $notification = new Notification();
+        $notification->sendNotification(null, [$user->id], $request->display_text, '', '', 'admin');
+
+
+        return redirect()->route('admin.notifications')->with('success', 'Notificatie verzonden!');
+    }
+
     // Debug
     public function debugMail()
     {
@@ -598,11 +626,11 @@ class AdminController extends Controller
             }
         }
 
-        // Finally, paginate the users
-        $users = $usersQuery->paginate(25);
+        // export is een pagina, plus een totaal aantal
 
-        // Get all user IDs for the filtered users
-        $user_ids = $usersQuery->pluck('id');
+        $user_ids = $usersQuery->get(['id', 'email']);
+
+        $users = $usersQuery->paginate(25);
 
         $all_roles = Role::orderBy('role')->get();
 

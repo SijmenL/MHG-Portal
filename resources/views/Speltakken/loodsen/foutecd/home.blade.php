@@ -17,7 +17,7 @@
             <div class="player-controls">
                 <div class="car-radio">
                     <div class="marquee-container">
-                    <div class="radio-display marquee-text" id="radioDisplay">No dsic</div>
+                        <div class="radio-display marquee-text" id="radioDisplay">No disc</div>
                     </div>
                     <div class="radio-buttons">
                         <button id="restartButton" class="radio-button"><span
@@ -46,6 +46,11 @@
         </div>
 
         <script>
+            // This variable should be set by Laravel based on the authenticated user's role.
+            // Replace `auth()->check() && auth()->user()->hasRole('admin')` with your actual Laravel logic
+            // to determine if the current user has an admin role.
+            const IS_ADMIN = {{ auth()->check() && auth()->user()->roles->contains('role', 'Loodsen Stamoudste') ? 'true' : 'false' }};
+
             window.addEventListener('load', init);
 
             const audioPlayer = document.getElementById('audioPlayer');
@@ -92,7 +97,6 @@
             const coversContainer = document.getElementById('album-covers');
             const tracklistContainer = document.getElementById('tracklist');
 
-
             function init() {
                 console.log('Player initializing...');
                 fetch('{{ asset('foutecd/albums.json') }}')
@@ -101,8 +105,31 @@
                         return res.json();
                     })
                     .then(albums => {
-                        allAlbums = albums;
-                        // Populate allSongs list
+                        // Filter albums based on available_from date and admin status
+                        const currentDate = new Date();
+                        const filteredAlbums = albums.filter(album => {
+                            if (album.available_from) {
+                                let availableDate;
+                                // Attempt to parse as ISO 8601 first
+                                availableDate = new Date(album.available_from);
+
+                                // If parsing as ISO 8601 results in an invalid date, try DD-MM-YYYY
+                                if (isNaN(availableDate.getTime())) {
+                                    const [day, month, year] = album.available_from.split('-').map(Number);
+                                    availableDate = new Date(year, month - 1, day);
+                                }
+
+                                // If the available date is in the future AND the user is not an admin, filter it out
+                                if (availableDate > currentDate && !IS_ADMIN) {
+                                    return false;
+                                }
+                            }
+                            // Include the album if no available_from date, or if it's available, or if user is admin
+                            return true;
+                        });
+
+                        allAlbums = filteredAlbums; // Use the filtered albums
+                        // Populate allSongs list from filtered albums
                         allAlbums.forEach(album => {
                             album.songs.forEach(song => {
                                 allSongs.push({
@@ -115,7 +142,7 @@
                         renderAlbums(allAlbums);
                         updateRepeatButton();
                         updateShuffleButton();
-                        console.log('Albums loaded.');
+                        console.log('Albums loaded and filtered.');
                     })
                     .catch(err => {
                         retroPlayer.innerHTML = '<p style="color:red">Kon albums niet laden.</p>';
@@ -151,6 +178,7 @@
             }
 
             function playLoadingSound(callback, type) {
+                updateMediaSession('loading')
                 if (isPlayingLoadingSound) {
                     return;
                 }
@@ -197,13 +225,55 @@
                 }
             }
 
+            function updateMediaSession(type) {
+                if ('mediaSession' in navigator) {
+                    if (type === 'loading') {
+                        const metadata = {
+                            title: 'Loading disc',
+                        };
 
-            function togglePlayPause() {
+                        navigator.mediaSession.metadata = new MediaMetadata(metadata);
+
+                        navigator.mediaSession.setActionHandler('play', () => togglePlayPause('play'));
+                        navigator.mediaSession.setActionHandler('pause', () => togglePlayPause('pause'));
+                        navigator.mediaSession.setActionHandler('previoustrack', () => playPreviousSong());
+                        navigator.mediaSession.setActionHandler('nexttrack', () => playNextSong());
+                    } else {
+                        const song = currentSongs[currentIndex];
+                        const album = allAlbums[currentAlbumIndex];
+                        const artworkSrc = album?.image;
+
+
+                        const metadata = {
+                            title: song.title,
+                            artist: album?.album || 'Onbekend',
+                            album: album?.collection || 'Onbekend'
+                        };
+
+                        if (artworkSrc) {
+                            metadata.artwork = [{
+                                src: artworkSrc,
+                                sizes: '512x512',
+                                type: 'image/png'
+                            }];
+                        }
+
+                        navigator.mediaSession.metadata = new MediaMetadata(metadata);
+
+                        navigator.mediaSession.setActionHandler('play', () => togglePlayPause('play'));
+                        navigator.mediaSession.setActionHandler('pause', () => togglePlayPause('pause'));
+                        navigator.mediaSession.setActionHandler('previoustrack', () => playPreviousSong());
+                        navigator.mediaSession.setActionHandler('nexttrack', () => playNextSong());
+                    }
+                }
+            }
+
+            function togglePlayPause(type) {
                 if (isPlayingLoadingSound) {
                     return;
                 }
 
-                if (audioPlayer.paused) {
+                if (audioPlayer.paused || type === 'play') {
                     if (currentSongs.length > 0 && currentIndex !== -1) { // Prevent playing if no album is selected or no song selected
                         audioPlayer.play().catch(error => {
                             console.error("Error playing main audio:", error);
@@ -237,14 +307,14 @@
                     } else { // Repeat Off
                         console.log('Beginning of current list. Repeat Off. Moving to previous album.');
                         // Move to the next album
-                        const nextAlbumIndex = (currentAlbumIndex - 1) % allAlbums.length;
+                        const nextAlbumIndex = (currentAlbumIndex - 1 + allAlbums.length) % allAlbums.length; // Ensure positive index
                         handleAlbumClick(nextAlbumIndex, allAlbumElements[nextAlbumIndex], 'last'); // handleAlbumClick will load and play the first song of the next album
                         return; // Stop further processing in this function
 
                     }
                 }
 
-                 // Play the previous song and add to history
+                // Play the previous song and add to history
             }
 
             function playNextSong() {
@@ -358,9 +428,10 @@
                 });
 
                 // Find the index of the album that contains the song
-                    let currentAlbumIndex = allAlbums.findIndex(album =>
-                    album.songs.some(song => song.title === currentSongTitle)
+                currentAlbumIndex = allAlbums.findIndex(album =>
+                    album.songs.some(searchSong => searchSong.filename === song.filename)
                 );
+
 
                 if (currentAlbumIndex !== -1) {
                     const targetElement = allAlbumElements[currentAlbumIndex];
@@ -377,6 +448,7 @@
                     });
                 }
 
+                updateMediaSession()
             }
 
 
@@ -595,7 +667,6 @@
                         // We don't need to call playSong again here, it should continue playing.
                         // Just ensure the tracklist is updated to show the new order with the current song at the top.
                         renderTracklist(currentAlbumIndex !== -1 ? allAlbums[currentAlbumIndex] : null);
-                        // The highlight is handled within renderTracklist
                     } else if (!audioPlayer.paused && audioPlayer.src && shuffleMode === 0 && !wasShuffleOff) {
                         // Switched from shuffle back to off, song should ideally stay the same if in the album
                         // rebuildCurrentSongs already handles finding the song in the non-shuffled list
@@ -983,4 +1054,6 @@
 
         </style>
     </div>
+
+
 @endsection

@@ -218,6 +218,8 @@ pre {
     display: flex;
     justify-content: center;
     align-items: center;
+    top: 122px;
+    left: 0;
 }
 
 .popup-body {

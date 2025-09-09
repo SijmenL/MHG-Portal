@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AfterloodsenController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\LeidingController;
 use App\Http\Controllers\LessonController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DolfijnenController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\InsigneController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\ZeeverkennerController;
 use Illuminate\Support\Facades\Auth;
@@ -43,9 +43,8 @@ Route::get('/nieuws/overzicht', [NewsController::class, 'viewNewsPage'])->name('
 
 Route::get('/agenda/public/maand', [AgendaController::class, 'agendaMonthPublic'])->name('agenda.public.month');
 Route::get('/agenda/public/overzicht', [AgendaController::class, 'agendaSchedulePublic'])->name('agenda.public.schedule');
-Route::get('/agenda/public/activiteit/{id}', [AgendaController::class, 'agendaActivityPublic'])->name('agenda.public.activity');
 
-
+Route::get('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'agendaActivityPublic'])->name('agenda.public.activity');
 Route::post('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'handleActivityForm'])->name('agenda.activity.submit');
 
 Route::get('/agenda/feed/{token}.ics', [AgendaController::class, 'exportFeed'])->name('agenda.feed');
@@ -135,6 +134,17 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::delete('/files/{location}/{fileId}', [FileController::class, 'destroyFile'])->name('files.destroy');
+    Route::get('/files/access/{location}/{fileId}', [FileController::class, 'toggleFileAccess'])->name('files.toggle-access');
+
+    Route::get('/files/{file}/download', [FileController::class, 'downloadFile'])->name('files.download');
+    Route::get('/files/{folder}/zip', [FileController::class, 'downloadFolder'])->name('files.zip');
+
+    Route::post('/files/{fileableType}/{filableId}', [FileController::class, 'filesStore'])->name('files.store');
+
+});
+
 Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
     Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
@@ -152,7 +162,6 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 
 
 });
-
 
 
 
@@ -184,9 +193,6 @@ Route::middleware(['checkLesson'])->group(function () {
 
 
     Route::get('/lessen/omgeving/{lessonId}/bestanden', [LessonController::class, 'files'])->name('lessons.environment.lesson.files');
-    Route::post('/lessen/omgeving/{lessonId}/bestanden', [LessonController::class, 'filesStore'])->name('lessons.environment.lesson.files.store');
-    Route::delete('/lessen/omgeving/{lessonId}/bestanden/{fileId}', [LessonController::class, 'filesDestroy'])->name('lessons.environment.lesson.files.destroy');
-    Route::get('/lessen/omgeving/{lessonId}/bestanden/{fileId}/beschikbaarheid', [LessonController::class, 'toggleFileAccess'])->name('lessons.environment.lesson.files.toggle-access');
 
     Route::get('/lessen/omgeving/{lessonId}/examens', [LessonController::class, 'results'])->name('lessons.environment.lesson.results');
     Route::post('/lessen/omgeving/{lessonId}/examens', [LessonController::class, 'storeTest'])->name('lessons.environment.lesson.results.store');
@@ -228,6 +234,10 @@ Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
 
     Route::get('/administratie/debug/mail', [AdminController::class, 'debugMail'])->name('admin.debug.mail');
     Route::get('/administratie/debug/mail/{id}', [AdminController::class, 'mail'])->name('admin.debug.mail.view');
+
+    Route::get('/administratie/notificaties', [AdminController::class, 'notifications'])->name('admin.notifications');
+    Route::post('/administratie/notificaties', [AdminController::class, 'notificationsSend'])->name('admin.notifications.send');
+
 
     // Content
     Route::get('/administratie/contact', [AdminController::class, 'contact'])->name('admin.contact');
