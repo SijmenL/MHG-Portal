@@ -16,12 +16,12 @@ class FileController extends Controller
     /**
      * Display a listing of the files.
      */
-    public function index($fileableId, $fileableType, $folderId)
+    public function index($locationId, $location, $folderId)
     {
-        $modelClass = "App\\Models\\" . ucfirst($fileableType);
-        $fileable = $modelClass::findOrFail($fileableId);
-
-        $files = $fileable->files()->where('folder_id', $folderId)->get();
+        $files = File::where('location', $location)
+            ->where('location_id', $locationId)
+            ->where('folder_id', $folderId)
+            ->get();
 
         $files = $files->sort(function ($a, $b) {
             if ($a->type != $b->type) {
@@ -32,7 +32,7 @@ class FileController extends Controller
         })->values();
 
 
-        $breadcrumbs = $this->generateBreadcrumbs($fileableId, $fileableType, $folderId);
+        $breadcrumbs = $this->generateBreadcrumbs($locationId, $location, $folderId);
 
         return [
             'files' => $files,
@@ -43,33 +43,146 @@ class FileController extends Controller
     /**
      * Generate breadcrumbs based on folder hierarchy.
      */
-    private function generateBreadcrumbs($fileableId, $fileableType, $folderId)
+    private function generateBreadcrumbs($locationId, $location, $folderId)
     {
         $breadcrumbs = [];
-
-        // Eerste crumb: root
-        $breadcrumbs[] = [
-            'name' => 'Bestanden',
-            'url' => route('lessons.environment.lesson.files', [
-                'lessonId' => $fileableId,
-                'folder' => null, // of laat folder weg, hangt af van je route
-            ]),
-        ];
-
-        // Start vanaf huidige folder
-        $currentFolder = $folderId ? File::find($folderId) : null;
-
-        // Loop omhoog in de hiërarchie
-        $trail = [];
-        while ($currentFolder) {
-            $trail[] = [
-                'name' => $currentFolder->file_name,
+        if ($location === "Lesson") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
                 'url' => route('lessons.environment.lesson.files', [
-                    'lessonId' => $fileableId,
-                    'folder' => $currentFolder->id,
+                    'lessonId' => $locationId,
+                    'folder' => null,
                 ]),
             ];
+        }
+        if ($location === "Archive") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('archive', [
+                    'folder' => null,
+                ]),
+            ];
+        }
+        if ($location === "Admin") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('admin.files', [
+                    'folder' => null,
+                ]),
+            ];
+        }
+        if ($location === "Dolfijnen") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('dolfijnen.files', [
+                    'folder' => null,
+                ]),
+            ];
+        }
+        if ($location === "Zeeverkenners") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('zeeverkenners.files', [
+                    'folder' => null,
+                ]),
+            ];
+        }
+        if ($location === "Loodsen") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('loodsen.files', [
+                    'folder' => null,
+                ]),
+            ];
+        }
+        if ($location === "Afterloodsen") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('afterloodsen.files', [
+                    'folder' => null,
+                ]),
+            ];
+        }
+        if ($location === "Leiding") {
+            $breadcrumbs[] = [
+                'name' => 'Bestanden',
+                'url' => route('leiding.files', [
+                    'folder' => null,
+                ]),
+            ];
+        }
 
+
+        $currentFolder = $folderId ? File::find($folderId) : null;
+
+
+        $trail = [];
+        while ($currentFolder) {
+            if ($location === "Lesson") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('lessons.environment.lesson.files', [
+                        'lessonId' => $locationId,
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Archive") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('archive', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Admin") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('admin.files', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Dolfijnen") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('dolfijnen.files', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Zeeverkenners") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('zeeverkenners.files', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Loodsen") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('loodsen.files', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Afterloodsen") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('afterloodsen.files', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
+            if ($location === "Leiding") {
+                $trail[] = [
+                    'name' => $currentFolder->file_name,
+                    'url' => route('leiding.files', [
+                        'folder' => $currentFolder->id,
+                    ]),
+                ];
+            }
             $currentFolder = $currentFolder->parent; // parent-relatie in File model
         }
 
@@ -87,12 +200,9 @@ class FileController extends Controller
      * Store a newly created file, folder or hyperlink in storage.
      */
 
-    public function filesStore(Request $request, $fileableType, $fileableId)
+    public function filesStore(Request $request, $location, $locationId)
     {
         try {
-            $modelClass = "App\\Models\\" . ucfirst($fileableType);
-            $fileable = $modelClass::findOrFail($fileableId);
-
             $request->validate([
                 'type' => 'required',
                 'folder_id' => 'nullable|exists:files,id',
@@ -106,9 +216,10 @@ class FileController extends Controller
                     $request->validate(['file' => 'required|array', 'file.*' => 'file']);
 
                     foreach ($request->file('file') as $uploadedFile) {
-                        $filePath = Storage::disk('public')->putFile($fileableType . '/' . $fileable->id, $uploadedFile);
+                        $filePath = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
                         $newFile = new File();
-                        $newFile->fileable()->associate($fileable);
+                        $newFile->location = $location;
+                        $newFile->location_id = $locationId;
                         $newFile->folder_id = $folderId;
                         $newFile->file_name = $uploadedFile->getClientOriginalName();
                         $newFile->file_path = $filePath;
@@ -122,7 +233,8 @@ class FileController extends Controller
                 case '1':
                     $request->validate(['file' => 'required|url', 'title' => 'required']);
                     $newFile = new File();
-                    $newFile->fileable()->associate($fileable);
+                    $newFile->location = $location;
+                    $newFile->location_id = $locationId;
                     $newFile->folder_id = $folderId;
                     $newFile->file_name = $request->input('title');
                     $newFile->file_path = $request->input('file');
@@ -135,7 +247,8 @@ class FileController extends Controller
                 case '2':
                     $request->validate(['title' => 'required']);
                     $newFile = new File();
-                    $newFile->fileable()->associate($fileable);
+                    $newFile->location = $location;
+                    $newFile->location_id = $locationId;
                     $newFile->folder_id = $folderId;
                     $newFile->file_name = $request->input('title');
                     $newFile->file_path = "";
@@ -162,7 +275,8 @@ class FileController extends Controller
                         ->first();
                     if (!$parentFolder) {
                         $parentFolder = new File();
-                        $parentFolder->fileable()->associate($fileable);
+                        $parentFolder->location = $location;
+                        $parentFolder->location_id = $locationId;
                         $parentFolder->folder_id = $folderId;
                         $parentFolder->file_name = $baseFolderName;
                         $parentFolder->file_path = "";
@@ -182,10 +296,11 @@ class FileController extends Controller
                             $existingFolder = $currentParent->children()->where('file_name', $folderName)->first();
                             if (!$existingFolder) {
                                 $newFolder = new File();
-                                $newFolder->fileable()->associate($fileable);
+                                $newFolder->location = $location;
+                                $newFolder->location_id = $locationId;
                                 $newFolder->folder_id = $currentParent->id;
                                 $newFolder->file_name = $folderName;
-                                $newFolder->file_path = Storage::disk('public')->putFile($fileableType . '/' . $fileable->id, $uploadedFile);
+                                $newFolder->file_path = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
                                 $newFolder->user_id = Auth::id();
                                 $newFolder->type = 2;
                                 $newFolder->access = $request->input('access');
@@ -195,9 +310,10 @@ class FileController extends Controller
                                 $currentParent = $existingFolder;
                             }
                         }
-                        $filePath = Storage::disk('public')->putFile($fileableType . '/' . $fileable->id, $uploadedFile);
+                        $filePath = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
                         $newFile = new File();
-                        $newFile->fileable()->associate($fileable);
+                        $newFile->location = $location;
+                        $newFile->location_id = $locationId;
                         $newFile->folder_id = $currentParent->id;
                         $newFile->file_name = $uploadedFile->getClientOriginalName();
                         $newFile->file_path = $filePath;
@@ -211,7 +327,7 @@ class FileController extends Controller
         } catch (\Exception $e) {
             // Log the exception for debugging purposes if needed
             \Log::error('Error in filesStore: ' . $e->getMessage());
-
+            return redirect()->back()->with('error', 'Toevoegen mislukt.');
         }
     }
 

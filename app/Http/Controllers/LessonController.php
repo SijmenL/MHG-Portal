@@ -421,7 +421,6 @@ class LessonController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
         $lesson = Lesson::findOrFail($lessonId);
 
-        // All access control logic remains here
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
             $lesson->user_id === $user->id ||
@@ -439,7 +438,7 @@ class LessonController extends Controller
         if ($folderId !== null) {
             $currentFolder = File::find($folderId);
 
-            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->fileable_id !== (int)$lessonId) {
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location_id !== (int)$lessonId) {
                 return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Deze map bestaat niet.');
             }
             if ($currentFolder->access === "teachers" && !$isTeacher) {
@@ -449,7 +448,7 @@ class LessonController extends Controller
 
         // Use the FileController to get the file data
         $fileController = new FileController();
-        $fileData = $fileController->index($lesson->id, 'lesson', $folderId);
+        $fileData = $fileController->index($lesson->id, 'Lesson', $folderId);
 
         return view('lessons.environments.files', [
             'user' => $user,

@@ -31,7 +31,13 @@
             </div>
         @endif
 
+
+
         @if($account !== null)
+            @if($account->is_associate == 1)
+        <div class="alert alert-primary">Je bewerkt een relatie.
+                    </div>
+            @endif
             <form method="POST" action="{{ route('admin.account-management.store', $account) }}"
                   enctype="multipart/form-data">
                 @csrf
@@ -326,15 +332,16 @@
                     <a href="{{ route('admin.account-management.details', ['id' => $account->id]) }}"
                        class="btn btn-danger text-white">Annuleren</a>
                     <a href="{{ route('admin.account-management.password', ['id' => $account->id]) }}"
-                       class="btn btn-dark text-white">Wijzig wachtwoord</a>
+                       class="btn btn-dark text-white">@if($account->is_associate == 1) Zet de relatie om naar een normaal account @else Wijzig wachtwoord @endif</a>
                     <a class="delete-button btn btn-outline-danger"
                        data-id="{{ $account->id }}"
                        data-name="{{ $account->name . ' ' . $account->infix . ' ' . $account->last_name }}"
                        data-link="{{ route('admin.account-management.delete', $account->id) }}">Verwijderen</a>
                 </div>
 
+                @if($account->is_associate != 1)
                 <p class="mt-2">Wanneer je op 'Opslaan' drukt, krijgt de gebruiker hier een notificatie van.</p>
-
+                @endif
                 @else
                     <div class="alert alert-warning d-flex align-items-center" role="alert">
                         <span class="material-symbols-rounded me-2">person_off</span>Geen account gevonden...

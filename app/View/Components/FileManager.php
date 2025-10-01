@@ -30,11 +30,11 @@ class FileManager extends Component
     public $folderId;
 
     /**
-     * The lesson.
+     * If the user has admin capabilities.
      *
-     * @var \App\Models\Lesson
+     * @var bool
      */
-    public $lesson;
+    public $hasAdminViewers;
 
     /**
      * If the user has admin capabilities.
@@ -78,12 +78,22 @@ class FileManager extends Component
      */
     public $locationId;
 
-    public function __construct($files, $breadcrumbs, $folderId = null, $lesson, $isAdmin, $storageUrl, $adminName, $nonAdminName, $location, $locationId = null)
-    {
+    public function __construct(
+        $files,
+        $breadcrumbs,
+        $hasAdminViewers,
+        $storageUrl,
+        $location,
+        $folderId = null,
+        $isAdmin = false,
+        $adminName = "Administratie",
+        $nonAdminName = "Administratie",
+        $locationId = null
+    ) {
         $this->files = $files;
         $this->breadcrumbs = $breadcrumbs;
         $this->folderId = $folderId;
-        $this->lesson = $lesson;
+        $this->hasAdminViewers = $hasAdminViewers;
         $this->isAdmin = $isAdmin;
         $this->adminName = $adminName;
         $this->nonAdminName = $nonAdminName;

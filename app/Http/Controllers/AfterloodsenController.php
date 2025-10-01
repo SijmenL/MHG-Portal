@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\UsersExport;
 use App\Models\Comment;
+use App\Models\File;
 use App\Models\Log;
 use App\Models\Notification;
 use App\Models\Post;
@@ -315,6 +316,42 @@ class AfterloodsenController extends Controller
         $leiding = $hoofdleiding->merge($penningmeester)->merge($other_leiding);
 
         return view('speltakken.afterloodsen.leiding', ['user' => $user, 'leiding' => $leiding]);
+    }
+
+    public function files(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $adminRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider', 'Afterloodsen Organisator'];
+        $isAdmin = $roles->whereIn('role', $adminRoles)->isNotEmpty();
+
+
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Afterloodsen") {
+                return redirect()->route('afterloodsen.files')->with('error', 'Deze map bestaat niet.');
+            }
+            if ($currentFolder->access === "teachers" && !$isAdmin) {
+                return redirect()->route('afterloodsen.files')->with('error', 'Je hebt geen toegang tot deze map.');
+            }
+        }
+
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index(0, 'Afterloodsen', $folderId);
+
+        return view('speltakken.afterloodsen.files', [
+            'user' => $user,
+            'roles' => $roles,
+            'files' => $fileData['files'],
+            'isAdmin' => $isAdmin,
+            'folderId' => $folderId,
+            'breadcrumbs' => $fileData['breadcrumbs'],
+        ]);
     }
 
     public function group()

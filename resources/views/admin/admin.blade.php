@@ -22,6 +22,16 @@
             </div>
         @endif
         <div class="bg-light rounded-2 p-3">
+            <h2>Bestanden</h2>
+            <div class="quick-action-bar">
+                <a class="btn btn-dark quick-action" href="{{ route('admin.files') }}">
+                    <span class="material-symbols-rounded">folder_open</span>
+                    <p>Bestanden</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-light rounded-2 p-3">
             <h2>Content</h2>
             <div class="quick-action-bar">
                 <a class="btn btn-info quick-action" href="{{ route('admin.contact') }}">
@@ -72,6 +82,10 @@
                 <a class="btn btn-admin quick-action" href="{{ route('admin.create-account') }}">
                     <span class="material-symbols-rounded">person_add</span>
                     <p>Maak account</p>
+                </a>
+                <a class="btn btn-admin quick-action" href="{{ route('admin.create-associate') }}">
+                    <span class="material-symbols-rounded">person_add_disabled</span>
+                    <p>Maak relatie aan</p>
                 </a>
                 <a class="btn btn-admin quick-action" href="{{ route('admin.role-management') }}">
                     <span class="material-symbols-rounded">account_circle</span>

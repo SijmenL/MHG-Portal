@@ -14,15 +14,11 @@ class File extends Model
         'type',
         'access',
         'folder_id',
-        'fileable_id',
-        'fileable_type',
+        'location',
+        'location_id',
         'user_id'
     ];
 
-    public function fileable()
-    {
-        return $this->morphTo();
-    }
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -34,38 +30,6 @@ class File extends Model
     public function children()
     {
         return $this->hasMany(File::class, 'folder_id');
-    }
-
-    public function checkAccess($user = null, $action = 'view')
-    {
-        $user ??= Auth::user();
-
-        // 1. File-level access
-        if ($this->access === 'teachers' && !$user->isTeacher()) {
-            return false;
-        }
-
-        // 2. Based on fileable type
-        if ($this->fileable_type === 'App\\Models\\Lesson') {
-            $lesson = $this->fileable;
-
-            if ($action === 'edit') {
-                // Only teachers can modify files in a lesson
-                return $user->isTeacher() && method_exists($lesson, 'checkLessonAccess')
-                    ? $lesson->checkLessonAccess($user->id)
-                    : false;
-            }
-
-            // 'view' mode
-            return method_exists($lesson, 'checkLessonAccess')
-                ? $lesson->checkLessonAccess($user->id)
-                : true;
-        }
-
-        // 3. Other fileable types...
-        // You can add additional rules for edit/view
-
-        return true;
     }
 
 }

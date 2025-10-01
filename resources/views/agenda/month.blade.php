@@ -326,6 +326,9 @@
                                     if ($activity->should_highlight) {
                                         $activityClass .= ' calendar-event-highlight';
                                     }
+                                    if ($activity->is_birthday) {
+                                        $activityClass .= ' calendar-birthday';
+                                    }
 
                                     // If lesson_id exists, load lesson info and adjust classes accordingly.
                                     $lessonActivity = $activity->lesson;
@@ -372,6 +375,7 @@
                                     $compositeKey = $activity->id . '-' . $activitiesStart->format('Y-m-d');
                                 @endphp
 
+                            @if(!$activity->is_birthday)
                                 <a href="{{ route('agenda.activity', $routeParams) }}"
                                    style="top: {{ 40 + ($activityPositions[$compositeKey] ?? 0) * 35 }}px;"
                                    data-event-id="{{ $activity->id }}"
@@ -390,6 +394,19 @@
                                         </div>
                                     @endif
                                 </a>
+                                @else
+                                    <div style="top: {{ 40 + ($activityPositions[$compositeKey] ?? 0) * 35 }}px;"
+                                       data-event-id="{{ $activity->id }}"
+                                       data-event-start="{{ $formattedStart }}"
+                                       data-event-start-date="{{ $activitiesStart->format('Y-m-d') }}"
+                                       data-event-end="{{ $formattedEnd }}"
+                                       data-title="{{ $activityTitle }}"
+                                       class="{{ $activityClass }}">
+                                            <div class="calendar-event-title">
+                                                <span>{{ $activityTitle }} </span>
+                                            </div>
+                                    </div>
+                                @endif
                             @endforeach
                         @endif
                     </div>

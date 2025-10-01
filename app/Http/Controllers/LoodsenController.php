@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\UsersExport;
 use App\Models\Comment;
+use App\Models\File;
 use App\Models\FlunkyDJMusic;
 use App\Models\Log;
 use App\Models\Notification;
@@ -365,6 +366,42 @@ class LoodsenController extends Controller
             'user_ids' => $user_ids,
             'search' => $search,
             'selected_role' => $selected_role,
+        ]);
+    }
+
+    public function files(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $adminRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider', 'Loodsen Stamoudste', 'Loodsen Penningmeester', 'Loodsen Mentor'];
+        $isAdmin = $roles->whereIn('role', $adminRoles)->isNotEmpty();
+
+
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Loodsen") {
+                return redirect()->route('loodsen.files')->with('error', 'Deze map bestaat niet.');
+            }
+            if ($currentFolder->access === "teachers" && !$isAdmin) {
+                return redirect()->route('loodsen.files')->with('error', 'Je hebt geen toegang tot deze map.');
+            }
+        }
+
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index(0, 'Loodsen', $folderId);
+
+        return view('speltakken.loodsen.files', [
+            'user' => $user,
+            'roles' => $roles,
+            'files' => $fileData['files'],
+            'isAdmin' => $isAdmin,
+            'folderId' => $folderId,
+            'breadcrumbs' => $fileData['breadcrumbs'],
         ]);
     }
 

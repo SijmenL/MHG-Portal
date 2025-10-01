@@ -2,13 +2,14 @@
     'files',
     'breadcrumbs',
     'folderId',
-    'lesson',
     'isAdmin',
     'adminName',
     'nonAdminName',
-    'storageUrl'
+    'storageUrl',
+    'hasAdminViewers'
 ])
 
+{{--{{ dd(ini_get('max_file_uploads')) }}--}}
 
 <div id="popup-upload" class="popup d-none" style="margin-top: -122px">
     <div class="popup-body">
@@ -39,11 +40,13 @@
                     <div class="d-flex flex-column gap-3 align-items-center justify-content-center">
                         <div class="d-flex flex-row gap-4 align-items-center justify-content-center">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="upload-option" id="upload-files" value="files" checked>
+                                <input class="form-check-input" type="radio" name="upload-option" id="upload-files"
+                                       value="files" checked>
                                 <label class="form-check-label" for="upload-files">Bestanden</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="upload-option" id="upload-folder" value="folder">
+                                <input class="form-check-input" type="radio" name="upload-option" id="upload-folder"
+                                       value="folder">
                                 <label class="form-check-label" for="upload-folder">Map</label>
                             </div>
                         </div>
@@ -55,19 +58,24 @@
                             </div>
                             <div id="folder-upload-container" class="d-none">
                                 <label for="folder-input">Kies een map om te uploaden</label>
-                                <input type="file" name="folder_upload[]" multiple class="form-control" id="folder-input" directory webkitdirectory>
+                                <input type="file" name="folder_upload[]" multiple class="form-control"
+                                       id="folder-input" directory webkitdirectory>
                             </div>
                             <input type="hidden" name="type" id="upload-type" value="0">
                             <input type="hidden" name="folder_id" value="{{ $folderId }}">
                             <input type="hidden" name="folder_paths" id="folder-paths-input">
                         </div>
+                        @if($hasAdminViewers)
                         <div class="form-group">
                             <label for="access">Toegang</label>
-                            <select name="access" class="form-control" id="access">
+                            <select name="access" class="form-control" id="access" >
+                                <option value="teachers" selected>Alleen {{ $adminName }}</option>
                                 <option value="all">Iedereen</option>
-                                <option value="teachers">Alleen {{ $adminName }}</option>
                             </select>
                         </div>
+                        @else
+                            <input type="hidden" name="access" value="all">
+                        @endif
                     </div>
                     <div class="progress mt-3" style="display: none;">
                         <div class="progress-bar progress-bar-striped bg-success progress-bar-animated h-100"
@@ -89,7 +97,7 @@
 
             <div class="text-start tab-pane" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
                 <h2 class="text-center">Hyperlink toevoegen</h2>
-                <p class="text-center">Vul een url in waarvan we een link kunnen maken</p>
+                <p class="text-center">Vul een url in waarvan we een link kunnen maken. Het moet een geldige url zijn, inclusief <code>https://www.</code></p>
                 <form method="post" action="{{ route('files.store', [$location, $locationId]) }}"
                       enctype="multipart/form-data">
                     @csrf
@@ -104,6 +112,7 @@
                             <label for="title">Weergavenaam</label>
                             <input type="text" name="title" class="form-control">
                         </div>
+                        @if($hasAdminViewers)
                         <div class="form-group w-100">
                             <label for="access">Toegang</label>
                             <select name="access" class="form-control" id="access">
@@ -111,6 +120,9 @@
                                 <option value="teachers">Alleen {{ $adminName }}</option>
                             </select>
                         </div>
+                        @else
+                            <input type="hidden" name="access" value="all">
+                        @endif
                     </div>
 
                     <div class="button-container justify-content-center">
@@ -139,6 +151,7 @@
                             <input type="hidden" name="type" value="2">
                             <input type="hidden" name="folder_id" value="{{ $folderId }}">
                         </div>
+                        @if($hasAdminViewers)
                         <div class="form-group w-100">
                             <label for="access">Toegang</label>
                             <select name="access" class="form-control" id="access">
@@ -146,6 +159,9 @@
                                 <option value="teachers">Alleen {{ $adminName }}</option>
                             </select>
                         </div>
+                        @else
+                            <input type="hidden" name="access" value="all">
+                        @endif
                     </div>
 
                     <div class="button-container justify-content-center">
@@ -164,243 +180,274 @@
     </div>
 </div>
 
-    <div>
-        <div class="file-manager bg-light p-2 rounded">
-            <div class="file-tools">
-                <div style="transform: translateY(9px)">
-                    @if (!isset($folderId))
-                        <h2 class="no-mobile">Bestanden</h2>
-                    @else
-                        <h2 class="no-mobile"><a>{{ last($breadcrumbs)['name'] }}</a></h2>
-                    @endif
-
-                    <div aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            @if(isset($folderId))
-                                @foreach ($breadcrumbs as $breadcrumb)
-                                    @if (!$loop->last)
-                                        <li class="breadcrumb-item">
-                                            <a href="{{ $breadcrumb['url'] }}">{{ $breadcrumb['name'] }}</a>
-                                        </li>
-                                    @else
-                                        <li class="breadcrumb-item active">
-                                            <a>{{ $breadcrumb['name'] }}</a>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            @endif
-                        </ol>
-                    </div>
-                </div>
-
-                @if($isAdmin)
-                    <div class="dropdown d-flex flex-row-reverse" style="min-width: 50%">
-                        <button
-                            class="btn btn-outline-dark d-flex flex-row gap-2 align-items-center justify-content-center"
-                            type="button" style="display: flex !important;"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="material-symbols-rounded">add</span> <span>Nieuw toevoegen</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a id="popup-map-button" class="dropdown-item">
-                                    Map</a></li>
-                            <li><a id="popup-upload-button" class="dropdown-item">
-                                    Bestand uploaden</a></li>
-                            <li><a id="popup-hyperlink-button" class="dropdown-item">
-                                    Hyperlink toevoegen</a></li>
-                        </ul>
-                    </div>
+<div>
+    <div class="file-manager bg-light p-2 rounded">
+        <div class="file-tools">
+            <div style="transform: translateY(9px)">
+                @if (!isset($folderId))
+                    <h2 class="no-mobile">Bestanden</h2>
+                @else
+                    <h2 class="no-mobile"><a>{{ last($breadcrumbs)['name'] }}</a></h2>
                 @endif
+
+                <div aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @if(isset($folderId))
+                            @foreach ($breadcrumbs as $breadcrumb)
+                                @if (!$loop->last)
+                                    <li class="breadcrumb-item">
+                                        <a href="{{ $breadcrumb['url'] }}">{{ $breadcrumb['name'] }}</a>
+                                    </li>
+                                @else
+                                    <li class="breadcrumb-item active">
+                                        <a>{{ $breadcrumb['name'] }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+                        @endif
+                    </ol>
+                </div>
             </div>
 
-            @if(count($files) > 0)
-                <table class="table table-borderless">
-                    <thead>
-                    <tr class="bg-light">
-                        <th class="bg-light"></th>
-                        <th class="bg-light">Naam</th>
-                        <th class="no-mobile bg-light">Bestandsgrootte</th>
-                        @if($isAdmin)
-                            <th class="no-mobile bg-light">Gewijzigd</th>
-                            <th class="bg-light">Toegang</th>
+            @if($isAdmin)
+                <div class="dropdown d-flex flex-row-reverse" style="min-width: 50%">
+                    <button
+                        class="btn btn-outline-dark d-flex flex-row gap-2 align-items-center justify-content-center"
+                        type="button" style="display: flex !important;"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="material-symbols-rounded">add</span> <span>Nieuw toevoegen</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a id="popup-map-button" class="dropdown-item">
+                                Map</a></li>
+                        <li><a id="popup-upload-button" class="dropdown-item">
+                                Bestand(en) uploaden</a></li>
+                        <li><a id="popup-hyperlink-button" class="dropdown-item">
+                                Hyperlink toevoegen</a></li>
+                    </ul>
+                </div>
+            @endif
+        </div>
+
+        @php
+
+        $accessCount = 0;
+            foreach ($files as $file) {
+               if(!($file->access === 'teachers' && !$isAdmin)) {
+                    $accessCount++;
+               }
+            }
+
+        @endphp
+        @if($accessCount > 0)
+            <table class="table table-borderless">
+                <thead>
+                <tr class="bg-light">
+                    <th class="bg-light"></th>
+                    <th class="bg-light">Naam</th>
+                    <th class="no-mobile bg-light">Bestandsgrootte</th>
+                    @if($isAdmin)
+                        <th class="no-mobile bg-light">Gewijzigd</th>
+                        @if($hasAdminViewers)
+                        <th class="bg-light">Toegang</th>
                         @endif
-                        <th class="bg-light">Opties</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($files as $file)
-                        @if(!($file->access === 'teachers' && !$isAdmin))
-                            @php
-                                // Get the file extension
-                                $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
+                    @endif
+                    <th class="bg-light">Opties</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($files as $file)
+                    @if(!($file->access === 'teachers' && !$isAdmin))
+                        @php
+                            $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
+                            $isImage = in_array(strtolower($extension), ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico", "avif"]);
+                            $isVideo = in_array(strtolower($extension), ["mp4", "webm", "ogv", "mov"]);
+                            $isAudio = in_array(strtolower($extension), ["mp3", "wav", "ogg", "oga", "aac", "flac"]);
+                            $isPdf = in_array(strtolower($extension), ["html", "htm", "xhtml", "shtml", "txt", "md", "csv", "log", "pdf", "odt", "ods", "odp", "json", "xml", "yaml", "yml", "cs", "showm"]);
+                            $isOffice = in_array(strtolower($extension), ["doc", "docx", "xls", "xlsx", "ppt", "pptx"]);
 
-                                // Set default icon
-                                $icon = 'unknown.webp';
+                            $icon = 'unknown.webp';
 
-                                // Match the file extension to the correct icon
                                 if ($file->type === 0 || $file->type === null) {
                                     switch(strtolower($extension)) {
-                                        case 'pdf':
-                                            $icon = 'pdf.webp'; // PDF icon
-                                            break;
+                                        case 'pdf': $icon = 'pdf.webp'; break;
                                         case 'jpeg':
-                                        case 'jpg':
-                                            $icon = 'jpg.webp'; // Image icon
-                                            break;
-                                        case 'png':
-                                            $icon = 'png.webp';
-                                            break;
-                                        case 'webp':
-                                            $icon = 'webp.webp';
-                                            break;
-                                        case 'zip':
-                                            $icon = 'zip.webp'; // ZIP icon
-                                            break;
+                                        case 'jpg': $icon = 'jpg.webp'; break;
+                                        case 'png': $icon = 'png.webp'; break;
+                                        case 'webp': $icon = 'webp.webp'; break;
+                                        case 'zip': $icon = 'zip.webp'; break;
                                         case 'docx':
-                                        case 'doc':
-                                            $icon = 'doc.webp'; // Word document icon
-                                            break;
+                                        case 'doc': $icon = 'doc.webp'; break;
                                         case 'pptx':
-                                        case 'ppt':
-                                            $icon = 'ppt.webp'; // PowerPoint icon
-                                            break;
-                                        case 'mp4':
-                                            $icon = 'mp4.webp'; // Video icon
-                                            break;
-                                        case 'mov':
-                                            $icon = 'mov.webp'; // Video icon
-                                            break;
-                                        case 'mp3':
-                                            $icon = 'mp3.webp'; // Audio file icon
-                                            break;
-                                        case 'wav':
-                                            $icon = 'wav.webp'; // Audio file icon
-                                            break;
-                                        case 'xlsx':
-                                            $icon = 'xlsx.webp'; // Excel icon
-                                            break;
+                                        case 'ppt': $icon = 'ppt.webp'; break;
+                                        case 'mp4': $icon = 'mp4.webp'; break;
+                                        case 'mov': $icon = 'mov.webp'; break;
+                                        case 'mp3': $icon = 'mp3.webp'; break;
+                                        case 'wav': $icon = 'wav.webp'; break;
+                                        case 'xlsx': $icon = 'xlsx.webp'; break;
+                                        case 'showm': $icon = 'showm.webp'; break;
+                                        case 'exe': $icon = 'exe.webp'; break;
+                                        case 'html': $icon = 'html.webp'; break;
+                                        case 'css': $icon = 'css.webp'; break;
+                                        case 'js': $icon = 'js.webp'; break;
+                                        case 'psd':
+                                        case 'psb': $icon = 'psd.webp'; break;
+                                        case 'ai':
+                                        case 'bmp':
+                                        case 'eps':
+                                        case 'svg': $icon = 'ai.webp'; break;
+                                        default: $icon = 'unknown.webp'; break;
                                     }
-                                }
-
-                                if ($file->type === 1) {
+                                } elseif ($file->type === 1) {
                                     $icon = 'url.webp';
-                                }
-
-                                if ($file->type === 2) {
+                                } elseif ($file->type === 2) {
                                     $icon = 'folder.webp';
                                 }
-                            @endphp
-                            <tr class="file" style="cursor: pointer"
-                                data-link=" @if($file->type === 2)?folder={{ $file->id }} @elseif($file->type === 0 || $file->type === null) {{ $storageUrl . '/' . $file->file_path }} @else{{ $file->file_path }} @endif"
-                                data-target="@if($file->type === 2) _self @else _blank @endif">
-                                <td>
+                                $iconPath = asset('/files/file-icons/' . $icon);
+                        @endphp
+                        <tr class="file @if($isImage) file-image @endif @if($isVideo) file-video @endif @if($isAudio) file-audio @endif @if($isPdf) file-pdf @endif @if($isOffice) file-office @endif" style="cursor: pointer"
+                             data-link="@if($file->type === 2)?folder={{ $file->id }} @elseif($file->type === 0 || $file->type === null) {{ $storageUrl . '/' . $file->file_path }} @else{{ $file->file_path }} @endif"
+                             data-target="@if($file->type === 2) _self @else _blank @endif"
+                             @if($isImage)
+                                 data-is-image="true"
+                             data-image-src="{{ $storageUrl . '/' . $file->file_path }}"
+                            @endif
+                            @if($isVideo)
+                                data-is-video="true"
+                            data-video-src="{{ $storageUrl . '/' . $file->file_path }}"
+                            @endif
+                            @if($isAudio)
+                                data-is-audio="true"
+                            data-audio-src="{{ $storageUrl . '/' . $file->file_path }}"
+                            @endif
+                            @if($isPdf)
+                                data-is-pdf="true"
+                            data-pdf-src="{{ $storageUrl . '/' . $file->file_path }}"
+                            @endif
+                            @if($isOffice)
+                                data-is-office="true"
+                            data-office-src="{{ $storageUrl . '/' . $file->file_path }}"
+                            @endif
+                        >
+
+                        <td>
                                     <img style="width: clamp(25px, 50px, 5vw)" class="m-0" alt="file"
-                                         src="{{ asset('/files/lessons/file-icons/'.$icon) }}">
-                                </td>
-                                <td>
-                                    <span>{{ $file->file_name }}</span>
-                                </td>
+                                         src="{{ asset('/files/file-icons/'.$icon) }}">
+                            </td>
+                            <td>
+                                <span>{{ $file->file_name }}</span>
+                            </td>
+                            <td class="no-mobile">
+                                @if(isset($file->file_path) && $file->file_path !== "")
+                                    @if(Storage::disk('public')->exists($file->file_path))
+                                        <span>{{ number_format(Storage::disk('public')->size($file->file_path) / 1024 / 1024, 2) }} MB</span>
+                                    @endif
+                                @endif
+                            </td>
+                            @if($isAdmin)
                                 <td class="no-mobile">
-                                    @if(isset($file->file_path) && $file->file_path !== "")
-                                        @if(Storage::disk('public')->exists($file->file_path))
-                                            <span>{{ number_format(Storage::disk('public')->size($file->file_path) / 1024 / 1024, 2) }} MB</span>
-                                        @endif
+                                    <span>{{ $file->updated_at }}</span>
+                                </td>
+                                @if($hasAdminViewers)
+                                <td>
+                                    @if($file->access === 'teachers')
+                                        <span>{{ $adminName }}</span>
+                                    @else
+                                        <span>
+                                                {{ $nonAdminName }}</span>
                                     @endif
                                 </td>
-                                @if($isAdmin)
-                                    <td class="no-mobile">
-                                        <span>{{ $file->updated_at }}</span>
-                                    </td>
-                                    <td>
-                                        @if($file->access === 'teachers')
-                                            <span>{{ $adminName }}</span>
-                                        @else
-                                            <span>
-                                                {{ $nonAdminName }}</span>
-                                        @endif
-                                    </td>
                                 @endif
-                                <td class="has-dropdown" style="cursor: default">
-                                    @if($isAdmin)
+                            @endif
+                            <td class="has-dropdown" style="cursor: default">
+                                @if($isAdmin)
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opties
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if($file->type === 0 || $file->type === null)
+                                                <li><a class="dropdown-item"
+                                                       href="{{ route('files.download', ['file' => $file->id]) }}">Downloaden</a>
+                                                </li>
+                                            @elseif($file->type === 2)
+                                                <li><a class="dropdown-item"
+                                                       href="{{ route('files.zip', ['folder' => $file->id]) }}">Downloaden
+                                                        als ZIP</a></li>
+                                            @endif
+                                                @if($hasAdminViewers)
+                                            @if($file->access === 'teachers')
+                                                <li class="w-100"><a class="dropdown-item text-primary"
+                                                                     href="{{ route('files.toggle-access', [$location, $file->id]) }}">Maak
+                                                        beschikbaar voor {{ $nonAdminName }}</a></li>
+                                            @endif
+                                            @if($file->access === 'all' || $file->access === '')
+                                                <li class="w-100"><a class="dropdown-item text-primary"
+                                                                     href="{{ route('files.toggle-access', [$location, $file->id]) }}">Maak
+                                                        alleen beschikbaar voor {{ $adminName }}</a></li>
+                                            @endif
+                                                @endif
+                                            <li class="w-100">
+                                                <form
+                                                    action="{{ route('files.destroy', [$location, $file->id]) }}"
+                                                    method="POST" class="d-inline-block w-100">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger">Verwijderen
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                @else
+                                    @if($file->type === 0 || $file->type === null)
                                         <div class="dropdown">
                                             <button class="btn btn-outline-secondary dropdown-toggle" type="button"
                                                     data-bs-toggle="dropdown" aria-expanded="false">
                                                 Opties
                                             </button>
                                             <ul class="dropdown-menu">
-                                                @if($file->type === 0 || $file->type === null)
-                                                    <li><a class="dropdown-item" href="{{ route('files.download', ['file' => $file->id]) }}">Downloaden</a></li>
-                                                @elseif($file->type === 2)
-                                                    <li><a class="dropdown-item" href="{{ route('files.zip', ['folder' => $file->id]) }}">Downloaden als ZIP</a></li>
-                                                @endif
-                                                @if($file->access === 'teachers')
-                                                    <li class="w-100"><a class="dropdown-item text-primary"
-                                                                         href="{{ route('files.toggle-access', [$location, $file->id]) }}">Maak
-                                                            beschikbaar voor {{ $nonAdminName }}</a></li>
-                                                @endif
-                                                @if($file->access === 'all' || $file->access === '')
-                                                    <li class="w-100"><a class="dropdown-item text-primary"
-                                                                         href="{{ route('files.toggle-access', [$location, $file->id]) }}">Maak
-                                                            alleen beschikbaar voor {{ $adminName }}</a></li>
-                                                @endif
                                                 <li class="w-100">
-                                                    <form
-                                                        action="{{ route('files.destroy', [$location, $file->id]) }}"
-                                                        method="POST" class="d-inline-block w-100">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="dropdown-item text-danger">Verwijderen
-                                                        </button>
-                                                    </form>
+                                                    <a href="{{ route('files.download', ['file' => $file->id]) }}"
+                                                       class="dropdown-item">
+                                                        Downloaden
+                                                    </a>
                                                 </li>
                                             </ul>
                                         </div>
-                                    @else
-                                        @if($file->type === 0 || $file->type === null)
-                                            <div class="dropdown">
-                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Opties
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li class="w-100">
-                                                        <a href="{{ route('files.download', ['file' => $file->id]) }}" class="dropdown-item">
-                                                            Downloaden
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        @elseif($file->type === 2)
-                                            <div class="dropdown">
-                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Opties
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li class="w-100">
-                                                        <a href="{{ route('files.zip', ['folder' => $file->id]) }}" class="dropdown-item">
-                                                            Downloaden als ZIP
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        @endif
+                                    @elseif($file->type === 2)
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                Opties
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li class="w-100">
+                                                    <a href="{{ route('files.zip', ['folder' => $file->id]) }}"
+                                                       class="dropdown-item">
+                                                        Downloaden als ZIP
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     @endif
-                                </td>
-                            </tr>
-                        @endif
-                    @endforeach
-                    </tbody>
-                </table>
-            @else
-                <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
-                    <span class="material-symbols-rounded me-2">cloud_off</span>Er zijn nog geen bestanden
-                    toegevoegd aan
-                    deze map.
-                </div>
-            @endif
-        </div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endif
+                @endforeach
+                </tbody>
+            </table>
+        @else
+            <div class="alert alert-warning d-flex align-items-center mt-4" role="alert">
+                <span class="material-symbols-rounded me-2">cloud_off</span>Er zijn nog geen bestanden
+                toegevoegd aan
+                deze map.
+            </div>
+        @endif
     </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -434,7 +481,7 @@
             uploadPopup.classList.remove('d-none');
         }
 
-        if(uploadPopupButton !== null && hyperlinkPopupButton !== null && mapPopupButton !== null) {
+        if (uploadPopupButton !== null && hyperlinkPopupButton !== null && mapPopupButton !== null) {
             uploadPopupButton.addEventListener('click', () => showTab('tab1'));
             hyperlinkPopupButton.addEventListener('click', () => showTab('tab2'));
             mapPopupButton.addEventListener('click', () => showTab('tab3'));
@@ -459,7 +506,7 @@
         });
 
         uploadOptionRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
+            radio.addEventListener('change', function () {
                 if (this.value === 'files') {
                     filesUploadContainer.classList.remove('d-none');
                     folderUploadContainer.classList.add('d-none');
@@ -595,6 +642,10 @@
             }
             row.addEventListener('click', function (event) {
                 if (event.target.closest('.has-dropdown')) {
+                    return;
+                }
+                // Add this new condition to check for the 'file-image' class
+                if (event.target.closest('.file-image') || event.target.closest('.file-video')|| event.target.closest('.file-audio') || event.target.closest('.file-pdf')) {
                     return;
                 }
                 window.open(link, target);

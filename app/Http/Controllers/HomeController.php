@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\File;
+use App\Models\Lesson;
 use App\Models\Log;
 use App\Models\News;
 use App\Models\Notification;
@@ -79,6 +81,42 @@ class HomeController extends Controller
         $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         return view('home.credits', ['user' => $user, 'roles' => $roles]);
+    }
+
+    public function archive(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $adminRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider', 'Afterloodsen Organisator', 'Zeeverkenners Leiding', 'Dolfijnen Leiding', 'Loods'];
+        $isAdmin = $roles->whereIn('role', $adminRoles)->isNotEmpty();
+
+
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Archive") {
+                return redirect()->route('archive')->with('error', 'Deze map bestaat niet.');
+            }
+            if ($currentFolder->access === "teachers" && !$isAdmin) {
+                return redirect()->route('archive')->with('error', 'Je hebt geen toegang tot deze map.');
+            }
+        }
+
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index(0, 'Archive', $folderId);
+
+        return view('home.archive', [
+            'user' => $user,
+            'roles' => $roles,
+            'files' => $fileData['files'],
+            'isAdmin' => $isAdmin,
+            'folderId' => $folderId,
+            'breadcrumbs' => $fileData['breadcrumbs'],
+        ]);
     }
 
     public function notifications() {

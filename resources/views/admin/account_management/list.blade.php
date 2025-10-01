@@ -73,6 +73,7 @@
                         <select id="role" name="role" class="form-select"
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
                             <option value="none">Filter</option>
+                            <option @if($selected_role === 'associate') selected @endif value="associate">Relaties</option>
                             <option @if($selected_role === 'parent') selected @endif value="parent">Ouders</option>
                             <option @if($selected_role === 'parent_dolfijnen') selected @endif value="parent_dolfijnen">Ouders Dolfijnen</option>
                             <option @if($selected_role === 'parent_zeeverkenners') selected @endif value="parent_zeeverkenners">Ouders Zeeverkenners</option>
@@ -127,6 +128,10 @@
                             </th>
                             <th class="no-mobile">
                                 <div class="d-flex flex-row gap-1 flex-wrap">
+                                    @if($all_user->is_associate === 1)
+                                        <span title="Relatie"
+                                              class="badge rounded-pill bg-danger text-white fs-6 p-2">Relatie</span>
+                                    @endif
                                     @foreach ($all_user->roles as $role)
                                         <span title="{{ $role->description }}"
                                               class="badge rounded-pill text-bg-primary text-white fs-6 p-2">{{ $role->role }}</span>
@@ -153,7 +158,7 @@
                     </tbody>
                 </table>
             </div>
-            {{ $users->links() }}
+            {{ $users->appends(request()->query())->links() }}
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
                 <span class="material-symbols-rounded me-2">person_off</span>Geen leden gevonden...

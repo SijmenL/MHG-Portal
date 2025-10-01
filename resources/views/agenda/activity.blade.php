@@ -21,7 +21,7 @@
                                    'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad'
                                ]);
                            }) || $isTeacher)
-        <div id="popUpPresence" class="popup" style="margin-top: -122px; display: none;">
+        <div id="popUpPresence" class="popup" style="display: none; position: fixed; top: 0">
             <div class="popup-body" style="width: 97vw; height: 95vh">
                 <h2>Aanwezigheid {{ $activity->title }}</h2>
                 <div class="w-100" style="height: 100%; min-height: 0px">
@@ -43,7 +43,7 @@
         </div>
 
 
-        <div id="popUpSubmission" class="popup" style="margin-top: -122px; display: none">
+        <div id="popUpSubmission" class="popup" style="display: none; position: fixed; top: 0">
             <div class="popup-body" style="width: 97vw; height: 95vh">
                 <h2>Inschrijvingen {{ $activity->title }}</h2>
                 <div class="w-100" style="height: 100%; min-height: 0px">

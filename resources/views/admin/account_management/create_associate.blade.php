@@ -2,13 +2,13 @@
 
 @section('content')
     <div class="container col-md-11">
-        <h1>Maak account</h1>
+        <h1>Maak relatie aan</h1>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Maak account</li>
+                <li class="breadcrumb-item active" aria-current="page">Maak relatie aan</li>
             </ol>
         </nav>
 
@@ -23,15 +23,31 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.create-account-store') }}"
+
+        <div class="alert alert-primary">
+            <p>
+                Een <strong>relatie</strong> is iemand die bij de vereniging hoort, maar geen volledig account nodig heeft.
+                Relaties worden gewoon opgenomen in alle overzichten die horen bij hun toegewezen rollen.
+                Alleen binnen de administratieve omgeving van Portal is zichtbaar dat iemand een relatie is.
+                Relaties ontvangen <i>geen</i> notificaties van Portal.
+            </p>
+            <p>
+                Wil je een relatie later toch een normaal account geven?
+                Dan kan dit eenvoudig door een wachtwoord voor die persoon in te stellen.
+            </p>
+            <strong>
+                Let op: een relatie moet altijd een uniek e-mailadres hebben om conflicten binnen het systeem te voorkomen.
+            </strong>
+        </div>
+
+        <form method="POST" action="{{ route('admin.create-associate-store') }}"
               enctype="multipart/form-data">
             @csrf
             <div class="overflow-scroll no-scrolbar" style="max-width: 100vw">
                 <table class="table table-striped">
                     <tbody>
                     <tr>
-                        <th><label for="name" class="col-md-4 col-form-label ">Voornaam <span
-                                    class="text-danger">*</span></label></th>
+                        <th><label for="name" class="col-md-4 col-form-label ">Voornaam</label></th>
                         <th>
                             <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                                    name="name" value="{{ old('name') }}" autocomplete="name" autofocus>
@@ -73,7 +89,8 @@
                         <th>
                             <input id="dolfijnen_name" type="text"
                                    class="form-control @error('dolfijnen_name') is-invalid @enderror"
-                                   name="dolfijnen_name" value="{{ old('dolfijnen_name') }}" autocomplete="dolfijnen_name"
+                                   name="dolfijnen_name" value="{{ old('dolfijnen_name') }}"
+                                   autocomplete="dolfijnen_name"
                                    autofocus>
                             @error('dolfijnen_name')
                             <span class="invalid-feedback" role="alert">
@@ -85,18 +102,10 @@
                     <tr>
                         <th><label for="email" class="col-md-4 col-form-label ">E-mail <span
                                     class="text-danger">*</span></label></th>
-                        <th><input id="email" value="{{ old('email') }}" type="email" class="form-control @error('email') is-invalid @enderror" name="email"  autocomplete="email">
+                        <th><input id="email" value="{{ old('email') }}" type="email"
+                                   class="form-control @error('email') is-invalid @enderror" name="email"
+                                   autocomplete="email">
                             @error('email')
-                            <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                            @enderror</th>
-                    </tr>
-                    <tr>
-                        <th><label for="password" class="col-md-4 col-form-label ">Wachtwoord <span
-                                    class="text-danger">*</span></label></th>
-                        <th><input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password">
-                            @error('password')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
@@ -135,7 +144,8 @@
                     <tr>
                         <th><label for="sex" class="col-md-4 col-form-label ">Geslacht</label></th>
                         <th>
-                            <select id="sex" type="text" class="form-select @error('sex') is-invalid @enderror" name="sex" >
+                            <select id="sex" type="text" class="form-select @error('sex') is-invalid @enderror"
+                                    name="sex">
                                 <option @if(old('sex') === 'Man') selected @endif >Man</option>
                                 <option @if(old('sex') === 'Vrouw') selected @endif >Vrouw</option>
                                 <option @if(old('sex') === 'Anders') selected @endif >Anders</option>
@@ -149,7 +159,8 @@
                     </tr>
                     <tr>
                         <th><label for="birth_date" class="col-md-4 col-form-label ">Geboortedatum</label></th>
-                        <th><input id="birth_date" value="{{ old('birth_date') }}" type="date" class="form-control @error('birth_date') is-invalid @enderror" name="birth_date" >
+                        <th><input id="birth_date" value="{{ old('birth_date') }}" type="date"
+                                   class="form-control @error('birth_date') is-invalid @enderror" name="birth_date">
                             @error('birth_date')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -158,7 +169,8 @@
                     </tr>
                     <tr>
                         <th><label for="street" class="col-md-4 col-form-label ">Straat & huisnummer</label></th>
-                        <th><input id="street" value="{{ old('street') }}" type="text" class="form-control @error('street') is-invalid @enderror" name="street" >
+                        <th><input id="street" value="{{ old('street') }}" type="text"
+                                   class="form-control @error('street') is-invalid @enderror" name="street">
                             @error('street')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -167,7 +179,8 @@
                     </tr>
                     <tr>
                         <th><label for="postal_code" class="col-md-4 col-form-label ">Postcode</label></th>
-                        <th><input id="postal_code" value="{{ old('postal_code') }}" type="text" class="form-control @error('postal_code') is-invalid @enderror" name="postal_code" >
+                        <th><input id="postal_code" value="{{ old('postal_code') }}" type="text"
+                                   class="form-control @error('postal_code') is-invalid @enderror" name="postal_code">
                             @error('postal_code')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -176,7 +189,8 @@
                     </tr>
                     <tr>
                         <th><label for="city" class="col-md-4 col-form-label ">Woonplaats</label></th>
-                        <th><input id="city" value="{{ old('city') }}" type="text" class="form-control @error('city') is-invalid @enderror" name="city" >
+                        <th><input id="city" value="{{ old('city') }}" type="text"
+                                   class="form-control @error('city') is-invalid @enderror" name="city">
                             @error('city')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -185,7 +199,8 @@
                     </tr>
                     <tr>
                         <th><label for="phone" class="col-md-4 col-form-label ">Telefoonnummer</label></th>
-                        <th><input id="phone" value="{{ old('phone') }}" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" >
+                        <th><input id="phone" value="{{ old('phone') }}" type="text"
+                                   class="form-control @error('phone') is-invalid @enderror" name="phone">
                             @error('phone')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -194,7 +209,8 @@
                     </tr>
                     <tr>
                         <th><label for="avg" class="col-md-4 col-form-label ">AVG Toestemming</label></th>
-                        <th><select id="avg" type="text" class="form-select @error('avg') is-invalid @enderror" name="avg" >
+                        <th><select id="avg" type="text" class="form-select @error('avg') is-invalid @enderror"
+                                    name="avg">
                                 <option @if(old('avg') === '0') selected @endif value="0">Nee</option>
                                 <option @if(old('avg') === '1') selected @endif value="1">Ja</option>
                             </select>
@@ -207,7 +223,8 @@
                     </tr>
                     <tr>
                         <th><label for="member_date" class="col-md-4 col-form-label ">Lid sinds</label></th>
-                        <th><input id="member_date" value="{{ old('member_date') }}"  type="date" class="form-control @error('member_date') is-invalid @enderror" name="member_date">
+                        <th><input id="member_date" value="{{ old('member_date') }}" type="date"
+                                   class="form-control @error('member_date') is-invalid @enderror" name="member_date">
                             @error('member_date')
                             <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -242,14 +259,13 @@
                             handleButtonClick(this)"
                     class="btn btn-success flex flex-row align-items-center justify-content-center">
                     <span class="button-text">Opslaan</span>
-                    <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span style="display: none" class="loading-spinner spinner-border spinner-border-sm"
+                          aria-hidden="true"></span>
                     <span style="display: none" class="loading-text" role="status">Laden...</span>
                 </button>
                 <a href="{{ route('admin') }}"
                    class="btn btn-danger text-white">Annuleren</a>
-
             </div>
-
 
 
         </form>
