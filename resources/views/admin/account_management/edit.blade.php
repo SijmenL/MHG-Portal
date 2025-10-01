@@ -13,7 +13,7 @@
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a
-                        href="{{route('admin.account-management')}}">Gebruikers</a></li>
+                        href="{{route('admin.account-management')}}">Leden</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Bewerk @if($account !== null)
                         {{$account->name}} {{$account->infix}} {{$account->last_name}}
                     @endif</li>
@@ -31,7 +31,13 @@
             </div>
         @endif
 
+
+
         @if($account !== null)
+            @if($account->is_associate == 1)
+        <div class="alert alert-primary">Je bewerkt een relatie.
+                    </div>
+            @endif
             <form method="POST" action="{{ route('admin.account-management.store', $account) }}"
                   enctype="multipart/form-data">
                 @csrf
@@ -144,7 +150,7 @@
                                        class="user-select-window form-control @error('children') is-invalid @enderror"
                                        name="children" autocomplete="children">
                                 <div class="user-select-window-popup d-none">
-                                    <h3>Selecteer gebruikers</h3>
+                                    <h3>Selecteer Leden</h3>
                                     <div class="input-group">
                                         <label class="input-group-text" id="basic-addon1">
                                             <span class="material-symbols-rounded">search</span></label>
@@ -173,7 +179,7 @@
                                        class="user-select-window form-control @error('parents') is-invalid @enderror" name="parents"
                                        autocomplete="parents">
                                 <div class="user-select-window-popup d-none">
-                                    <h3>Selecteer gebruikers</h3>
+                                    <h3>Selecteer Leden</h3>
                                     <div class="input-group">
                                         <label class="input-group-text" id="basic-addon1">
                                             <span class="material-symbols-rounded">search</span></label>
@@ -326,15 +332,16 @@
                     <a href="{{ route('admin.account-management.details', ['id' => $account->id]) }}"
                        class="btn btn-danger text-white">Annuleren</a>
                     <a href="{{ route('admin.account-management.password', ['id' => $account->id]) }}"
-                       class="btn btn-dark text-white">Wijzig wachtwoord</a>
+                       class="btn btn-dark text-white">@if($account->is_associate == 1) Zet de relatie om naar een normaal account @else Wijzig wachtwoord @endif</a>
                     <a class="delete-button btn btn-outline-danger"
                        data-id="{{ $account->id }}"
                        data-name="{{ $account->name . ' ' . $account->infix . ' ' . $account->last_name }}"
                        data-link="{{ route('admin.account-management.delete', $account->id) }}">Verwijderen</a>
                 </div>
 
+                @if($account->is_associate != 1)
                 <p class="mt-2">Wanneer je op 'Opslaan' drukt, krijgt de gebruiker hier een notificatie van.</p>
-
+                @endif
                 @else
                     <div class="alert alert-warning d-flex align-items-center" role="alert">
                         <span class="material-symbols-rounded me-2">person_off</span>Geen account gevonden...

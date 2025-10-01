@@ -32,7 +32,7 @@ class Lesson extends Model
 
     public function files()
     {
-        return $this->hasMany(LessonFile::class);
+        return $this->morphMany(File::class, 'fileable');
     }
 
     public function tests()

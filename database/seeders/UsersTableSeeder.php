@@ -21,7 +21,7 @@ class UsersTableSeeder extends Seeder
         $faker = Faker::create();
 
         // Define the number of users to create
-        $numberOfUsers = 1;
+        $numberOfUsers = 100;
 
         // Create 100 random users
         User::factory($numberOfUsers)->create([

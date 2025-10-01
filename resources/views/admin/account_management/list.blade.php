@@ -5,7 +5,7 @@
 @section('content')
     <div id="popUp" class="popup d-none" style="margin-top: -122px">
         <div class="popup-body">
-            <h2>Exporteer gebruikers</h2>
+            <h2>Exporteer leden</h2>
             <p>Alle leden die aan de criteria voldoen worden geëxporteerd.</p>
             <div class="bg-light rounded-2 p-3">
                 <h2>Opties</h2>
@@ -19,8 +19,8 @@
                             <p>Excel</p>
                         </button>
                     </form>
-                    <a class="btn btn-info quick-action" href="mailto:?bcc=@foreach($users as $user_adres){{$user_adres->email}}@unless($loop->last),@endunless @endforeach">
-
+                    <a class="btn btn-info quick-action"
+                       href="mailto:?bcc={{ $user_ids->pluck('email')->implode(',') }}">
                     <span class="material-symbols-rounded">mail</span>
                         <p>Mail</p>
                     </a>
@@ -34,13 +34,13 @@
 
 
     <div class="container col-md-11">
-        <h1>Gebruikers</h1>
+        <h1>Leden</h1>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Gebruikers</li>
+                <li class="breadcrumb-item active" aria-current="page">Leden</li>
             </ol>
         </nav>
 
@@ -73,6 +73,7 @@
                         <select id="role" name="role" class="form-select"
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
                             <option value="none">Filter</option>
+                            <option @if($selected_role === 'associate') selected @endif value="associate">Relaties</option>
                             <option @if($selected_role === 'parent') selected @endif value="parent">Ouders</option>
                             <option @if($selected_role === 'parent_dolfijnen') selected @endif value="parent_dolfijnen">Ouders Dolfijnen</option>
                             <option @if($selected_role === 'parent_zeeverkenners') selected @endif value="parent_zeeverkenners">Ouders Zeeverkenners</option>
@@ -89,7 +90,13 @@
             </div>
         </form>
 
+
         @if($users->count() > 0)
+            <p>
+                {{ $user_ids->count() }}
+                {{ $user_ids->count() === 1 ? 'lid gevonden' : 'leden gevonden' }}.
+            </p>
+
             <div class=" no-scrolbar" style="max-width: 100vw">
                 <table class="table table-striped">
                     <thead class="thead-dark table-bordered table-hover">
@@ -121,6 +128,10 @@
                             </th>
                             <th class="no-mobile">
                                 <div class="d-flex flex-row gap-1 flex-wrap">
+                                    @if($all_user->is_associate === 1)
+                                        <span title="Relatie"
+                                              class="badge rounded-pill bg-danger text-white fs-6 p-2">Relatie</span>
+                                    @endif
                                     @foreach ($all_user->roles as $role)
                                         <span title="{{ $role->description }}"
                                               class="badge rounded-pill text-bg-primary text-white fs-6 p-2">{{ $role->role }}</span>
@@ -147,10 +158,10 @@
                     </tbody>
                 </table>
             </div>
-            {{ $users->links() }}
+            {{ $users->appends(request()->query())->links() }}
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <span class="material-symbols-rounded me-2">person_off</span>Geen gebruikers gevonden...
+                <span class="material-symbols-rounded me-2">person_off</span>Geen leden gevonden...
             </div>
         @endif
     </div>

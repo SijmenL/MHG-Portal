@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\File;
 use App\Models\Log;
 use App\Models\News;
 use App\Models\Notification;
@@ -29,6 +30,42 @@ class LeidingController extends Controller
 
 
         return view('leiding.home', ['user' => $user, 'posts' => $posts, 'roles' => $roles]);
+    }
+
+    // Files
+    public function files(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $adminRoles = ['Administratie', 'Bestuur'];
+        $isAdmin = $roles->whereIn('role', $adminRoles)->isNotEmpty();
+
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Leiding") {
+                return redirect()->route('leiding.files')->with('error', 'Deze map bestaat niet.');
+            }
+            if ($currentFolder->access === "teachers" && !$isAdmin) {
+                return redirect()->route('leiding.files')->with('error', 'Je hebt geen toegang tot deze map.');
+            }
+        }
+
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index(0, 'Leiding', $folderId);
+
+        return view('leiding.files', [
+            'user' => $user,
+            'roles' => $roles,
+            'files' => $fileData['files'],
+            'isAdmin' => $isAdmin,
+            'folderId' => $folderId,
+            'breadcrumbs' => $fileData['breadcrumbs'],
+        ]);
     }
 
     /*

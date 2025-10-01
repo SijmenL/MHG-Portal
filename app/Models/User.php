@@ -79,7 +79,8 @@ class User extends Authenticatable
         'profile_picture',
         'member_date',
         'dolfijnen_name',
-        'calendar_token'
+        'calendar_token',
+        'is_associate'
     ];
 
     /**

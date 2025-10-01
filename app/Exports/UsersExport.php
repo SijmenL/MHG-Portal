@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
 class UsersExport
 {
     protected $users;
-    protected  $type;
+    protected $type;
 
     public function __construct($users, $type)
     {
@@ -49,33 +49,37 @@ class UsersExport
         // Add data
         $row = 2;
         foreach ($this->users as $userId) {
-            $user = User::find($userId);
-            if ($user) {
-                $roles = '';
-                foreach ($user->roles as $role) {
-                    $roles .= $role->role . ', ';
-                }
-                $roles = rtrim($roles, ', ');
+            $id = is_array($userId) ? $userId['id'] : (is_object($userId) ? $userId->id : $userId);
 
-                $avg = 'Nee';
-
-                if($user->avg === 1) {
-                    $avg = 'Ja';
-                }
-
-                $rowData = [
-                    $user->name, $user->infix, $user->last_name, $user->email, $user->phone, $roles,
-                    $user->sex, $user->birth_date, $avg, $user->street, $user->city,
-                    $user->postal_code, $user->member_data
-                ];
-                $sheet->fromArray([$rowData], NULL, 'A' . $row);
-
-                $row++;
+            $user = User::find($id);      // returns a User model or null
+            if (!$user) {
+                continue;
             }
+
+            // now $user->roles works (assuming you defined the relation)
+            $roles = $user->roles->pluck('role')->implode(', ');
+
+
+            $roles = rtrim($roles, ', ');
+
+            $avg = 'Nee';
+
+            if ($user->avg === 1) {
+                $avg = 'Ja';
+            }
+
+            $rowData = [
+                $user->name, $user->infix, $user->last_name, $user->email, $user->phone, $roles,
+                $user->sex, $user->birth_date, $avg, $user->street, $user->city,
+                $user->postal_code, $user->member_data
+            ];
+            $sheet->fromArray([$rowData], NULL, 'A' . $row);
+
+            $row++;
         }
 
         // Auto size columns after populating data
-        foreach(range('A', $sheet->getHighestColumn()) as $columnID) {
+        foreach (range('A', $sheet->getHighestColumn()) as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
 
@@ -86,7 +90,7 @@ class UsersExport
         // Save the Excel file
         $writer = new Xlsx($spreadsheet);
 
-        $filename = 'mhg-'.$this->type.'-export-' . date('d-m-Y') . '.xlsx';
+        $filename = 'mhg-' . $this->type . '-export-' . date('d-m-Y') . '.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');

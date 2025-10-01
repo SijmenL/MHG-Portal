@@ -30,7 +30,8 @@
                 <table class="table table-striped">
                     <tbody>
                     <tr>
-                        <th><label for="name" class="col-md-4 col-form-label ">Voornaam</label></th>
+                        <th><label for="name" class="col-md-4 col-form-label ">Voornaam <span
+                                    class="text-danger">*</span></label></th>
                         <th>
                             <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
                                    name="name" value="{{ old('name') }}" autocomplete="name" autofocus>
@@ -82,7 +83,8 @@
                         </th>
                     </tr>
                     <tr>
-                        <th><label for="email" class="col-md-4 col-form-label ">E-mail</label></th>
+                        <th><label for="email" class="col-md-4 col-form-label ">E-mail <span
+                                    class="text-danger">*</span></label></th>
                         <th><input id="email" value="{{ old('email') }}" type="email" class="form-control @error('email') is-invalid @enderror" name="email"  autocomplete="email">
                             @error('email')
                             <span class="invalid-feedback" role="alert">
@@ -91,7 +93,8 @@
                             @enderror</th>
                     </tr>
                     <tr>
-                        <th><label for="password" class="col-md-4 col-form-label ">Wachtwoord</label></th>
+                        <th><label for="password" class="col-md-4 col-form-label ">Wachtwoord <span
+                                    class="text-danger">*</span></label></th>
                         <th><input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password">
                             @error('password')
                             <span class="invalid-feedback" role="alert">
@@ -242,6 +245,8 @@
                     <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
                     <span style="display: none" class="loading-text" role="status">Laden...</span>
                 </button>
+                <a href="{{ route('admin') }}"
+                   class="btn btn-danger text-white">Annuleren</a>
 
             </div>
 

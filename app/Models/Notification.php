@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Mail\accountActivated;
 use App\Mail\accountChange;
 use App\Mail\addParent;
+use App\Mail\admin;
 use App\Mail\adminMail;
 use App\Mail\contactMessage;
 use App\Mail\deleteChild;
@@ -60,7 +61,8 @@ class Notification extends Model
                 $notification->save();
             }
 
-            if ($user->getNotificationSetting('mail_' . $notificationType) && !config('app.debug')) {
+            if ($user->getNotificationSetting('mail_' . $notificationType) && config('app.mail') && $user->is_associate != 1) {
+
                 if (isset($senderId)) {
                     $sender = User::find($senderId);
                 }
@@ -72,6 +74,7 @@ class Notification extends Model
                 }
 
                 if ($user) {
+
                     // Gather the necessary data for the email
                     $data = [
                         'reciever_name' => $user->name,
@@ -86,6 +89,10 @@ class Notification extends Model
                     ];
 
                     switch ($notificationType) {
+                        case 'admin':
+                            Mail::to($data['email'])->send(new admin($data));
+                            break;
+
                         case 'account_change':
                             Mail::to($data['email'])->send(new accountChange($data));
                             break;

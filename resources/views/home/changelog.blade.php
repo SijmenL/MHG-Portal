@@ -16,6 +16,32 @@
             zelf ook nieuwe bugs aan toe!
         </div>
 
+        <h2>Update 4.1</h2>
+        <p class="fst-italic">01/10/2025</p>
+        <ul>
+            <li class="added">Verjaardagen in de agenda.</li>
+            <li class="added">Aanpassingen aan de gebruikers detail pagina's.</li>
+            <ul>
+                <li class="added">Bekijk de lessen waar de gebruiker aan is toegevoegd.</li>
+                <li class="added">Huidige leeftijd en dagen tot volgende verjaardag</li>
+                <li class="added">Volgorde en foutmeldingen verbeterd</li>
+
+            </ul>
+
+        </ul>
+
+        <h2>Update 4.0</h2>
+        <p class="fst-italic">16/09/2025</p>
+        <ul>
+            <li class="added">Bestanden systeem.</li>
+            <ul>
+                <li class="added">Speltakpagina's, leiding, administratie en archief hebben nu hun eigen bestandensystemen.</li>
+                <li class="added">OneDrive bestanden zijn over gezet.</li>
+            </ul>
+            <li class="added">Bugfixes en toevoegingen in ledenlijsten.</li>
+
+        </ul>
+
         <h2>Update 3.3</h2>
         <p class="fst-italic">04/05/2025</p>
         <ul>

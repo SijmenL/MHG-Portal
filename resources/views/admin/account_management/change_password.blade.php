@@ -9,7 +9,7 @@
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a
-                        href="{{route('admin.account-management')}}">Gebruikers</a></li>
+                        href="{{route('admin.account-management')}}">Leden</a></li>
                 <li class="breadcrumb-item" aria-current="page"><a
                         href="{{route('admin.account-management.edit', $account)}}">Bewerk @if($account !== null) {{$account->name}} {{$account->infix}} {{$account->last_name}}@endif</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Verander wachtwoord</li>

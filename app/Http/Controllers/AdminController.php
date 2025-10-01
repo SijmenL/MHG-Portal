@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\adminMail;
 use App\Models\Comment;
 use App\Models\Contact;
+use App\Models\File;
 use App\Models\Log;
 use App\Models\News;
 use App\Models\Notification;
@@ -35,6 +36,71 @@ class AdminController extends Controller
         $news = News::where('accepted', false)->count();
 
         return view('admin.admin', ['user' => $user, 'roles' => $roles, 'contact' => $contact, 'news' => $news, 'signup' => $signup]);
+    }
+
+    // Files
+    public function files(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $adminRoles = ['Administratie', 'Secretaris'];
+        $isAdmin = $roles->whereIn('role', $adminRoles)->isNotEmpty();
+
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Admin") {
+                return redirect()->route('admin.files')->with('error', 'Deze map bestaat niet.');
+            }
+            if ($currentFolder->access === "teachers" && !$isAdmin) {
+                return redirect()->route('admin.files')->with('error', 'Je hebt geen toegang tot deze map.');
+            }
+        }
+
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index(0, 'Admin', $folderId);
+
+        return view('admin.files', [
+            'user' => $user,
+            'roles' => $roles,
+            'files' => $fileData['files'],
+            'isAdmin' => $isAdmin,
+            'folderId' => $folderId,
+            'breadcrumbs' => $fileData['breadcrumbs'],
+        ]);
+    }
+
+
+    // Notifications
+    public function notifications()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        return view('admin.notifications.send', ['user' => $user, 'roles' => $roles]);
+    }
+
+    public function notificationsSend(Request $request)
+    {
+        $request->validate([
+            'users' => 'integer|required',
+            'display_text' => 'string|required',
+        ]);
+
+        $user = User::findOrFail($request->users);
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Send notification', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, $request->display_text);
+
+        $notification = new Notification();
+        $notification->sendNotification(null, [$user->id], $request->display_text, '', '', 'admin');
+
+
+        return redirect()->route('admin.notifications')->with('success', 'Notificatie verzonden!');
     }
 
     // Debug
@@ -582,10 +648,13 @@ class AdminController extends Controller
 
         // Apply role filters if selected role is not empty
         if (!empty($selected_role) && $selected_role !== 'none') {
-            if (in_array($selected_role, ['parent', 'parent_dolfijnen', 'parent_zeeverkenners'])) {
+            if (in_array($selected_role, ['parent', 'parent_dolfijnen', 'parent_zeeverkenners', 'associate'])) {
                 if ($selected_role === 'parent') {
                     $usersQuery->has('children');
-                } else {
+                } elseif ($selected_role === 'associate') {
+                    $usersQuery->where('is_associate', true);
+                }
+                else {
                     $roleName = $selected_role === 'parent_dolfijnen' ? 'Dolfijn' : 'Zeeverkenner';
                     $usersQuery->whereHas('children.roles', function ($query) use ($roleName) {
                         $query->where('role', $roleName);
@@ -598,11 +667,11 @@ class AdminController extends Controller
             }
         }
 
-        // Finally, paginate the users
-        $users = $usersQuery->paginate(25);
+        // export is een pagina, plus een totaal aantal
 
-        // Get all user IDs for the filtered users
-        $user_ids = $usersQuery->pluck('id');
+        $user_ids = $usersQuery->get(['id', 'email']);
+
+        $users = $usersQuery->paginate(25);
 
         $all_roles = Role::orderBy('role')->get();
 
@@ -618,17 +687,18 @@ class AdminController extends Controller
     }
 
 
+    // Controller
     public function exportData(Request $request)
     {
-        // Retrieve the filtered user data from the request
-        $users = json_decode($request->input('user_ids'));
+        // return associative array of IDs
+        $userIds = json_decode($request->input('user_ids'), true);
 
         $type = 'administratie';
 
-        // Export data to Excel
-        $export = new UsersExport($users, $type);
+        $export = new UsersExport($userIds, $type);
         return $export->export();
     }
+
 
     public function accountDetails($id)
     {
@@ -915,6 +985,85 @@ class AdminController extends Controller
         }
     }
 
+    public function createAssociate()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $all_roles = Role::all();
+
+        return view('admin.account_management.create_associate', ['user' => $user, 'roles' => $roles, 'all_roles' => $all_roles]);
+    }
+
+    public function createAssociateStore(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $request->validate([
+            'name' => 'string|max:255|nullable',
+            'email' => 'string|email|max:255',
+            'sex' => 'nullable|string',
+            'infix' => 'nullable|string',
+            'last_name' => 'nullable|string',
+            'birth_date' => 'nullable|date',
+            'street' => 'nullable|string',
+            'postal_code' => 'nullable|string',
+            'city' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'avg' => 'nullable|bool',
+            'member_date' => 'nullable|date',
+            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,webp|max:6000',
+            'dolfijnen_name' => 'nullable|string',
+        ]);
+
+        if (isset($request->profile_picture)) {
+            // Process and save the uploaded image
+            $newPictureName = time() . '-' . $request->name . '.' . $request->profile_picture->extension();
+            $destinationPath = 'profile_pictures';
+            $request->profile_picture->move($destinationPath, $newPictureName);
+        }
+
+        if (User::where('email', $request->email)->exists()) {
+            return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik.']);
+        } else {
+            $account = User::create([
+                'email' => $request->input('email'),
+                'sex' => $request->input('sex'),
+                'name' => $request->input('name'),
+                'infix' => $request->input('infix'),
+                'last_name' => $request->input('last_name'),
+                'birth_date' => $request->input('birth_date'),
+                'street' => $request->input('street'),
+                'postal_code' => $request->input('postal_code'),
+                'city' => $request->input('city'),
+                'phone' => $request->input('phone'),
+                'member_date' => $request->input('member_date'),
+                'dolfijnen_name' => $request->input('dolfijnen_name'),
+                'is_associate' => true,
+                'password' => 'null',
+            ]);
+
+            if (isset($request->profile_picture)) {
+                $account->profile_picture = $newPictureName;
+            }
+
+            $account->accepted = true;
+            $account->save();
+
+            if (!empty($request->roles)) {
+                $account->roles()->attach($request->roles);
+            }
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Create associate', 'Admin', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+            return redirect()->route('admin.create-associate', ['user' => $user, 'roles' => $roles])->with('success', 'Relatie succesvol aangemaakt');
+
+        }
+    }
+
+
     // Verander wachtwoord
 
     public function editAccountPassword($id)
@@ -958,7 +1107,8 @@ class AdminController extends Controller
         ]);
 
         User::whereId($id)->update([
-            'password' => Hash::make($request->new_password)
+            'password' => Hash::make($request->new_password),
+            'is_associate' => false
         ]);
 
 

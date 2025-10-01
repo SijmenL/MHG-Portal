@@ -31,11 +31,11 @@
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
 
-                        @if(auth()->user() && (auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')) || auth()->user()->roles->contains('role', 'Loodsen Mentor'))
-                            <a class="btn btn-info quick-action" target="_blank" href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/EvjjPvr_QaJEgdh2VY99mVYB6cSCgrDaJo-bGsTxLJZITg?e=blEqR7">
+                            <a class="btn btn-info quick-action" href="{{ route('loodsen.files') }}">
                                 <span class="material-symbols-rounded">folder_open</span>
                                 <p>Bestanden</p>
                             </a>
+                        @if(auth()->user() && (auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')) || auth()->user()->roles->contains('role', 'Loodsen Mentor'))
 
                             <a class="btn btn-info quick-action" href="{{ route('loodsen.groep') }}">
                                 <span class="material-symbols-rounded">groups_2</span>
@@ -50,10 +50,10 @@
                                 <img style="filter: unset" alt="flunkyball" src="{{ asset('files/loodsen/flunkyball/logo/logo-flunkyball.webp') }}">
                                 <p>Flunkyball</p>
                             </a>
-{{--                            <a class="btn btn-info quick-action disabled" href="">--}}
-{{--                                <img style="filter: unset" alt="loodsenbar" src="{{ asset('files/loodsen/logo-bar.webp') }}">--}}
-{{--                                <p>Loodsenbar</p>--}}
-{{--                            </a>--}}
+                            <a class="btn btn-info quick-action" href="{{ route('loodsen.foutecd') }}">
+                                <span class="material-symbols-rounded">eject</span>
+                                <p>Foute CD Speler</p>
+                            </a>
                     </div>
                 </div>
             </div>

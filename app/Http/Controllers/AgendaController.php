@@ -776,8 +776,90 @@ class AgendaController extends Controller
             }
         });
 
-        // After expanding and filtering events…
-        $activities = $activities->sortBy('date_start')->values();
+        // Only add birthdays if not filtering by a lesson
+        if (!isset($lesson)) {
+
+
+            $viewRoles = collect();
+
+            // Get all users (or a subset if you want to limit)
+            if ($canViewAll || $user->roles->contains('role', 'Bestuur') || $user->roles->contains('role', 'Ouderraad')) {
+                // Bestuur sees everyone
+                $allUsers = User::whereNotNull('birth_date')->get();
+            } else {
+                // Accumulate allowed roles based on the viewing user's roles
+                if ($user->roles->contains('role', 'Dolfijnen Leiding') || $user->roles->contains('role', 'Zeeverkenners Leiding')) {
+                    $viewRoles = $viewRoles->merge(['Dolfijnen Leiding', 'Zeeverkenners Leiding']);
+                }
+                if ($user->roles->contains('role', 'Dolfijn') || $user->roles->contains('role', 'Dolfijnen Leiding')) {
+                    $viewRoles = $viewRoles->merge(['Dolfijn']);
+                }
+                if ($user->roles->contains('role', 'Zeeverkenner') || $user->roles->contains('role', 'Zeeverkenners Leiding')) {
+                    $viewRoles = $viewRoles->merge(['Zeeverkenner', 'Zeeverkenners Leiding']);
+                }
+                if ($user->roles->contains('role', 'Loods') || $user->roles->contains('role', 'Loodsen Mentor')) {
+                    $viewRoles = $viewRoles->merge(['Loods', 'Loodsen Mentor']);
+                }
+                if ($user->roles->contains('role', 'Afterloods') || $user->roles->contains('role', 'Afterloodsen Organisator')) {
+                    $viewRoles = $viewRoles->merge(['Afterloods', 'Afterloodsen Organisator']);
+                }
+
+                // Fetch users who have any of these roles
+                $allUsers = User::whereNotNull('birth_date')
+                    ->whereHas('roles', function ($q) use ($viewRoles) {
+                        $q->whereIn('role', $viewRoles);
+                    })
+                    ->get();
+            }
+
+
+            foreach ($allUsers as $u) {
+                if (!$u->birth_date) continue;
+
+                $birthDate = Carbon::parse($u->birth_date);
+
+                // Only add birthdays if the month matches the month being viewed
+                if ($birthDate->month !== $calculatedMonth) continue;
+
+                // Handle leap year birthdays
+                $day = $birthDate->day;
+                if ($birthDate->month === 2 && $day === 29 && !Carbon::create($calculatedYear)->isLeapYear()) {
+                    $day = 28;
+                }
+
+                // Calculate current age
+                $age = $calculatedYear - $birthDate->year;
+
+                // Determine display name based on viewer's role
+                if ($user->roles->contains('role', 'Dolfijn')) {
+                    $displayName = $u->dolfijnen_name ?: ($u->name . ($u->infix ? ' '.$u->infix : '') . ' ' . $u->last_name);
+                } else {
+                    $displayName = $u->name . ($u->infix ? ' '.$u->infix : '') . ' ' . $u->last_name;
+                }
+
+                // Create birthday activity
+                $birthdayActivity = new \stdClass();
+                $birthdayActivity->id = 'birthday-'.$u->id;
+                $birthdayActivity->title = $displayName . ' — ' . $this->dutchOrdinal($age) . ' Verjaardag';
+                $birthdayActivity->date_start = Carbon::create($calculatedYear, $birthDate->month, $day)->startOfDay();
+                $birthdayActivity->date_end = Carbon::create($calculatedYear, $birthDate->month, $day)->endOfDay();
+                $birthdayActivity->is_birthday = true;
+                $birthdayActivity->should_highlight = false;
+                $birthdayActivity->lesson_id = null;
+                $birthdayActivity->lesson = null;
+                $birthdayActivity->image = null;
+                $birthdayActivity->content = null;
+
+                $activities->push($birthdayActivity);
+            }
+
+
+
+        }
+
+        // Re-sort activities after adding birthdays
+            $activities = $activities->sortBy('date_start')->values();
+
 
 
         $globalRowTracker = [];
@@ -826,6 +908,20 @@ class AgendaController extends Controller
             'activityPositions' => $activityPositions,
         ]);
     }
+
+    private function dutchOrdinal(int $number): string
+    {
+        $lastTwo = $number % 100;
+        $lastDigit = $number % 10;
+
+        // Special cases for 11, 12, 13
+        if (in_array($lastTwo, [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])) {
+            return $number . 'de';
+        }
+
+        return $number . 'ste';
+    }
+
 
     /**
      * Public month view.
@@ -1520,85 +1616,6 @@ class AgendaController extends Controller
             'canAlwaysView' => $canAlwaysView,
             'lesson' => $lesson,
             'isTeacher' => $isTeacher
-        ]);
-    }
-
-
-    public function agendaActivityPublic(Request $request, $id)
-    {
-        $month = $request->query('month', '0');
-        $view = $request->query('view', 'month');
-
-        // Fetch the public activity by id
-        $activity = Activity::where('id', $id)
-            ->where('public', true)
-            ->first();
-
-        $dateStart = $request->query('dateStart');
-        if (!$dateStart || !$activity->recurrence_rule) {
-            return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
-        }
-
-        if (!self::isValidRepetitionDate($activity, $dateStart)) {
-            return redirect()->route('agenda.month')->with('error', 'Deze herhaling van de activiteit bestaat niet.');
-        }
-
-// Update activity dates for the current occurrence
-// Update activity dates for the current occurrence
-        $originalStart = \Carbon\Carbon::parse($activity->date_start);
-        $originalEnd = \Carbon\Carbon::parse($activity->date_end);
-
-        $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
-
-        $duration = $originalEnd->diffInSeconds($originalStart);
-
-        $activity->date_start = $requestedStart->toDateTimeString();
-        $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();
-
-        // If there's a “deadline” stored in presence, shift it too
-        if ($activity->presence !== null && $activity->presence !== "1" && $activity->presence !== "0") {
-            $originalDeadline = Carbon::parse($activity->presence);
-
-            $deadlineOffset = $originalDeadline->getTimestamp() - $originalStart->getTimestamp();
-            $newDeadline = $requestedStart->copy()->addSeconds($deadlineOffset);
-
-            $activity->presence = $newDeadline->toDateTimeString();
-        }
-
-
-        if (!$activity) {
-            return view('agenda.public.event', [
-                'activity' => null,
-                'month' => $month,
-                'view' => $view
-            ]);
-        }
-
-        // Check for startDate parameter
-        $requestedStartDate = $request->query('startDate');
-        if (!empty($activity->recurrence_rule)) {
-            // For recurring events, a valid startDate must be provided.
-            if (!$requestedStartDate) {
-                // If startDate isn’t provided, consider the occurrence non‑existent.
-                $activity = null;
-            } else {
-                try {
-                    $occurrenceStart = Carbon::parse($requestedStartDate)->startOfDay();
-                } catch (\Exception $e) {
-                    $activity = null;
-                }
-            }
-        } else {
-            // For non‑recurring events, if a startDate is provided, treat it as invalid.
-            if ($requestedStartDate) {
-                $activity = null;
-            }
-        }
-
-        return view('agenda.public.event', [
-            'activity' => $activity,
-            'month' => $month,
-            'view' => $view
         ]);
     }
 

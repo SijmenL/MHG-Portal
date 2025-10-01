@@ -22,6 +22,16 @@
             </div>
         @endif
         <div class="bg-light rounded-2 p-3">
+            <h2>Bestanden</h2>
+            <div class="quick-action-bar">
+                <a class="btn btn-dark quick-action" href="{{ route('admin.files') }}">
+                    <span class="material-symbols-rounded">folder_open</span>
+                    <p>Bestanden</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-light rounded-2 p-3">
             <h2>Content</h2>
             <div class="quick-action-bar">
                 <a class="btn btn-info quick-action" href="{{ route('admin.contact') }}">
@@ -67,11 +77,15 @@
 
                 <a class="btn btn-admin quick-action" href="{{ route('admin.account-management') }}">
                     <span class="material-symbols-rounded">manage_accounts</span>
-                    <p>Gebruikers</p>
+                    <p>Leden</p>
                 </a>
                 <a class="btn btn-admin quick-action" href="{{ route('admin.create-account') }}">
                     <span class="material-symbols-rounded">person_add</span>
                     <p>Maak account</p>
+                </a>
+                <a class="btn btn-admin quick-action" href="{{ route('admin.create-associate') }}">
+                    <span class="material-symbols-rounded">person_add_disabled</span>
+                    <p>Maak relatie aan</p>
                 </a>
                 <a class="btn btn-admin quick-action" href="{{ route('admin.role-management') }}">
                     <span class="material-symbols-rounded">account_circle</span>
@@ -82,6 +96,11 @@
                     <p>Prikbord beheer</p>
                 </a>
 
+                <a class="btn btn-admin quick-action" href="{{ route('admin.notifications') }}">
+                    <span class="material-symbols-rounded">mail</span>
+                    <p>Stuur notificaties</p>
+                </a>
+
                 <a class="btn btn-admin quick-action" href="{{ route('admin.logs') }}">
                     <span class="material-symbols-rounded">topic</span>
                     <p>Logs</p>
@@ -90,15 +109,15 @@
         </div>
 
 
-        <div class="bg-light rounded-2 p-3 mt-4">
-            <h2>Debug</h2>
-            <div class="quick-action-bar">
-                <a class="btn btn-secondary quick-action" href="{{ route('admin.debug.mail') }}">
-                    <span class="material-symbols-rounded">email</span>
-                    <p>Mail</p>
-                </a>
-            </div>
-        </div>
+{{--        <div class="bg-light rounded-2 p-3 mt-4">--}}
+{{--            <h2>Debug</h2>--}}
+{{--            <div class="quick-action-bar">--}}
+{{--                <a class="btn btn-secondary quick-action" href="{{ route('admin.debug.mail') }}">--}}
+{{--                    <span class="material-symbols-rounded">email</span>--}}
+{{--                    <p>Mail</p>--}}
+{{--                </a>--}}
+{{--            </div>--}}
+{{--        </div>--}}
 
     </div>
 @endsection

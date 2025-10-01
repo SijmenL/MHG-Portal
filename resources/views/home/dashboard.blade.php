@@ -468,10 +468,10 @@
 
                         @if($user && $user->accepted === 1 && \Carbon\Carbon::parse($user->birth_date)->age >= 18)
 
-                        <a class="btn btn-secondary quick-action" target="_blank"
-                           href="https://waterscoutingmhg1-my.sharepoint.com/:f:/g/personal/administratie_waterscoutingmhg_nl/Eupj-GlJrWpAtLXTDg5UP-MBTEwXSY3_0QhLDven31IqBg?e=LboRQr">
+                        <a class="btn btn-secondary quick-action"
+                           href="{{ route('archive') }}">
                             <span class="material-symbols-rounded">archive</span>
-                            <p>Club archief</p>
+                            <p>Fotoarchief</p>
                         </a>
                     @endif
 

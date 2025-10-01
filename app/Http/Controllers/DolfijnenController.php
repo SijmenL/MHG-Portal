@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\UsersExport;
 use App\Models\Comment;
+use App\Models\File;
 use App\Models\Like;
 use App\Models\Log;
 use App\Models\Notification;
@@ -22,11 +23,11 @@ class DolfijnenController extends Controller
     public function view()
     {
         $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
 
         $posts = Post::where('location', 0)
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
             ->paginate(5);
-
 
         return view('speltakken.dolfijnen.home', ['user' => $user, 'posts' => $posts]);
     }
@@ -393,6 +394,42 @@ class DolfijnenController extends Controller
             'user_ids' => $user_ids,
             'search' => $search,
             'selected_role' => $selected_role,
+        ]);
+    }
+
+    public function files(Request $request)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $adminRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider', 'Dolfijnen Leiding'];
+        $isAdmin = $roles->whereIn('role', $adminRoles)->isNotEmpty();
+
+
+        $folderId = $request->query('folder', null);
+
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
+
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Dolfijnen") {
+                return redirect()->route('dolfijnen.files')->with('error', 'Deze map bestaat niet.');
+            }
+            if ($currentFolder->access === "teachers" && !$isAdmin) {
+                return redirect()->route('dolfijnen.files')->with('error', 'Je hebt geen toegang tot deze map.');
+            }
+        }
+
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index(0, 'Dolfijnen', $folderId);
+
+        return view('speltakken.dolfijnen.files', [
+            'user' => $user,
+            'roles' => $roles,
+            'files' => $fileData['files'],
+            'isAdmin' => $isAdmin,
+            'folderId' => $folderId,
+            'breadcrumbs' => $fileData['breadcrumbs'],
         ]);
     }
 

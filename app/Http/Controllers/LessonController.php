@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\Lesson;
 use App\Models\LessonCompetence;
-use App\Models\LessonFile;
+use App\Models\File;
 use App\Models\LessonTest;
 use App\Models\Log;
 use App\Models\Notification;
@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class LessonController extends Controller
 {
@@ -414,17 +415,13 @@ class LessonController extends Controller
             ->with('success', 'Deelnemers succesvol bijgewerkt.');
     }
 
-
     public function files(Request $request, $lessonId)
     {
         $user = Auth::user();
         $roles = $user->roles()->orderBy('role', 'asc')->get();
-
         $lesson = Lesson::findOrFail($lessonId);
 
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
-
-        // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
             $lesson->user_id === $user->id ||
             $lesson->users()
@@ -432,286 +429,37 @@ class LessonController extends Controller
                 ->wherePivot('teacher', true)
                 ->exists();
 
-        $folderId = $request->query('folder', null);
-
-        if ($folderId !== null) {
-            $currentFolder = LessonFile::find($folderId);
-
-            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->lesson_id !== (int)$lessonId) {
-                return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Deze map bestaat niet.');
-            }
-
-            if (isset($folderId)) {
-                if ($currentFolder->access === "teachers" && !$isTeacher) {
-                    return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Je hebt geen toegang tot deze map.');
-                }
-            }
-        }
-
-        // Check if the user has access to the lesson
         if (!$this->checkLessonAccess($lessonId)) {
             return redirect()->route('dashboard')->with('error', 'Je hebt geen toegang tot deze les.');
         }
 
-        // Retrieve all files and folders related to the lesson
-        $files = $lesson->files;
+        $folderId = $request->query('folder', null);
 
-        // If a folder ID is provided, filter the files for that folder
-        $files = $files->where('folder_id', $folderId);
+        if ($folderId !== null) {
+            $currentFolder = File::find($folderId);
 
-
-        // Breadcrumb generation
-        $breadcrumbs = $this->generateBreadcrumbs($lesson, $folderId);
-
-        // Sort files by access level and name, but folders come first
-        $files = $files->sort(function ($a, $b) use ($user) {
-            // If both are folders or both are files, sort alphabetically
-            if ($a->type === 2 && $b->type !== 2) {
-                return -1; // Folder should come first
+            if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location_id !== (int)$lessonId) {
+                return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Deze map bestaat niet.');
             }
-            if ($a->type !== 2 && $b->type === 2) {
-                return 1; // File should come after folder
+            if ($currentFolder->access === "teachers" && !$isTeacher) {
+                return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Je hebt geen toegang tot deze map.');
             }
+        }
 
-            // If both are the same type (both folders or both files), sort alphabetically by file name
-            return strcmp($a->file_name, $b->file_name);
-        });
-
+        // Use the FileController to get the file data
+        $fileController = new FileController();
+        $fileData = $fileController->index($lesson->id, 'Lesson', $folderId);
 
         return view('lessons.environments.files', [
             'user' => $user,
             'roles' => $roles,
             'lesson' => $lesson,
-            'files' => $files,
+            'files' => $fileData['files'],
             'isTeacher' => $isTeacher,
             'folderId' => $folderId,
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $fileData['breadcrumbs'],
         ]);
     }
-
-    /**
-     * Generate breadcrumbs based on folder hierarchy.
-     */
-    private function generateBreadcrumbs($lesson, $folderId)
-    {
-        $breadcrumbs = [];
-
-
-        // Continue with the folder structure
-        while ($folderId) {
-            // Get the current folder by its ID
-            $currentFolder = $lesson->files->where('id', $folderId)->first();
-
-            if (!$currentFolder) {
-                break; // Stop if folder is not found
-            }
-
-            // Add the current folder's name and ID to the breadcrumbs
-            $breadcrumbs[] = [
-                'name' => $currentFolder->file_name,
-                'url' => route('lessons.environment.lesson.files', ['lessonId' => $lesson->id, 'folder' => $currentFolder->id])
-            ];
-
-            // Move to the parent folder
-            $folderId = $currentFolder->folder_id;
-        }
-
-        // Reverse the order to make it from root to current folder
-        $breadcrumbs = array_reverse($breadcrumbs);
-
-        return $breadcrumbs;
-    }
-
-
-    // Handle the file upload
-    public function filesStore(Request $request, $lessonId)
-    {
-        $lesson = Lesson::findOrFail($lessonId);
-
-        $request->validate([
-            'type' => 'required',
-            'access' => 'required|string',
-        ]);
-
-        $folderId = null;
-        if (isset($request->folder_id)) {
-            $folderId = $request->folder_id;
-        }
-
-        if ($request->type === "0") {
-            $request->validate([
-                'file' => 'required|array', // Expect an array of files
-                'file.*' => 'file|mimes:pdf,jpeg,jpg,webp,png,zip,pptx,docx,doc,ppt,mp4,mov,mp3,wav,xlsx', // Validate each file
-            ]);
-
-            $files = $request->file('file'); // Get the uploaded files
-
-            foreach ($files as $file) {
-                // Get the original file name
-                $originalFileName = $file->getClientOriginalName();
-
-                // Generate a unique file name by appending a timestamp or random string
-                $uniqueFileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-                // Store the file with the unique name in the desired directory
-                $path = $file->storeAs('files/lessons', $uniqueFileName, 'public');
-
-                // Create a record in the database with the file information
-                $fileRecord = new LessonFile([
-                    'lesson_id' => $lesson->id,
-                    'user_id' => Auth::id(),
-                    'file_name' => $originalFileName,
-                    'file_path' => $path,
-                    'access' => $request->access,
-                    'folder_id' => $folderId,
-                    'type' => 0
-                ]);
-
-                $fileRecord->save();
-            }
-
-            $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Bestand(en) geüpload');
-        }
-        if ($request->type === "1") {
-            $request->validate([
-                'file' => 'required|string', // Validate as a string (URL)
-                'title' => 'required|string', // Title is required
-                'access' => 'required|string', // Access is required
-
-            ]);
-
-            // Save the file information to the database
-            $fileRecord = new LessonFile([
-                'lesson_id' => $lesson->id,
-                'user_id' => Auth::id(),
-                'file_name' => $request->title, // Use the provided title
-                'file_path' => $request->file, // Save the URL as the file path
-                'access' => $request->access,
-                'folder_id' => $folderId,
-                'type' => 1, // URL type
-            ]);
-
-            $fileRecord->save();
-
-            // Log the action
-            $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Url geüpload');
-        }
-        if ($request->type === "2") {
-            $request->validate([
-                'title' => 'required|string', // Title is required
-                'access' => 'required|string', // Access is required
-            ]);
-
-
-            // Save the file information to the database
-            $fileRecord = new LessonFile([
-                'lesson_id' => $lesson->id,
-                'user_id' => Auth::id(),
-                'file_name' => $request->title, // Use the provided title
-                'file_path' => "",
-                'access' => $request->access,
-                'folder_id' => $folderId,
-                'type' => 2,
-            ]);
-
-            $fileRecord->save();
-
-            // Log the action
-            $log = new Log();
-            $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lesson->id, 'Map aangemaakt');
-        }
-
-
-        return redirect()->route('lessons.environment.lesson.files', ['lessonId' => $lesson->id, 'folder' => $request->folder_id])->with('success', 'Bestanden succesvol geüpload.');
-    }
-
-
-    // Delete a file
-    public function filesDestroy($lessonId, $fileId)
-    {
-        $file = LessonFile::findOrFail($fileId);
-
-        // Ensure the user is the teacher who uploaded the file or is a teacher for the lesson
-        if ($file->user_id !== Auth::id() && !$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) {
-            return redirect()->route('lessons.environment.lesson.files', $file->lesson_id)->with('error', 'Je hebt geen toestemming om dit bestand te verwijderen.');
-        }
-
-        // Recursive function to delete files in the folder
-        $this->deleteFolderContents($file);
-
-        // Delete the file from storage
-        Storage::disk('public')->delete($file->file_path);
-
-        // Delete the file record from the database
-        $file->delete();
-
-        // Log the deletion
-        $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Update lesson', 'les', 'Lesson id: ' . $lessonId, 'Bestand verwijderd');
-
-        return redirect()->back()->with('success', 'Bestand succesvol verwijderd.');
-    }
-
-    private function deleteFolderContents($folder)
-    {
-        // If the file is a folder (type 2), recursively delete its contents
-        if ($folder->type == 2) {
-            // Get all files inside this folder (those whose `folder_id` is this folder's ID)
-            $filesInFolder = LessonFile::where('folder_id', $folder->id)->get();
-
-            foreach ($filesInFolder as $file) {
-                // If the file is a folder itself, recursively delete its contents
-                $this->deleteFolderContents($file);
-
-                // Delete the file from storage
-                Storage::disk('public')->delete($file->file_path);
-
-                // Delete the file record from the database
-                $file->delete();
-            }
-        }
-    }
-
-
-    public function toggleFileAccess($lessonId, $fileId)
-    {
-        // Fetch the file and ensure it belongs to the specified lesson
-        $file = LessonFile::where('lesson_id', $lessonId)->findOrFail($fileId);
-
-        // Ensure the authenticated user is either the one who uploaded the file
-        // or a teacher for the lesson
-        $isTeacher = $file->user_id === Auth::id() ||
-            $file->lesson->users()
-                ->wherePivot('teacher', true)
-                ->where('user_id', Auth::id())
-                ->exists();
-
-        if (!$isTeacher) {
-            return redirect()->route('lessons.environment.lesson.files', $lessonId)
-                ->with('error', 'Je hebt geen toestemming om dit bestand aan te passen.');
-        }
-
-        // Toggle the file's access
-        $newAccess = $file->access === 'teachers' ? 'all' : 'teachers';
-        $file->update(['access' => $newAccess]);
-
-        // Log the action
-        $log = new Log();
-        $log->createLog(
-            auth()->user()->id,
-            2,
-            'Update lesson',
-            'les',
-            'Lesson id: ' . $lessonId,
-            'Bestandstoegang aangepast naar: ' . $newAccess
-        );
-
-        return redirect()->back()
-            ->with('success', 'Toegang succesvol aangepast.');
-    }
-
 
     public function results($lessonId)
     {

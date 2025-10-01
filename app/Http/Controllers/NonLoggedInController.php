@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Controllers\NotificationController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 
@@ -22,6 +23,86 @@ class NonLoggedInController extends Controller
     {
 
     }
+
+    public function agendaActivityPublic(Request $request, $id)
+    {
+        $month = $request->query('month', '0');
+        $view = $request->query('view', 'month');
+
+        // Fetch the public activity by id
+        $activity = Activity::where('id', $id)
+            ->where('public', true)
+            ->first();
+
+        $dateStart = $request->query('dateStart');
+        if (!$dateStart || !$activity->recurrence_rule) {
+            return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
+        }
+
+        if (!self::isValidRepetitionDate($activity, $dateStart)) {
+            return redirect()->route('agenda.month')->with('error', 'Deze herhaling van de activiteit bestaat niet.');
+        }
+
+// Update activity dates for the current occurrence
+// Update activity dates for the current occurrence
+        $originalStart = \Carbon\Carbon::parse($activity->date_start);
+        $originalEnd = \Carbon\Carbon::parse($activity->date_end);
+
+        $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
+
+        $duration = $originalEnd->diffInSeconds($originalStart);
+
+        $activity->date_start = $requestedStart->toDateTimeString();
+        $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();
+
+        // If there's a “deadline” stored in presence, shift it too
+        if ($activity->presence !== null && $activity->presence !== "1" && $activity->presence !== "0") {
+            $originalDeadline = Carbon::parse($activity->presence);
+
+            $deadlineOffset = $originalDeadline->getTimestamp() - $originalStart->getTimestamp();
+            $newDeadline = $requestedStart->copy()->addSeconds($deadlineOffset);
+
+            $activity->presence = $newDeadline->toDateTimeString();
+        }
+
+
+        if (!$activity) {
+            return view('agenda.public.event', [
+                'activity' => null,
+                'month' => $month,
+                'view' => $view
+            ]);
+        }
+
+        // Check for startDate parameter
+        $requestedStartDate = $request->query('startDate');
+        if (!empty($activity->recurrence_rule)) {
+
+            // For recurring events, a valid startDate must be provided.
+            if (!$requestedStartDate) {
+                // If startDate isn’t provided, consider the occurrence non‑existent.
+                $activity = null;
+            } else {
+                try {
+                    $occurrenceStart = Carbon::parse($requestedStartDate)->startOfDay();
+                } catch (\Exception $e) {
+                    $activity = null;
+                }
+            }
+        } else {
+            // For non‑recurring events, if a startDate is provided, treat it as invalid.
+            if ($requestedStartDate) {
+                $activity = null;
+            }
+        }
+
+        return view('agenda.public.event', [
+            'activity' => $activity,
+            'month' => $month,
+            'view' => $view
+        ]);
+    }
+
 
     public function contact() {
 
