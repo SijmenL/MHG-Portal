@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Mail\accountActivated;
 use App\Mail\accountChange;
+use App\Mail\accountDeactivated;
+use App\Mail\accountReactivated;
 use App\Mail\addParent;
 use App\Mail\admin;
 use App\Mail\adminMail;
@@ -61,7 +63,8 @@ class Notification extends Model
                 $notification->save();
             }
 
-            if ($user->getNotificationSetting('mail_' . $notificationType) && config('app.mail') && $user->is_associate != 1) {
+//            if ($user->getNotificationSetting('mail_' . $notificationType) && config('app.mail') && $user->is_associate != 1) {
+            if ($user->getNotificationSetting('mail_' . $notificationType) && $user->is_associate != 1) {
 
                 if (isset($senderId)) {
                     $sender = User::find($senderId);
@@ -135,6 +138,12 @@ class Notification extends Model
 
                         case 'account_activated':
                             Mail::to($data['email'])->send(new accountActivated($data));
+                            break;
+                        case 'account_deactivated':
+                            Mail::to($data['email'])->send(new accountDeactivated($data));
+                            break;
+                        case 'account_reactivated':
+                            Mail::to($data['email'])->send(new accountReactivated($data));
                             break;
 
                         case 'add_parent':

@@ -309,8 +309,9 @@
                 <h2>Acties</h2>
                 <div class="quick-action-bar">
 
-                    @if($user->roles->contains('role', 'Administratie') ||
-                        $user->roles->contains('role', 'Secretaris'))
+                    @if($user->accepted == 1 && ($user->roles->contains('role', 'Administratie') ||
+                        $user->roles->contains('role', 'Secretaris')
+                      ))
                         <a class="btn btn-admin quick-action" href="{{ route('admin') }}">
                             <div style="margin-bottom: -10px; position: relative">
                                 <span class="material-symbols-rounded">admin_panel_settings</span>
@@ -322,6 +323,15 @@
                             <p>Administratie</p>
                         </a>
                     @endif
+
+                        @if($user->accepted == 1 && $user->roles->contains('role', 'Gegevensadministratie'))
+                            <a class="btn btn-admin quick-action" href="{{ route('admin.account-management') }}">
+                                <div style="margin-bottom: -10px; position: relative">
+                                    <span class="material-symbols-rounded">admin_panel_settings</span>
+                                </div>
+                                <p>Leden</p>
+                            </a>
+                        @endif
 
                     <a class="btn btn-info quick-action" href="{{ route('settings') }}">
                         <span class="material-symbols-rounded">settings</span>

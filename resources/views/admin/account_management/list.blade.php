@@ -10,7 +10,8 @@
             <div class="bg-light rounded-2 p-3">
                 <h2>Opties</h2>
                 <div class="quick-action-bar">
-                    <form class="m-0 p-0 quick-action" action="{{ route('admin.account-management.export') }}" method="POST">
+                    <form class="m-0 p-0 quick-action" action="{{ route('admin.account-management.export') }}"
+                          method="POST">
                         @csrf
                         <input type="hidden" name="user_ids" value="{{ json_encode($user_ids) }}">
 
@@ -21,7 +22,7 @@
                     </form>
                     <a class="btn btn-info quick-action"
                        href="mailto:?bcc={{ $user_ids->pluck('email')->implode(',') }}">
-                    <span class="material-symbols-rounded">mail</span>
+                        <span class="material-symbols-rounded">mail</span>
                         <p>Mail</p>
                     </a>
                 </div>
@@ -39,7 +40,11 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
+
+                @if(!$user->roles->contains('role', 'Gegevensadministratie'))
+                    <li class="breadcrumb-item" aria-current="page"><a href="{{route('admin')}}">Administratie</a></li>
+                @endif
+
                 <li class="breadcrumb-item active" aria-current="page">Leden</li>
             </ol>
         </nav>
@@ -73,17 +78,25 @@
                         <select id="role" name="role" class="form-select"
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
                             <option value="none">Filter</option>
-                            <option @if($selected_role === 'associate') selected @endif value="associate">Relaties</option>
+                            <option @if($selected_role === 'associate') selected @endif value="associate">Relaties
+                            <option @if($selected_role === 'unsubscribed') selected @endif value="unsubscribed">Uitgeschreven leden
+                            </option>
                             <option @if($selected_role === 'parent') selected @endif value="parent">Ouders</option>
-                            <option @if($selected_role === 'parent_dolfijnen') selected @endif value="parent_dolfijnen">Ouders Dolfijnen</option>
-                            <option @if($selected_role === 'parent_zeeverkenners') selected @endif value="parent_zeeverkenners">Ouders Zeeverkenners</option>
+                            <option @if($selected_role === 'parent_dolfijnen') selected @endif value="parent_dolfijnen">
+                                Ouders Dolfijnen
+                            </option>
+                            <option @if($selected_role === 'parent_zeeverkenners') selected
+                                    @endif value="parent_zeeverkenners">Ouders Zeeverkenners
+                            </option>
 
                             @foreach($all_roles as $role)
                                 <option @if($selected_role === $role->role) selected @endif>{{ $role->role }}</option>
                             @endforeach
                         </select>
 
-                        <a @if($users->count() > 0) id="export-button" @endif class="input-group-text @if($users->count() < 1)disabled @endif" style="text-decoration: none; cursor: pointer">
+                        <a @if($users->count() > 0) id="export-button"
+                           @endif class="input-group-text @if($users->count() < 1)disabled @endif"
+                           style="text-decoration: none; cursor: pointer">
                             <span class="material-symbols-rounded">ios_share</span></a>
                     </div>
                 </div>
@@ -139,19 +152,27 @@
                                 </div>
                             </th>
                             <th>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Opties
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}"
-                                               class="dropdown-item">Details</a></li>
-                                        <li>
-                                            <a href="{{ route('admin.account-management.edit', ['id' => $all_user->id]) }}"
-                                               class="dropdown-item">Bewerk</a>
-                                        </li>
-                                    </ul>
-                                </div>
+                                @if(!$user->roles->contains('role', 'Gegevensadministratie'))
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            Opties
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}"
+                                                   class="dropdown-item">Details</a></li>
+
+                                            <li>
+                                                <a href="{{ route('admin.account-management.edit', ['id' => $all_user->id]) }}"
+                                                   class="dropdown-item">Bewerk</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                @endif
+                                    @if($user->roles->contains('role', 'Gegevensadministratie'))
+                                        <a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}" class="btn btn-info">Details</a>
+                                    @endif
                             </th>
                         </tr>
                     @endforeach

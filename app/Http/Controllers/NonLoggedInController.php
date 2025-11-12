@@ -167,11 +167,7 @@ class NonLoggedInController extends Controller
         if (User::where('email', $request->email)->exists()) {
             return redirect()->back()->withErrors(['email' => 'Dit emailadres is al in gebruik.']);
         } else {
-            if (!$request->input('avg')) {
-                $avg = false;
-            } else {
-                $avg = true;
-            }
+            $avg = $request->has('avg');
 
             $data = [
                 'email' => $request->input('email'),

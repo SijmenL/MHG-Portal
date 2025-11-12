@@ -335,9 +335,19 @@
 
         @if(isset($user->member_date) && !in_array('member_date', $hide))
             <tr>
-                <th>Lid sinds</th>
+                <th>Lid vanaf</th>
                 <td> @if($user->member_date)
                         {{ Carbon\Carbon::parse($user->member_date)->format('d-m-Y') }}
+                    @endif
+                </td>
+            </tr>
+        @endif
+
+        @if(isset($user->member_date_end) && !in_array('member_date', $hide))
+            <tr>
+                <th>Uitgeschreven op</th>
+                <td> @if($user->member_date_end)
+                        {{ Carbon\Carbon::parse($user->member_date_end)->format('d-m-Y') }}
                     @endif
                 </td>
             </tr>
