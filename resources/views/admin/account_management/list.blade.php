@@ -79,7 +79,8 @@
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
                             <option value="none">Filter</option>
                             <option @if($selected_role === 'associate') selected @endif value="associate">Relaties
-                            <option @if($selected_role === 'unsubscribed') selected @endif value="unsubscribed">Uitgeschreven leden
+                            <option @if($selected_role === 'unsubscribed') selected @endif value="unsubscribed">
+                                Uitgeschreven leden
                             </option>
                             <option @if($selected_role === 'parent') selected @endif value="parent">Ouders</option>
                             <option @if($selected_role === 'parent_dolfijnen') selected @endif value="parent_dolfijnen">
@@ -143,7 +144,15 @@
                                 <div class="d-flex flex-row gap-1 flex-wrap">
                                     @if($all_user->is_associate === 1)
                                         <span title="Relatie"
-                                              class="badge rounded-pill bg-danger text-white fs-6 p-2">Relatie</span>
+                                              class="badge rounded-pill bg-dark text-white fs-6 p-2">Relatie</span>
+                                    @endif
+                                    @if($all_user->member_date_end !== null && $all_user->accepted == false)
+                                        <span title="Uitgeschreven"
+                                              class="badge rounded-pill bg-danger text-white fs-6 p-2">Uitgeschreven lid</span>
+                                    @endif
+                                    @if($all_user->children->count() >= 1)
+                                        <span title="Ouder"
+                                              class="badge rounded-pill bg-success text-white fs-6 p-2">Ouder</span>
                                     @endif
                                     @foreach ($all_user->roles as $role)
                                         <span title="{{ $role->description }}"
@@ -170,9 +179,10 @@
                                         </ul>
                                     </div>
                                 @endif
-                                    @if($user->roles->contains('role', 'Gegevensadministratie'))
-                                        <a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}" class="btn btn-info">Details</a>
-                                    @endif
+                                @if($user->roles->contains('role', 'Gegevensadministratie'))
+                                    <a href="{{ route('admin.account-management.details', ['id' => $all_user->id]) }}"
+                                       class="btn btn-info">Details</a>
+                                @endif
                             </th>
                         </tr>
                     @endforeach

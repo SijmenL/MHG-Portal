@@ -187,22 +187,29 @@ class NonLoggedInController extends Controller
             ];
 
             $account = User::create($data);
+            $notify = "";
 
             if ($request->input('speltak') === 'dolfijnen') {
                 $role = Role::where('role', 'Dolfijn')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
+                $notify = "Dolfijnen Hoofdleiding";
             }
             if ($request->input('speltak') === 'zeeverkenners') {
                 $role = Role::where('role', 'Zeeverkenner')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
+                $notify = "Zeeverkenners Hoofdleiding";
+
             }
             if ($request->input('speltak') === 'loodsen') {
                 $role = Role::where('role', 'Loods')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
+                $notify = "Loodsen Stamoudste";
+
             }
             if ($request->input('speltak') === 'afterloodsen') {
                 $role = Role::where('role', 'Afterloods')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
+                $notify = "Afterloodsen Organisator";
             }
 
             $log = new Log();
@@ -211,8 +218,8 @@ class NonLoggedInController extends Controller
             $notification = new Notification();
             $notification->sendNotification(null, [$account->id], 'Welkom bij de MHG! Je account is succesvol aangemaakt!', '', '','new_account', $account->id);
 
-            $userIds = User::whereHas('roles', function ($query) {
-                $query->whereIn('role', ['Administratie', 'Secretaris']);
+            $userIds = User::whereHas('roles', function ($query) use ($notify) {
+                $query->whereIn('role', ['Administratie', 'Secretaris', $notify]);
             })->pluck('id');
 
             $notification = new Notification();

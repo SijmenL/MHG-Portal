@@ -31,6 +31,20 @@
                     <h2>Acties</h2>
                     <div class="quick-action-bar">
 
+                        @if(auth()->user() && (auth()->user()->roles->contains('role', 'Zeeverkenners Hoofdleiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
+
+                            <a class="btn btn-admin quick-action" href="{{ route('zeeverkenners.inbox') }}">
+                                <div style="margin-bottom: -10px; position: relative">
+                                    <span class="material-symbols-rounded">inbox</span>
+                                    @if($signup >= 1)
+                                        <pre style="position: absolute"
+                                             class="badge badge-pill bg-danger dashboard-notification">{{ $signup }}</pre>
+                                    @endif
+                                </div>
+                                <p>Inbox</p>
+                            </a>
+                        @endif
+
                             <a class="btn btn-info quick-action"
                                href="{{ route('zeeverkenners.files') }}">
                                 <span class="material-symbols-rounded">folder_open</span>

@@ -18,6 +18,7 @@ use App\Mail\newComment;
 use App\Mail\newPost;
 use App\Mail\newReactionComment;
 use App\Mail\newRegistration;
+use App\Mail\newRegistrationAdminNotification;
 use App\Mail\newsAccepted;
 use App\Mail\passwordChange;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,8 +64,8 @@ class Notification extends Model
                 $notification->save();
             }
 
-//            if ($user->getNotificationSetting('mail_' . $notificationType) && config('app.mail') && $user->is_associate != 1) {
-            if ($user->getNotificationSetting('mail_' . $notificationType) && $user->is_associate != 1) {
+            if ($user->getNotificationSetting('mail_' . $notificationType) && config('app.mail') && $user->is_associate != 1) {
+//            if ($user->getNotificationSetting('mail_' . $notificationType) && $user->is_associate != 1) {
 
                 if (isset($senderId)) {
                     $sender = User::find($senderId);
@@ -134,6 +135,9 @@ class Notification extends Model
 
                         case 'new_account':
                             Mail::to($data['email'])->send(new newAccount($data));
+                            break;
+                        case 'new_registration_admin_notification':
+                            Mail::to($data['email'])->send(new newRegistrationAdminNotification($data));
                             break;
 
                         case 'account_activated':

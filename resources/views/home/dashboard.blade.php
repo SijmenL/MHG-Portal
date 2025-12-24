@@ -22,15 +22,17 @@
             </div>
 
             <div
-                class="tab-content h-100 w-100 bg-light rounded d-flex flex-column justify-content-between align-items-center p-4">
+                    class="tab-content h-100 w-100 bg-light rounded d-flex flex-column justify-content-between align-items-center p-4">
                 <div>
                     <div class="text-start tab-pane fade show active" id="tab1" role="tabpanel"
                          aria-labelledby="tab1-tab">
                         <h4>Lessen</h4>
 
-                        <p>Lesbestanden kunnen in mapjes worden gezet, waar de bestandsgrootte en wijzigingsdatum in het overzicht te vinden zijn</p>
+                        <p>Lesbestanden kunnen in mapjes worden gezet, waar de bestandsgrootte en wijzigingsdatum in het
+                            overzicht te vinden zijn</p>
                         <p>Resultaten is hernoemd naar Examens</p>
-                        <p>De CWO competentielijst is toegevoegd. De CWO competenties kunnen hier op worden gezet en per deelnemer worden afgestreept.</p>
+                        <p>De CWO competentielijst is toegevoegd. De CWO competenties kunnen hier op worden gezet en per
+                            deelnemer worden afgestreept.</p>
                     </div>
 
                     <div class="text-start tab-pane fade" id="tab2" role="tabpanel"
@@ -58,7 +60,7 @@
                         <span class="material-symbols-rounded" style="transform: translateY(7px)">arrow_forward</span>
                         om
                         door de rondleing heen te scrollen en druk op het kruisje <span
-                            class="material-symbols-rounded" style="transform: translateY(7px)">close</span> om de
+                                class="material-symbols-rounded" style="transform: translateY(7px)">close</span> om de
                         rondleiding te stoppen.</p>
                 </div>
                 <div class="page" style="display: none">
@@ -167,7 +169,7 @@
                         <div class="d-flex flex-row-responsive align-items-center justify-content-center gap-4">
                             <div style="text-align: start">
                                 <p>Omdat je een kindaccount gelinkt hebt, heb je toegang tot de <a
-                                        href="{{ route('children') }}">Mijn Kinderen</a> pagina.</p>
+                                            href="{{ route('children') }}">Mijn Kinderen</a> pagina.</p>
                                 <p>Op deze pagina kan je de persoonsgegevens van je kinderen aanpassen.</p>
                             </div>
                             <img alt="tutorial" class="w-50" src="{{ asset('img/tutorial/kinderen.png') }}">
@@ -236,7 +238,8 @@
                         te
                         drukken.</p>
                     <p>Mocht je nog vragen hebben staan we hier altijd voor open! We zijn te mailen via <a
-                            href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>!</p>
+                                href="mailto:administratie@waterscoutingmhg.nl">administratie@waterscoutingmhg.nl</a>!
+                    </p>
                     <p>Groetjes en veel plezier!</p>
                     <p>Team Administratie</p>
                 </div>
@@ -246,15 +249,16 @@
                 <div>
                     <a id="previous-page" class="btn btn-dark"><span class="material-symbols-rounded">arrow_back</span></a>
                     <a id="next-page" class="btn btn-dark"><span
-                            class="material-symbols-rounded">arrow_forward</span></a>
+                                class="material-symbols-rounded">arrow_forward</span></a>
                 </div>
                 <a id="close-popup" class="btn btn-outline-danger"><span
-                        class="material-symbols-rounded">close</span></a>
+                            class="material-symbols-rounded">close</span></a>
             </div>
         </div>
     </div>
 
-    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('img/general/MHG_vloot.jpg') }})">
+    <div class="header"
+         style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('img/general/MHG_vloot.jpg') }})">
         <div>
             <p class="header-title">Ledenportaal</p>
             <p class="header-text">Welkom op de digitale omgeving van de Matthijs Heldt Groep! </p>
@@ -288,12 +292,12 @@
                 <a id="new-button" class="btn btn-outline-dark d-flex gap-2 align-items-center justify-content-center"
                    style="border: none">
                     <span class="material-symbols-rounded" style="font-size: xx-large">autorenew</span><span
-                        class="no-mobile">Wat is er nieuw?</span>
+                            class="no-mobile">Wat is er nieuw?</span>
                 </a>
                 <a id="help-button" class="btn btn-outline-dark d-flex gap-2 align-items-center justify-content-center"
                    style="border: none">
                     <span class="material-symbols-rounded" style="font-size: xx-large">help</span><span
-                        class="no-mobile">Hulp</span>
+                            class="no-mobile">Hulp</span>
                 </a>
             </div>
         </div>
@@ -324,14 +328,14 @@
                         </a>
                     @endif
 
-                        @if($user->accepted == 1 && $user->roles->contains('role', 'Gegevensadministratie'))
-                            <a class="btn btn-admin quick-action" href="{{ route('admin.account-management') }}">
-                                <div style="margin-bottom: -10px; position: relative">
-                                    <span class="material-symbols-rounded">admin_panel_settings</span>
-                                </div>
-                                <p>Leden</p>
-                            </a>
-                        @endif
+                    @if($user->accepted == 1 && $user->roles->contains('role', 'Gegevensadministratie'))
+                        <a class="btn btn-admin quick-action" href="{{ route('admin.account-management') }}">
+                            <div style="margin-bottom: -10px; position: relative">
+                                <span class="material-symbols-rounded">admin_panel_settings</span>
+                            </div>
+                            <p>Leden</p>
+                        </a>
+                    @endif
 
                     <a class="btn btn-info quick-action" href="{{ route('settings') }}">
                         <span class="material-symbols-rounded">settings</span>
@@ -368,26 +372,26 @@
                         </a>
                     @endif
 
-{{--                    @if($user &&--}}
-{{--                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||--}}
-{{--                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||--}}
-{{--                     $user->roles->contains('role', 'Loodsen Stamoudste') ||--}}
-{{--                     $user->roles->contains('role', 'Afterloodsen Organisator') ||--}}
-{{--                     $user->roles->contains('role', 'Vrijwilliger') ||--}}
-{{--                     $user->roles->contains('role', 'Administratie') ||--}}
-{{--                     $user->roles->contains('role', 'Bestuur') ||--}}
-{{--                     $user->roles->contains('role', 'Praktijkbegeleider') ||--}}
-{{--                     $user->roles->contains('role', 'Loodsen Mentor') ||--}}
-{{--                     $user->roles->contains('role', 'Ouderraad') ||--}}
-{{--                     $user->roles->contains('role', 'Afterloods') ||--}}
-{{--                     $user->roles->contains('role', 'Loods') ||--}}
-{{--                     $user->roles->contains('role', 'Zeeverkenner')--}}
-{{--                     ))--}}
-{{--                        <a class="btn btn-info quick-action" href="{{ route('maintenance') }}">--}}
-{{--                            <span class="material-symbols-rounded">handyman</span>--}}
-{{--                            <p>Onderhoud</p>--}}
-{{--                        </a>--}}
-{{--                    @endif--}}
+                    {{--                    @if($user &&--}}
+                    {{--                     ($user->roles->contains('role', 'Dolfijnen Leiding') ||--}}
+                    {{--                     $user->roles->contains('role', 'Zeeverkenners Leiding') ||--}}
+                    {{--                     $user->roles->contains('role', 'Loodsen Stamoudste') ||--}}
+                    {{--                     $user->roles->contains('role', 'Afterloodsen Organisator') ||--}}
+                    {{--                     $user->roles->contains('role', 'Vrijwilliger') ||--}}
+                    {{--                     $user->roles->contains('role', 'Administratie') ||--}}
+                    {{--                     $user->roles->contains('role', 'Bestuur') ||--}}
+                    {{--                     $user->roles->contains('role', 'Praktijkbegeleider') ||--}}
+                    {{--                     $user->roles->contains('role', 'Loodsen Mentor') ||--}}
+                    {{--                     $user->roles->contains('role', 'Ouderraad') ||--}}
+                    {{--                     $user->roles->contains('role', 'Afterloods') ||--}}
+                    {{--                     $user->roles->contains('role', 'Loods') ||--}}
+                    {{--                     $user->roles->contains('role', 'Zeeverkenner')--}}
+                    {{--                     ))--}}
+                    {{--                        <a class="btn btn-info quick-action" href="{{ route('maintenance') }}">--}}
+                    {{--                            <span class="material-symbols-rounded">handyman</span>--}}
+                    {{--                            <p>Onderhoud</p>--}}
+                    {{--                        </a>--}}
+                    {{--                    @endif--}}
 
                     @if($user &&
                         ($user->roles->contains('role', 'Dolfijnen Leiding') ||
@@ -413,86 +417,96 @@
                     @endif
 
 
-                    @if($user && $user->accepted === 1 &&
-                        ($user->roles->contains('role', 'Dolfijn') ||
-                        $user->roles->contains('role', 'Dolfijnen Leiding') ||
-                        $user->roles->contains('role', 'Administratie') ||
-                        $user->roles->contains('role', 'Bestuur') ||
-                        $user->roles->contains('role', 'Ouderraad') ||
-                        $user->children()->whereHas('roles', function ($query) {
-                            $query->where('role', 'Dolfijn');
-                        })->exists())
-                    )
-                        <a class="btn btn-dark quick-action" href="{{ route('dolfijnen') }}">
-                            <img alt="dolfijnen" src="{{ asset('img/icons/dolfijnen.png') }}">
-                            <p>Dolfijnen</p>
-                        </a>
-                    @endif
-                    @if($user && $user->accepted === 1 &&
-                        ($user->roles->contains('role', 'Zeeverkenner') ||
-                        $user->roles->contains('role', 'Zeeverkenners Leiding') ||
-                        $user->roles->contains('role', 'Administratie') ||
-                        $user->roles->contains('role', 'Bestuur') ||
-                        $user->roles->contains('role', 'Ouderraad') ||
-                        $user->children()->whereHas('roles', function ($query) {
-                            $query->where('role', 'Zeeverkenner');
-                        })->exists())
-                    )
-                        <a class="btn btn-dark quick-action" href="{{ route('zeeverkenners') }}">
-                            <img alt="dolfijnen" src="{{ asset('img/icons/zeeverkenners.png') }}">
-                            <p>Zeeverkenners</p>
-                        </a>
-                    @endif
-                    @if($user && $user->accepted === 1 &&
-                        ($user->roles->contains('role', 'Loods') ||
-                        $user->roles->contains('role', 'Loodsen Stamoudste') ||
-                        $user->roles->contains('role', 'Administratie') ||
-                        $user->roles->contains('role', 'Bestuur') ||
-                        $user->roles->contains('role', 'Ouderraad') ||
-                        $user->roles->contains('role', 'Loodsen Mentor') ||
-                        $user->children()->whereHas('roles', function ($query) {
-                            $query->where('role', 'Loods');
-                        })->exists())
-                    )
-                        <a class="btn btn-dark quick-action" href="{{ route('loodsen') }}">
-                            <img alt="dolfijnen" src="{{ asset('img/icons/loodsen.png') }}">
-                            <p>Loodsen</p>
-                        </a>
-                    @endif
+                        @if($user && $user->accepted === 1 &&
+          ($user->roles->contains('role', 'Dolfijn') ||
+          $user->roles->contains('role', 'Dolfijnen Leiding') ||
+          $user->roles->contains('role', 'Administratie') ||
+          $user->roles->contains('role', 'Bestuur') ||
+          $user->roles->contains('role', 'Ouderraad') ||
+          $user->children()->whereHas('roles', function ($query) {
+              $query->where('role', 'Dolfijn');
+          })->where('accepted', true)->whereNull('member_date_end')->exists())
+      )
+                            <a class="btn btn-dark quick-action" href="{{ route('dolfijnen') }}">
+                                <img alt="dolfijnen" src="{{ asset('img/icons/dolfijnen.png') }}">
+                                <p>Dolfijnen</p>
+                            </a>
+                        @endif
 
-                    @if($user && $user->accepted === 1 &&
-                        ($user->roles->contains('role', 'Afterloods') ||
-                        $user->roles->contains('role', 'Afterloodsen Organisator') ||
-                        $user->roles->contains('role', 'Administratie') ||
-                        $user->roles->contains('role', 'Bestuur') ||
-                        $user->roles->contains('role', 'Ouderraad') ||
-                        $user->children()->whereHas('roles', function ($query) {
-                            $query->where('role', 'After Loods');
-                        })->exists())
-                    )
-                        <a class="btn btn-dark quick-action" href="{{ route('afterloodsen') }}">
-                            <img alt="afterloodsen" src="{{ asset('img/icons/after_loodsen.png') }}">
-                            <p>After Loodsen</p>
-                        </a>
-                    @endif
+                        @if($user && $user->accepted === 1 &&
+                            ($user->roles->contains('role', 'Zeeverkenner') ||
+                            $user->roles->contains('role', 'Zeeverkenners Leiding') ||
+                            $user->roles->contains('role', 'Administratie') ||
+                            $user->roles->contains('role', 'Bestuur') ||
+                            $user->roles->contains('role', 'Ouderraad') ||
+                            $user->children()->whereHas('roles', function ($query) {
+                                $query->where('role', 'Zeeverkenner');
+                            })->where('accepted', true)->whereNull('member_date_end')->exists())
+                        )
+                            <a class="btn btn-dark quick-action" href="{{ route('zeeverkenners') }}">
+                                <img alt="dolfijnen" src="{{ asset('img/icons/zeeverkenners.png') }}">
+                                <p>Zeeverkenners</p>
+                            </a>
+                        @endif
 
-                        @if($user && $user->accepted === 1 && \Carbon\Carbon::parse($user->birth_date)->age >= 18)
+                        @if($user && $user->accepted === 1 &&
+                            ($user->roles->contains('role', 'Loods') ||
+                            $user->roles->contains('role', 'Loodsen Stamoudste') ||
+                            $user->roles->contains('role', 'Administratie') ||
+                            $user->roles->contains('role', 'Bestuur') ||
+                            $user->roles->contains('role', 'Ouderraad') ||
+                            $user->roles->contains('role', 'Loodsen Mentor') ||
+                            $user->children()->whereHas('roles', function ($query) {
+                                $query->where('role', 'Loods');;
+                            })->where('accepted', true)->whereNull('member_date_end')->exists())
+                        )
+                            <a class="btn btn-dark quick-action" href="{{ route('loodsen') }}">
+                                <img alt="dolfijnen" src="{{ asset('img/icons/loodsen.png') }}">
+                                <p>Loodsen</p>
+                            </a>
+                        @endif
 
-                        <a class="btn btn-secondary quick-action"
-                           href="{{ route('archive') }}">
-                            <span class="material-symbols-rounded">archive</span>
-                            <p>Fotoarchief</p>
-                        </a>
-                    @endif
+                        @if($user && $user->accepted === 1 &&
+                            ($user->roles->contains('role', 'Afterloods') ||
+                            $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                            $user->roles->contains('role', 'Administratie') ||
+                            $user->roles->contains('role', 'Bestuur') ||
+                            $user->roles->contains('role', 'Ouderraad') ||
+                            $user->children()->whereHas('roles', function ($query) {
+                                $query->where('role', 'Afterloods');
+                            })->where('accepted', true)->whereNull('member_date_end')->exists())
+                        )
+                            <a class="btn btn-dark quick-action" href="{{ route('afterloodsen') }}">
+                                <img alt="afterloodsen" src="{{ asset('img/icons/after_loodsen.png') }}">
+                                <p>After Loodsen</p>
+                            </a>
+                        @endif
 
-                    @if($user && $user->accepted === 1)
-                        <a class="btn btn-secondary quick-action" href="{{ route('news') }}">
-                            <span class="material-symbols-rounded">news</span>
-                            <p>Nieuws</p>
-                        </a>
-                    @endif
+                        @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
+                                $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
+                             })->where('accepted', true)->whereNull('member_date_end')->exists()))
 
-                        @if($user->accepted === 1)
+                            <a class="btn btn-secondary quick-action"
+                               href="{{ route('archive') }}">
+                                <span class="material-symbols-rounded">archive</span>
+                                <p>Fotoarchief</p>
+                            </a>
+                        @endif
+
+                        @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
+                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
+                            })->where('accepted', true)->whereNull('member_date_end')->exists()))
+
+                            <a class="btn btn-secondary quick-action" href="{{ route('news') }}">
+                                <span class="material-symbols-rounded">news</span>
+                                <p>Nieuws</p>
+                            </a>
+                        @endif
+
+                        @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
+                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
+                            })->where('accepted', true)->whereNull('member_date_end')->exists()))
+
                             <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">
                                 <span class="material-symbols-rounded">event</span>
                                 <p>Agenda</p>

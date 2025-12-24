@@ -167,7 +167,6 @@ Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners L
 });
 
 
-
 //Lessen
 Route::middleware(['checkAccepted', 'checkLesson'])->group(function () {
     Route::get('/lessen', [LessonController::class, 'lessons'])->name('lessons');
@@ -233,8 +232,11 @@ Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners L
 //Admin
 Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevensadministratie'])->group(function () {
     Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
-    Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
     Route::get('/administratie/account-beheer/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
+});
+
+Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevensadministratie,Hoofdleiding Dolfijnen,Hoofdleiding Zeeverkenners,Loodsen Stamhoofd,Afterloodsen Organisator'])->group(function () {
+    Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
 });
 
 Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris'])->group(function () {
@@ -357,6 +359,16 @@ Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ou
     Route::get('/dolfijnen/comment/delete/{id}/{postId}', [DolfijnenController::class, 'deleteComment'])->name('dolfijnen.comment.delete');
 
     Route::get('/dolfijnen/leiding', [DolfijnenController::class, 'leiding'])->name('dolfijnen.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Dolfijnen Hoofdleiding,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/dolfijnen/inbox', [DolfijnenController::class, 'inbox'])->name('dolfijnen.inbox');
+
+    Route::get('/dolfijnen/inbox/inschrijvingen', [DolfijnenController::class, 'signup'])->name('dolfijnen.signup');
+    Route::get('/dolfijnen/inbox/inschrijvingen/details/{id}', [DolfijnenController::class, 'signupAccountDetails'])->name('dolfijnen.signup.details');
+
+    Route::get('/dolfijnen/inbox/inschrijvingen/accepteer/{id}', [DolfijnenController::class, 'signupAccept'])->name('dolfijnen.signup.accept');
+    Route::get('/dolfijnen/inbox/inschrijvingen/verwijder/{id}', [DolfijnenController::class, 'signupDelete'])->name('dolfijnen.signup.delete');
 
 });
 
@@ -389,6 +401,17 @@ Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenners Leiding,B
     Route::get('/zeeverkenners/comment/delete/{id}/{postId}', [ZeeverkennerController::class, 'deleteComment'])->name('zeeverkenners.comment.delete');
 
     Route::get('/zeeverkenners/leiding', [ZeeverkennerController::class, 'leiding'])->name('zeeverkenners.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Zeeverkenners Hoofdleiding,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/zeeverkenners/inbox', [ZeeverkennerController::class, 'inbox'])->name('zeeverkenners.inbox');
+
+    Route::get('/zeeverkenners/inbox/inschrijvingen', [ZeeverkennerController::class, 'signup'])->name('zeeverkenners.signup');
+    Route::get('/zeeverkenners/inbox/inschrijvingen/details/{id}', [ZeeverkennerController::class, 'signupAccountDetails'])->name('zeeverkenners.signup.details');
+
+    Route::get('/zeeverkenners/inbox/inschrijvingen/accepteer/{id}', [ZeeverkennerController::class, 'signupAccept'])->name('zeeverkenners.signup.accept');
+    Route::get('/zeeverkenners/inbox/inschrijvingen/verwijder/{id}', [ZeeverkennerController::class, 'signupDelete'])->name('zeeverkenners.signup.delete');
+
 });
 
 Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur,Ouderraad'])->group(function () {

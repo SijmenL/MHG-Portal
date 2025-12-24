@@ -916,7 +916,7 @@ class AdminController extends Controller
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Unsubscribe account', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
 
-            return redirect()->route('admin.account-management')->with('success', 'Gebruiker uitgeschreven');
+            return redirect()->route('admin.account-management.details', $user->id)->with('success', 'Gebruiker uitgeschreven');
         }
     }
 
@@ -954,7 +954,7 @@ class AdminController extends Controller
             $log = new Log();
             $log->createLog(auth()->user()->id, 2, 'Subscribe account', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
 
-            return redirect()->route('admin.account-management')->with('success', 'Gebruiker opnieuw ingeschreven');
+            return redirect()->route('admin.account-management.details', $user->id)->with('success', 'Gebruiker opnieuw ingeschreven');
         }
     }
 

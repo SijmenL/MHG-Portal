@@ -92,7 +92,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        return view('speltakken.afterloodsen.post', ['user' => $user, 'post' => $post]);
+        return view('speltakken.afterloodsen.posts.post', ['user' => $user, 'post' => $post]);
     }
 
     public function postComment(Request $request, $id)
@@ -192,7 +192,7 @@ class AfterloodsenController extends Controller
         }
 
         if ($post->user_id === Auth::id()) {
-            return view('speltakken.afterloodsen.post_edit', ['user' => $user, 'post' => $post]);
+            return view('speltakken.afterloodsen.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('afterloodsen')->with('error', 'Je mag deze post niet bewerken.');
         }
@@ -399,7 +399,7 @@ class AfterloodsenController extends Controller
         $user_ids = $users->pluck('id');
 
         // Pass data to the view
-        return view('speltakken.afterloodsen.group', [
+        return view('speltakken.afterloodsen.group.group', [
             'user' => $user,
             'roles' => $roles,
             'users' => $users,
@@ -437,7 +437,7 @@ class AfterloodsenController extends Controller
         $log->createLog(auth()->user()->id, 2, 'View account', 'Afterloodsen', $account->name.' '.$account->infix.' '.$account->last_name, '');
 
 
-        return view('speltakken.afterloodsen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+        return view('speltakken.afterloodsen.group.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
 
     public function exportData(Request $request)

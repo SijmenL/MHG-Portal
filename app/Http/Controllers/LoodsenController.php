@@ -94,7 +94,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        return view('speltakken.loodsen.post', ['user' => $user, 'post' => $post]);
+        return view('speltakken.loodsen.posts.post', ['user' => $user, 'post' => $post]);
     }
 
     public function postComment(Request $request, $id)
@@ -194,7 +194,7 @@ class LoodsenController extends Controller
         }
 
         if ($post->user_id === Auth::id()) {
-            return view('speltakken.loodsen.post_edit', ['user' => $user, 'post' => $post]);
+            return view('speltakken.loodsen.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bewerken.');
         }
@@ -359,7 +359,7 @@ class LoodsenController extends Controller
         $user_ids = $users->pluck('id');
 
         // Pass data to the view
-        return view('speltakken.loodsen.group', [
+        return view('speltakken.loodsen.group.group', [
             'user' => $user,
             'roles' => $roles,
             'users' => $users,
@@ -433,7 +433,7 @@ class LoodsenController extends Controller
         $log->createLog(auth()->user()->id, 2, 'View account', 'Loodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
 
-        return view('speltakken.loodsen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+        return view('speltakken.loodsen.group.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
 
     public function exportData(Request $request)
