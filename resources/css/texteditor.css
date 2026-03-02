@@ -10,24 +10,23 @@
 }
 
 .editor-parent {
-    background-color: #d5e7f7;
-    padding: 15px;
+    background-color: white;
+    border: 1px solid #dee2e6;
     border-radius: 15px;
 }
 
 .options {
     display: flex;
+    border-radius: 15px 15px 0 0;
     align-items: start;
     justify-content: space-between;
     gap: 20px;
     position: sticky;
     top: 98px;
     padding: 10px;
-    background-color: #d5e7f7; /* Solid background color */
+    background-color: white;
+    border-bottom: 1px solid #dee2e6;
     min-height: 50px;
-    -webkit-box-shadow: 0px 17px 19px -15px rgba(0, 0, 0, 0.20);
-    -moz-box-shadow: 0px 17px 19px -15px rgba(0, 0, 0, 0.20);
-    box-shadow: 0px 17px 19px -15px rgba(0, 0, 0, 0.20);
     z-index: 2;
 }
 
@@ -41,12 +40,12 @@
 
 #text-input {
     transform: translateY(-5px);
-    padding: 20px;
-    max-width: calc(100%);
-    width: 100%;
+    margin: 15px;
+    padding: 10px;
     background-color: rgb(255, 255, 255);
+    border-radius: 15px;
     min-height: 130px;
-    border: none;
+    border: 1px solid #dee2e6;
 }
 
 #text-input img {
@@ -68,7 +67,7 @@
 
 select {
     padding: 7px;
-    border: 1px solid #020929;
+    border: 1px solid #5a7123;
     border-radius: 3px;
     user-select: none;
 }
@@ -91,7 +90,7 @@ select {
 
 .options label,
 .options select {
-    font-family: "Poppins", sans-serif;
+    font-family: "Poppins", serif;
 }
 
 .input-wrapper {
@@ -122,7 +121,7 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .active-button {
-    background-color: #020929;
+    background-color: #0092df;
     color: white;
 }
 
@@ -133,7 +132,7 @@ input[type="color"]::-moz-color-swatch {
 @keyframes isInvalid {
     0% {
         transform: translateX(-10px);
-        color: red;
+        color: #ff7670;
     }
     25% {
         transform: translateX(7px);
@@ -146,3 +145,9 @@ input[type="color"]::-moz-color-swatch {
         color: black;
     }
 }
+
+#characters {
+    margin-left: 15px;
+    margin-bottom: 15px;
+}
+

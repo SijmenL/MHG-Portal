@@ -50,7 +50,7 @@ class NonLoggedInController extends Controller
 
         $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
 
-        $duration = $originalEnd->diffInSeconds($originalStart);
+        $duration = $originalEnd->diffInSeconds($originalStart, true);
 
         $activity->date_start = $requestedStart->toDateTimeString();
         $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();

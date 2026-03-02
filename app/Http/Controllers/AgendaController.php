@@ -21,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
 use Spatie\IcalendarGenerator\Properties\TextProperty;
+use function Laravel\Prompts\error;
 
 
 class AgendaController extends Controller
@@ -48,19 +49,22 @@ class AgendaController extends Controller
 
         $activity = Activity::with('formElements')->findOrFail($id);
 
-        if (!$activity) {
-            return redirect()->back()->with('error', 'Activiteit niet gevonden.');
-        }
-
         // Check if the activity is attached to a lesson and no lessonId is provided in the URI
         if ((int)$activity->lesson_id !== (int)$lessonId) {
-            return redirect()->back()->with('error', 'Deze activiteit is gekoppeld aan een les, maar de les-ID ontbreekt.');
+            return redirect()->route('agenda.month')->with('error', 'Deze activiteit is gekoppeld aan een les, maar de les-ID ontbreekt.');
         }
 
         // Ownership or teacher check
-        if ($activity->user_id !== Auth::id() && !$user->roles->contains('role', 'Administratie')) {
+        if ($activity->user_id !== Auth::id() && !$user->roles->contains('role', 'Administratie') &&
+        !$user->roles->contains('role', 'Dolfijnen Leiding') &&
+        !$user->roles->contains('role', 'Zeeverkenners Leiding') &&
+        !$user->roles->contains('role', 'Loodsen Stamoudste') &&
+        !$user->roles->contains('role', 'Afterloodsen Organisator') &&
+        !$user->roles->contains('role', 'Administratie') &&
+        !$user->roles->contains('role', 'Bestuur') &&
+        !$user->roles->contains('role', 'Praktijkbegeleider')) {
             if (!$lesson || !$isTeacher) {
-                return redirect()->back()->with('error', 'Activiteit niet gevonden.');
+                return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
             }
         }
 
@@ -87,7 +91,7 @@ class AgendaController extends Controller
 
             $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
 
-            $duration = $originalEnd->diffInSeconds($originalStart);
+            $duration = $originalEnd->diffInSeconds($originalStart, true);
 
             $activity->date_start = $requestedStart->toDateTimeString();
             $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();
@@ -117,6 +121,7 @@ class AgendaController extends Controller
 
     public function editActivitySave(Request $request, $id)
     {
+        $user = Auth::user();
         $month = $request->input('month', '0');
         $wantViewAll = $request->input('all', '0');
         $view = $request->input('view', 'month');
@@ -124,6 +129,7 @@ class AgendaController extends Controller
         // 1) User’s choice + the occurrence date
         $editType = $request->input('edit_type', 'all');      // 'all', 'following', or 'single'
         $occurrenceDate = $request->input('occurrence_date');       // 'YYYY-MM-DD'
+
 
         // 2) Validate
         $validatedData = $request->validate([
@@ -201,7 +207,7 @@ class AgendaController extends Controller
             // Compute original start time and duration
             $origStart = Carbon::parse($activity->date_start);
             $origEnd = Carbon::parse($activity->date_end);
-            $durationSec = $origEnd->diffInSeconds($origStart);
+            $durationSec = $origEnd->diffInSeconds($origStart, true);
 
             $log = new Log();
 
@@ -586,7 +592,7 @@ class AgendaController extends Controller
 
         $originalStart = Carbon::parse($activity->date_start);
         $originalEnd = Carbon::parse($activity->date_end);
-        $duration = $originalEnd->diffInSeconds($originalStart);
+        $duration = $originalEnd->diffInSeconds($originalStart, true);
 
         $lastOccurrence = $activity->end_recurrence ? Carbon::parse($activity->end_recurrence)->endOfDay() : Carbon::maxValue();
 
@@ -1445,7 +1451,7 @@ class AgendaController extends Controller
                 return true; // Already filtered earlier if before original
 
             case 'weekly':
-                return $startDate->diffInWeeks($targetDate) * 7 === $startDate->diffInDays($targetDate);
+                return $startDate->diffInWeeks($targetDate, true) * 7 === $startDate->diffInDays($targetDate, true);
 
             case 'monthly':
                 return $startDate->day === $targetDate->day &&
@@ -1504,7 +1510,7 @@ class AgendaController extends Controller
 
             $requestedStart = \Carbon\Carbon::parse($dateStart)->setTimeFrom($originalStart);
 
-            $duration = $originalEnd->diffInSeconds($originalStart);
+            $duration = $originalEnd->diffInSeconds($originalStart, true);
 
             $activity->date_start = $requestedStart->toDateTimeString();
             $activity->date_end = $requestedStart->copy()->addSeconds($duration)->toDateTimeString();

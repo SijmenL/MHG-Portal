@@ -26,8 +26,11 @@ class AfterloodsenController extends Controller
             ->orderBy('created_at', 'desc') // or 'updated_at' if you prefer
             ->paginate(5);
 
+        $signup = User::where('accepted', false)->where('member_date_end', null)->whereHas('roles', function ($query) {
+            $query->where('role', 'Loods');
+        })->count();
 
-        return view('speltakken.afterloodsen.home', ['user' => $user, 'posts' => $posts]);
+        return view('speltakken.afterloodsen.home', ['user' => $user, 'posts' => $posts, 'signup' => $signup]);
     }
 
     /*
@@ -243,7 +246,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -277,7 +280,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
@@ -450,5 +453,132 @@ class AfterloodsenController extends Controller
         // Export data to Excel
         $export = new UsersExport($users, $type);
         return $export->export();
+    }
+
+
+    public function inbox()
+    {
+        $user = Auth::user();
+
+        $signup = User::where('accepted', false)->where('member_date_end', null)->whereHas('roles', function ($query) {
+            $query->where('role', 'Zeeverkenner');
+        })->count();
+
+        return view('speltakken.afterloodsen.inbox', ['user' => $user, 'signup' => $signup]);
+    }
+    public function signup()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = '';
+
+        $users = User::orderBy('created_at', 'desc')
+            ->where('accepted', false)
+            ->where('member_date_end', null)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Zeeverkenner');
+            })
+            ->paginate(25);
+
+        $user_ids = User::orderBy('created_at', 'desc')
+            ->where('accepted', false)
+            ->where('member_date_end', null)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Zeeverkenner');
+            })
+            ->get()
+            ->pluck('id');
+
+        $all_roles = Role::orderBy('role')->get();
+
+        $selected_role = '';
+
+        $acceptedUser = session('acceptedUser');
+
+        return view('speltakken.afterloodsen.signup.list', ['user' => $user, 'acceptedUser' => $acceptedUser, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+    }
+
+    public function signupAccountDetails($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        try {
+            $account = User::with(['roles' => function ($query) {
+                $query->orderBy('role', 'asc');
+            }])->find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('afterloodsen.inbox')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('afterloodsen.inbox')->with('error', 'Dit account bestaat niet.');
+        }
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'View account', 'afterloodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+        return view('speltakken.afterloodsen.signup.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+    }
+
+    public function signupAccept($id)
+    {
+        $account = User::find($id);
+
+        $account->accepted = true;
+
+        $account->save();
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Accept signup', 'afterloodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+        $notification = new Notification();
+        $notification->sendNotification(null, [$id], 'Je account is officieel geactiveerd! Welkom bij de Matthijs Heldt Groep!', '', '', 'account_activated', $account->id);
+
+        $userIds = User::whereHas('roles', function ($query) {
+            $query->whereIn('role', ['Administratie', 'Secretaris']);
+        })->pluck('id');
+
+        $notification = new Notification();
+        $notification->sendNotification($account->id, $userIds, 'Nieuwe inschrijving is geaccepteerd door '.Auth::user()->name , 'administratie/inschrijvingen/details/'.$account->id, null,'new_registration_admin_notification', $account->id);
+
+
+        return redirect()->route('afterloodsen.signup')
+            ->with('success', 'Inschrijving geaccepteerd')
+            ->with('acceptedUser', $account);
+    }
+
+    public function signupDelete($id)
+    {
+        try {
+            $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete signup', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('afterloodsen.signup')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete signup', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('afterloodsen.signup')->with('error', 'Dit account bestaat niet.');
+        }
+
+        if ($user === null) {
+            return redirect()->route('afterloodsen.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
+        }
+        if ($id === (string)Auth::id()) {
+            return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
+        } else {
+            $user->delete();
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Delete signup', 'afterloodsen', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
+
+            return redirect()->route('afterloodsen.signup')->with('success', 'Inschrijving verwijderd');
+        }
     }
 }

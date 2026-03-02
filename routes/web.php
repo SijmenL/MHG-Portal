@@ -244,6 +244,14 @@ Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris'])->grou
 
     Route::get('/administratie/bestanden', [AdminController::class, 'files'])->name('admin.files');
 
+        Route::get('/run-migrations', function () {
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+            return "Migrations performed successfully:<br>" . Artisan::output();
+        } catch (\Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
+    });
 
     Route::get('/administratie/debug/mail', [AdminController::class, 'debugMail'])->name('admin.debug.mail');
     Route::get('/administratie/debug/mail/{id}', [AdminController::class, 'mail'])->name('admin.debug.mail.view');
@@ -454,6 +462,17 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
 
 });
 
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/loodsen/inbox', [LoodsenController::class, 'inbox'])->name('loodsen.inbox');
+
+    Route::get('/loodsen/inbox/inschrijvingen', [LoodsenController::class, 'signup'])->name('loodsen.signup');
+    Route::get('/loodsen/inbox/inschrijvingen/details/{id}', [LoodsenController::class, 'signupAccountDetails'])->name('loodsen.signup.details');
+
+    Route::get('/loodsen/inbox/inschrijvingen/accepteer/{id}', [LoodsenController::class, 'signupAccept'])->name('loodsen.signup.accept');
+    Route::get('/loodsen/inbox/inschrijvingen/verwijder/{id}', [LoodsenController::class, 'signupDelete'])->name('loodsen.signup.delete');
+
+});
+
 Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad,Loodsen Mentor'])->group(function () {
     Route::get('/loodsen/groep', [LoodsenController::class, 'group'])->name('loodsen.groep');
     Route::post('/loodsen/groep', [LoodsenController::class, 'groupSearch'])->name('loodsen.group.search');
@@ -498,6 +517,17 @@ Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Organisator,
 
 
     Route::get('/afterloodsen/organisatie', [AfterloodsenController::class, 'leiding'])->name('afterloodsen.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/afterloodsen/inbox', [AfterloodsenController::class, 'inbox'])->name('afterloodsen.inbox');
+
+    Route::get('/afterloodsen/inbox/inschrijvingen', [AfterloodsenController::class, 'signup'])->name('afterloodsen.signup');
+    Route::get('/afterloodsen/inbox/inschrijvingen/details/{id}', [AfterloodsenController::class, 'signupAccountDetails'])->name('afterloodsen.signup.details');
+
+    Route::get('/afterloodsen/inbox/inschrijvingen/accepteer/{id}', [AfterloodsenController::class, 'signupAccept'])->name('afterloodsen.signup.accept');
+    Route::get('/afterloodsen/inbox/inschrijvingen/verwijder/{id}', [AfterloodsenController::class, 'signupDelete'])->name('afterloodsen.signup.delete');
+
 });
 
 Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur,Ouderraad'])->group(function () {

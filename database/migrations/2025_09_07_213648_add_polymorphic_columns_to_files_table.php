@@ -22,15 +22,15 @@ return new class extends Migration
             'location' => 'Lesson',
         ]);
 
-        if (Schema::hasColumn('files', 'lesson_id')) {
-            Schema::table('files', function (Blueprint $table) {
-                // Verwijder de foreign key constraint expliciet
-                $table->dropForeign('files_lesson_id_foreign');
-
-                // Daarna mag de kolom weg
-                $table->dropColumn('lesson_id');
-            });
-        }
+//        if (Schema::hasColumn('files', 'lesson_id')) {
+//            Schema::table('files', function (Blueprint $table) {
+//                // Verwijder de foreign key constraint expliciet
+//                $table->dropForeign('files_lesson_id_foreign');
+//
+//                // Daarna mag de kolom weg
+//                $table->dropColumn('lesson_id');
+//            });
+//        }
 
 
     }

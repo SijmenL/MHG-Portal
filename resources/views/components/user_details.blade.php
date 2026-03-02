@@ -60,7 +60,7 @@
                             if ($nextBirthday->isPast()) {
                                 $nextBirthday->addYear();
                             }
-                            $daysUntilBirthday = now()->diffInDays($nextBirthday);
+                            $daysUntilBirthday = now()->diffInDays($nextBirthday, true);
                         @endphp
 
                         {{ $age }} jaar

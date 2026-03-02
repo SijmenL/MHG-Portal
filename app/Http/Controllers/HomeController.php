@@ -51,7 +51,7 @@ class HomeController extends Controller
 
         $contact = Contact::where('done', false)->count();
 
-        $signup = User::where('accepted', false)->count();
+//        $signup = User::where('accepted', false)->count();
 
         $news = News::where('accepted', false)->count();
 
@@ -60,7 +60,7 @@ class HomeController extends Controller
             ->limit(3)
             ->get();
 
-        $admin = $contact + $signup + $news;
+        $admin = $contact + $news;
 
         if ($admin > 100) {
             $admin = "99+";
