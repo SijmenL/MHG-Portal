@@ -273,6 +273,24 @@
                                 </td>
                             </tr>
 
+                            <tr>
+                                <td>Een inschrijving is geaccepteerd door de hoofdleiding</td>
+                                <td>
+                                    <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                        <input class="form-check-input fs-4 m-0" type="checkbox" role="switch"
+                                               name='app_new_registration' id='app_new_registration'
+                                               @if( !isset($notification_settings['app_new_registration_admin_notification'])) checked @endif>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch d-flex align-items-end justify-content-center">
+                                        <input class="form-check-input fs-4 m-0" type="checkbox" role="switch"
+                                               name='mail_new_registration' id='mail_new_registration'
+                                               @if( !isset($notification_settings['mail_new_registration_admin_notification'])) checked @endif>
+                                    </div>
+                                </td>
+                            </tr>
+
                             </tbody>
                         </table>
                     </form>

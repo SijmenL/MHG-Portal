@@ -28,8 +28,11 @@ class LoodsenController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
+        $signup = User::where('accepted', false)->where('member_date_end', null)->whereHas('roles', function ($query) {
+            $query->where('role', 'Loods');
+        })->count();
 
-        return view('speltakken.loodsen.home', ['user' => $user, 'posts' => $posts]);
+        return view('speltakken.loodsen.home', ['user' => $user, 'posts' => $posts, 'signup' => $signup]);
     }
 
     /*
@@ -94,7 +97,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        return view('speltakken.loodsen.post', ['user' => $user, 'post' => $post]);
+        return view('speltakken.loodsen.posts.post', ['user' => $user, 'post' => $post]);
     }
 
     public function postComment(Request $request, $id)
@@ -194,7 +197,7 @@ class LoodsenController extends Controller
         }
 
         if ($post->user_id === Auth::id()) {
-            return view('speltakken.loodsen.post_edit', ['user' => $user, 'post' => $post]);
+            return view('speltakken.loodsen.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bewerken.');
         }
@@ -359,7 +362,7 @@ class LoodsenController extends Controller
         $user_ids = $users->pluck('id');
 
         // Pass data to the view
-        return view('speltakken.loodsen.group', [
+        return view('speltakken.loodsen.group.group', [
             'user' => $user,
             'roles' => $roles,
             'users' => $users,
@@ -433,7 +436,7 @@ class LoodsenController extends Controller
         $log->createLog(auth()->user()->id, 2, 'View account', 'Loodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
 
 
-        return view('speltakken.loodsen.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+        return view('speltakken.loodsen.group.group_details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
     }
 
     public function exportData(Request $request)
@@ -634,5 +637,131 @@ class LoodsenController extends Controller
         $albums = '/albums.json';
 
         return view('speltakken.loodsen.foutecd.home', ['user' => $user, 'albums' => $albums]);
+    }
+
+    public function inbox()
+    {
+        $user = Auth::user();
+
+        $signup = User::where('accepted', false)->where('member_date_end', null)->whereHas('roles', function ($query) {
+            $query->where('role', 'Zeeverkenner');
+        })->count();
+
+        return view('speltakken.loodsen.inbox', ['user' => $user, 'signup' => $signup]);
+    }
+    public function signup()
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        $search = '';
+
+        $users = User::orderBy('created_at', 'desc')
+            ->where('accepted', false)
+            ->where('member_date_end', null)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Zeeverkenner');
+            })
+            ->paginate(25);
+
+        $user_ids = User::orderBy('created_at', 'desc')
+            ->where('accepted', false)
+            ->where('member_date_end', null)
+            ->whereHas('roles', function ($query) {
+                $query->where('role', 'Zeeverkenner');
+            })
+            ->get()
+            ->pluck('id');
+
+        $all_roles = Role::orderBy('role')->get();
+
+        $selected_role = '';
+
+        $acceptedUser = session('acceptedUser');
+
+        return view('speltakken.loodsen.signup.list', ['user' => $user, 'acceptedUser' => $acceptedUser, 'user_ids' => $user_ids, 'roles' => $roles, 'users' => $users, 'search' => $search, 'all_roles' => $all_roles, 'selected_role' => $selected_role]);
+    }
+
+    public function signupAccountDetails($id)
+    {
+        $user = Auth::user();
+        $roles = $user->roles()->orderBy('role', 'asc')->get();
+
+        try {
+            $account = User::with(['roles' => function ($query) {
+                $query->orderBy('role', 'asc');
+            }])->find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('loodsen.inbox')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($account === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('loodsen.inbox')->with('error', 'Dit account bestaat niet.');
+        }
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'View account', 'loodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+        return view('speltakken.loodsen.signup.details', ['user' => $user, 'roles' => $roles, 'account' => $account]);
+    }
+
+    public function signupAccept($id)
+    {
+        $account = User::find($id);
+
+        $account->accepted = true;
+
+        $account->save();
+
+        $log = new Log();
+        $log->createLog(auth()->user()->id, 2, 'Accept signup', 'loodsen', $account->name . ' ' . $account->infix . ' ' . $account->last_name, '');
+
+        $notification = new Notification();
+        $notification->sendNotification(null, [$id], 'Je account is officieel geactiveerd! Welkom bij de Matthijs Heldt Groep!', '', '', 'account_activated', $account->id);
+
+        $userIds = User::whereHas('roles', function ($query) {
+            $query->whereIn('role', ['Administratie', 'Secretaris']);
+        })->pluck('id');
+
+        $notification = new Notification();
+        $notification->sendNotification($account->id, $userIds, 'Nieuwe inschrijving is geaccepteerd door '.Auth::user()->name , 'administratie/inschrijvingen/details/'.$account->id, null,'new_registration_admin_notification', $account->id);
+
+
+        return redirect()->route('loodsen.signup')
+            ->with('success', 'Inschrijving geaccepteerd')
+            ->with('acceptedUser', $account);
+    }
+
+    public function signupDelete($id)
+    {
+        try {
+            $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete signup', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('loodsen.signup')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Delete signup', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('loodsen.signup')->with('error', 'Dit account bestaat niet.');
+        }
+
+        if ($user === null) {
+            return redirect()->route('loodsen.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
+        }
+        if ($id === (string)Auth::id()) {
+            return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
+        } else {
+            $user->delete();
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Delete signup', 'loodsen', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
+
+            return redirect()->route('loodsen.signup')->with('success', 'Inschrijving verwijderd');
+        }
     }
 }

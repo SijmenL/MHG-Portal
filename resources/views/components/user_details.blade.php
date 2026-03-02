@@ -60,7 +60,7 @@
                             if ($nextBirthday->isPast()) {
                                 $nextBirthday->addYear();
                             }
-                            $daysUntilBirthday = now()->diffInDays($nextBirthday);
+                            $daysUntilBirthday = now()->diffInDays($nextBirthday, true);
                         @endphp
 
                         {{ $age }} jaar
@@ -145,13 +145,21 @@
         @endif
 
         @if(!in_array('roles', $hide))
-            @if($user->roles->count() > 0)
+            @if($user->roles->count() > 0 || $user->is_associate === 1 || ($user->member_date_end !== null && $user->accepted == false) || $user->children->count() >= 1)
             <tr>
                 <th>Rollen</th>
                 <td>
                     @if($user->is_associate === 1)
                         <span title="Relatie"
-                              class="badge rounded-pill bg-danger text-white fs-6 p-2">Relatie</span>
+                              class="badge rounded-pill bg-dark text-white fs-6 p-2">Relatie</span>
+                    @endif
+                    @if($user->member_date_end !== null && $user->accepted == false)
+                        <span title="Uitgeschreven"
+                              class="badge rounded-pill bg-danger text-white fs-6 p-2">Uitgeschreven lid</span>
+                    @endif
+                    @if($user->children->count() >= 1)
+                        <span title="Ouder"
+                              class="badge rounded-pill bg-success text-white fs-6 p-2">Ouder</span>
                     @endif
                     @foreach ($user->roles as $role)
                         <span title="{{ $role->description }}"
@@ -335,9 +343,19 @@
 
         @if(isset($user->member_date) && !in_array('member_date', $hide))
             <tr>
-                <th>Lid sinds</th>
+                <th>Lid vanaf</th>
                 <td> @if($user->member_date)
                         {{ Carbon\Carbon::parse($user->member_date)->format('d-m-Y') }}
+                    @endif
+                </td>
+            </tr>
+        @endif
+
+        @if(isset($user->member_date_end) && !in_array('member_date', $hide))
+            <tr>
+                <th>Uitgeschreven op</th>
+                <td> @if($user->member_date_end)
+                        {{ Carbon\Carbon::parse($user->member_date_end)->format('d-m-Y') }}
                     @endif
                 </td>
             </tr>

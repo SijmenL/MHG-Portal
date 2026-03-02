@@ -35,6 +35,10 @@
                 </div>
             @endif
 
+            @if($account->member_date_end !== null && $account->accepted == false)
+                    <div class="alert alert-primary"> {{$account->name}} is uitgeschreven.</div>
+            @endif
+
             <x-user_details
                 :hide="[]"
                 :user="$account"
@@ -48,11 +52,10 @@
 
         <div class="d-flex flex-row flex-wrap gap-2">
             <a href="{{ route('admin.account-management') }}" class="btn btn-info">Terug</a>
-            @if($account !== null)
+            @if($account !== null && !$user->roles->contains('role', 'Gegevensadministratie'))
                 <a href="{{ route('admin.account-management.edit', ['id' => $account->id]) }}"
                    class="btn btn-dark">Bewerk</a>
             @endif
-
         </div>
     </div>
 @endsection

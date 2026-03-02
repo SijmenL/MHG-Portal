@@ -31,23 +31,16 @@ class CheckRole
             return $next($request);
         }
 
-        $childrenRoles = $user->children()
-            ->whereHas('roles', function ($query) use ($roles) {
-                $query->whereIn('role', ['Zeeverkenner', 'Dolfijn', 'Loods', 'After Loods']);
+        $targetRoles = ['Zeeverkenner', 'Dolfijn', 'Loods', 'Afterloods'];
+
+
+        $childHasRole = $user->children()
+            ->whereHas('roles', function ($query) use ($targetRoles) {
+                $query->whereIn('role', $targetRoles);
             })
-            ->get();
-
-        $childHasRole = false;
-
-        foreach ($childrenRoles as $child) {
-            foreach ($roles as $role) {
-                if (in_array($role, $child->roles->pluck('role')->toArray()) &&
-                    ($role === 'Dolfijn' || $role === 'Zeeverkenner' || $role === 'Loods' || $role === 'After Loods')) {
-                    $childHasRole = true;
-                }
-            }
-        }
-
+            ->where('accepted', true)
+            ->whereNull('member_date_end')
+            ->exists();
 
         if (!$childHasRole) {
             $log = new Log();

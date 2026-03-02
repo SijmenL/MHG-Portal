@@ -57,6 +57,18 @@
                         <div class="rolls fade-out-left fade-out-right"
                              title="@auth()@foreach ($roles as $role){{ $role->role }}, @endforeach @endauth">
                             @auth()
+                                @if($user->is_associate === 1)
+                                    <span title="Relatie"
+                                          class="badge rounded-pill bg-dark text-white m-1">Relatie</span>
+                                @endif
+                                @if($user->member_date_end !== null && $user->accepted == false)
+                                    <span title="Uitgeschreven"
+                                          class="badge rounded-pill bg-danger text-white m-1">Uitgeschreven lid</span>
+                                @endif
+                                @if($user->children->count() >= 1)
+                                    <span title="Ouder"
+                                          class="badge rounded-pill bg-success text-white m-1">Ouder</span>
+                                @endif
                                 @foreach ($roles as $role)
                                     <p class="badge bg-primary rounded-pill m-1">{{ $role->role }}</p>
                                 @endforeach

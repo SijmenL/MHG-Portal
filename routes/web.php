@@ -109,7 +109,7 @@ Route::middleware(['hasChildren'])->group(function () {
 });
 
 // News
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['checkAccepted', 'auth'])->group(function () {
     Route::get('/nieuws', [NewsController::class, 'home'])->name('news');
 
     Route::get('/nieuws/nieuw-nieuwtje', [NewsController::class, 'news'])->name('news.new');
@@ -124,7 +124,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 //Agenda
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['checkAccepted', 'auth'])->group(function () {
     Route::get('/agenda/maand', [AgendaController::class, 'agendaMonth'])->name('agenda.month');
     Route::get('/agenda/overzicht', [AgendaController::class, 'agendaSchedule'])->name('agenda.schedule');
 
@@ -137,7 +137,7 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['checkAccepted', 'auth'])->group(function () {
     Route::delete('/files/{location}/{fileId}', [FileController::class, 'destroyFile'])->name('files.destroy');
     Route::get('/files/access/{location}/{fileId}', [FileController::class, 'toggleFileAccess'])->name('files.toggle-access');
 
@@ -148,7 +148,7 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
+Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
     Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
 
@@ -167,9 +167,8 @@ Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen St
 });
 
 
-
 //Lessen
-Route::middleware(['checkLesson'])->group(function () {
+Route::middleware(['checkAccepted', 'checkLesson'])->group(function () {
     Route::get('/lessen', [LessonController::class, 'lessons'])->name('lessons');
 
     Route::get('/lessen/nieuw', [LessonController::class, 'lessonsNew'])->name('lessons.new');
@@ -226,16 +225,33 @@ Route::middleware(['checkLesson'])->group(function () {
 });
 
 //Maintenance
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor,Loods,Zeeverkenner,Afterloods'])->group(function () {
+Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor,Loods,Zeeverkenner,Afterloods'])->group(function () {
     Route::get('/onderhoud', [MaintenanceController::class, 'view'])->name('maintenance');
 });
 
 //Admin
-Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
+Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevensadministratie'])->group(function () {
+    Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
+    Route::get('/administratie/account-beheer/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
+});
+
+Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevensadministratie,Hoofdleiding Dolfijnen,Hoofdleiding Zeeverkenners,Loodsen Stamhoofd,Afterloodsen Organisator'])->group(function () {
+    Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
+});
+
+Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie', [AdminController::class, 'admin'])->name('admin');
 
     Route::get('/administratie/bestanden', [AdminController::class, 'files'])->name('admin.files');
 
+        Route::get('/run-migrations', function () {
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+            return "Migrations performed successfully:<br>" . Artisan::output();
+        } catch (\Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
+    });
 
     Route::get('/administratie/debug/mail', [AdminController::class, 'debugMail'])->name('admin.debug.mail');
     Route::get('/administratie/debug/mail/{id}', [AdminController::class, 'mail'])->name('admin.debug.mail.view');
@@ -266,18 +282,14 @@ Route::middleware(['checkRole:Administratie,Secretaris'])->group(function () {
     Route::get('/administratie/nieuws/verwijder/{id}', [AdminController::class, 'newsDelete'])->name('admin.news.delete');
 
     // Account management
-    Route::get('/administratie/account-beheer', [AdminController::class, 'accountManagement'])->name('admin.account-management');
-
-    Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
-
-    Route::get('/administratie/account-beheer/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
-
     Route::get('/administratie/account-beheer/bewerk/{id}', [AdminController::class, 'editAccount'])->name('admin.account-management.edit');
     Route::post('/administratie/account-beheer/bewerk/{id}', [AdminController::class, 'storeAccount'])->name('admin.account-management.store');
 
     Route::get('/administratie/account-beheer/wachtwoord/{id}', [AdminController::class, 'editAccountPassword'])->name('admin.account-management.password');
     Route::post('/administratie/account-beheer/wachtwoord/{id}', [AdminController::class, 'editAccountPasswordStore'])->name('admin.account-management.password.store');
 
+    Route::get('/administratie/account-beheer/uitschrijven/{id}', [AdminController::class, 'unsubscribeAccount'])->name('admin.account-management.unsubscribe');
+    Route::get('/administratie/account-beheer/inschrijven/{id}', [AdminController::class, 'subscribeAccount'])->name('admin.account-management.subscribe');
     Route::get('/administratie/account-beheer/verwijder/{id}', [AdminController::class, 'deleteAccount'])->name('admin.account-management.delete');
 
 
@@ -355,6 +367,16 @@ Route::middleware(['checkRole:Administratie,Dolfijn,Dolfijnen Leiding,Bestuur,Ou
     Route::get('/dolfijnen/comment/delete/{id}/{postId}', [DolfijnenController::class, 'deleteComment'])->name('dolfijnen.comment.delete');
 
     Route::get('/dolfijnen/leiding', [DolfijnenController::class, 'leiding'])->name('dolfijnen.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Dolfijnen Hoofdleiding,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/dolfijnen/inbox', [DolfijnenController::class, 'inbox'])->name('dolfijnen.inbox');
+
+    Route::get('/dolfijnen/inbox/inschrijvingen', [DolfijnenController::class, 'signup'])->name('dolfijnen.signup');
+    Route::get('/dolfijnen/inbox/inschrijvingen/details/{id}', [DolfijnenController::class, 'signupAccountDetails'])->name('dolfijnen.signup.details');
+
+    Route::get('/dolfijnen/inbox/inschrijvingen/accepteer/{id}', [DolfijnenController::class, 'signupAccept'])->name('dolfijnen.signup.accept');
+    Route::get('/dolfijnen/inbox/inschrijvingen/verwijder/{id}', [DolfijnenController::class, 'signupDelete'])->name('dolfijnen.signup.delete');
 
 });
 
@@ -387,6 +409,17 @@ Route::middleware(['checkRole:Administratie,Zeeverkenner,Zeeverkenners Leiding,B
     Route::get('/zeeverkenners/comment/delete/{id}/{postId}', [ZeeverkennerController::class, 'deleteComment'])->name('zeeverkenners.comment.delete');
 
     Route::get('/zeeverkenners/leiding', [ZeeverkennerController::class, 'leiding'])->name('zeeverkenners.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Zeeverkenners Hoofdleiding,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/zeeverkenners/inbox', [ZeeverkennerController::class, 'inbox'])->name('zeeverkenners.inbox');
+
+    Route::get('/zeeverkenners/inbox/inschrijvingen', [ZeeverkennerController::class, 'signup'])->name('zeeverkenners.signup');
+    Route::get('/zeeverkenners/inbox/inschrijvingen/details/{id}', [ZeeverkennerController::class, 'signupAccountDetails'])->name('zeeverkenners.signup.details');
+
+    Route::get('/zeeverkenners/inbox/inschrijvingen/accepteer/{id}', [ZeeverkennerController::class, 'signupAccept'])->name('zeeverkenners.signup.accept');
+    Route::get('/zeeverkenners/inbox/inschrijvingen/verwijder/{id}', [ZeeverkennerController::class, 'signupDelete'])->name('zeeverkenners.signup.delete');
+
 });
 
 Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur,Ouderraad'])->group(function () {
@@ -426,6 +459,17 @@ Route::middleware(['checkRole:Administratie,Loods,Loodsen Stamoudste,Bestuur,Oud
     Route::get('/loodsen/flunkyball/regels', [LoodsenController::class, 'rules'])->name('loodsen.flunkyball.rules');
 
     Route::get('/loodsen/foutecd', [LoodsenController::class, 'foutecd'])->name('loodsen.foutecd');
+
+});
+
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/loodsen/inbox', [LoodsenController::class, 'inbox'])->name('loodsen.inbox');
+
+    Route::get('/loodsen/inbox/inschrijvingen', [LoodsenController::class, 'signup'])->name('loodsen.signup');
+    Route::get('/loodsen/inbox/inschrijvingen/details/{id}', [LoodsenController::class, 'signupAccountDetails'])->name('loodsen.signup.details');
+
+    Route::get('/loodsen/inbox/inschrijvingen/accepteer/{id}', [LoodsenController::class, 'signupAccept'])->name('loodsen.signup.accept');
+    Route::get('/loodsen/inbox/inschrijvingen/verwijder/{id}', [LoodsenController::class, 'signupDelete'])->name('loodsen.signup.delete');
 
 });
 
@@ -473,6 +517,17 @@ Route::middleware(['checkRole:Administratie,Afterloods,Afterloodsen Organisator,
 
 
     Route::get('/afterloodsen/organisatie', [AfterloodsenController::class, 'leiding'])->name('afterloodsen.leiding');
+});
+
+Route::middleware(['checkRole:Administratie,Loodsen Stamoudste,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/afterloodsen/inbox', [AfterloodsenController::class, 'inbox'])->name('afterloodsen.inbox');
+
+    Route::get('/afterloodsen/inbox/inschrijvingen', [AfterloodsenController::class, 'signup'])->name('afterloodsen.signup');
+    Route::get('/afterloodsen/inbox/inschrijvingen/details/{id}', [AfterloodsenController::class, 'signupAccountDetails'])->name('afterloodsen.signup.details');
+
+    Route::get('/afterloodsen/inbox/inschrijvingen/accepteer/{id}', [AfterloodsenController::class, 'signupAccept'])->name('afterloodsen.signup.accept');
+    Route::get('/afterloodsen/inbox/inschrijvingen/verwijder/{id}', [AfterloodsenController::class, 'signupDelete'])->name('afterloodsen.signup.delete');
+
 });
 
 Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur,Ouderraad'])->group(function () {

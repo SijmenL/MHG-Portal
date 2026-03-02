@@ -31,7 +31,7 @@ class AdminController extends Controller
 
         $contact = Contact::where('done', false)->count();
 
-        $signup = User::where('accepted', false)->count();
+        $signup = User::where('accepted', false)->where('member_date_end', null)->count();
 
         $news = News::where('accepted', false)->count();
 
@@ -295,10 +295,12 @@ class AdminController extends Controller
 
         $users = User::orderBy('created_at', 'desc')
             ->where('accepted', false)
+            ->where('member_date_end', null)
             ->paginate(25);
 
         $user_ids = User::orderBy('created_at', 'desc')
             ->where('accepted', false)
+            ->where('member_date_end', null)
             ->get()
             ->pluck('id');
 
@@ -625,7 +627,6 @@ class AdminController extends Controller
             ->with(['roles' => function ($query) {
                 $query->orderBy('role', 'asc');
             }])
-            ->where('accepted', true)
             ->orderBy('last_name');
 
         // Apply search filters only if search is not empty
@@ -646,13 +647,16 @@ class AdminController extends Controller
             });
         }
 
+
         // Apply role filters if selected role is not empty
         if (!empty($selected_role) && $selected_role !== 'none') {
-            if (in_array($selected_role, ['parent', 'parent_dolfijnen', 'parent_zeeverkenners', 'associate'])) {
+            if (in_array($selected_role, ['parent', 'parent_dolfijnen', 'parent_zeeverkenners', 'associate', 'unsubscribed'])) {
                 if ($selected_role === 'parent') {
                     $usersQuery->has('children');
                 } elseif ($selected_role === 'associate') {
                     $usersQuery->where('is_associate', true);
+                } elseif ($selected_role === 'unsubscribed') {
+                    $usersQuery->whereNotNull('member_date_end');
                 }
                 else {
                     $roleName = $selected_role === 'parent_dolfijnen' ? 'Dolfijn' : 'Zeeverkenner';
@@ -665,6 +669,10 @@ class AdminController extends Controller
                     $query->where('role', $selected_role);
                 });
             }
+        }
+
+        if ($selected_role !== 'unsubscribed') {
+            $usersQuery->where('member_date_end', null)->where('accepted', true);
         }
 
         // export is een pagina, plus een totaal aantal
@@ -874,6 +882,81 @@ class AdminController extends Controller
         return redirect()->route('admin.account-management.details', ['id' => $user->id])->with('success', 'Account succesvol bijgewerkt');
     }
 
+
+    public function unsubscribeAccount($id)
+    {
+        try {
+            $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Unsubscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Unsubscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+
+        if ($user === null) {
+            return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om uit te schrijven');
+        }
+        if ($id === (string)Auth::id()) {
+            return redirect()->back()->with('error', 'Je kunt jezelf niet uitschrijven.');
+        } else {
+
+            $user->member_date_end = date("y/m/d");
+            $user->accepted = false;
+            $user->save();
+
+            $notification = new Notification();
+            $notification->sendNotification(null, [$id], 'Je bent uitgeschreven en hebt geen toegang meer tot het ledenportaal.', '', '', 'account_deactivated', $user->id);
+
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Unsubscribe account', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
+
+            return redirect()->route('admin.account-management.details', $user->id)->with('success', 'Gebruiker uitgeschreven');
+        }
+    }
+
+    public function subscribeAccount($id)
+    {
+        try {
+            $user = User::find($id);
+        } catch (ModelNotFoundException $exception) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Subscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+        if ($user === null) {
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 1, 'Subscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
+            return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
+        }
+
+        if ($user === null) {
+            return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om in te schrijven');
+        }
+        if ($id === (string)Auth::id()) {
+            return redirect()->back()->with('error', 'Je kunt jezelf niet inschrijven.');
+        } else {
+
+            $user->member_date_end = null;
+            $user->member_date = date("y/m/d");
+            $user->accepted = true;
+            $user->save();
+
+            $notification = new Notification();
+            $notification->sendNotification(null, [$id], 'Je account is opnieuw geactiveerd! Welkom terug bij de Matthijs Heldt Groep!', '', '', 'account_reactivated', $user->id);
+
+
+            $log = new Log();
+            $log->createLog(auth()->user()->id, 2, 'Subscribe account', 'Admin', $user->name . ' ' . $user->infix . ' ' . $user->last_name, '');
+
+            return redirect()->route('admin.account-management.details', $user->id)->with('success', 'Gebruiker opnieuw ingeschreven');
+        }
+    }
 
     public function deleteAccount($id)
     {

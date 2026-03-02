@@ -218,7 +218,7 @@ pre {
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 122px;
+    /*top: 122px;*/
     left: 0;
 }
 
@@ -1163,6 +1163,7 @@ th .form-control, .form-select {
 .calendar-event-monday {
     z-index: 100;
 }
+
 
 
 .calendar-event-title {

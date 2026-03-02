@@ -36,6 +36,18 @@
                         <h2 class="card-title">{{ $child->name.' '.$child->infix.' '.$child->last_name }}</h2>
 
                         <div class="d-flex flex-row gap-1 flex-wrap">
+                            @if($child->is_associate === 1)
+                                <span title="Relatie"
+                                      class="badge rounded-pill bg-dark text-white fs-6 p-2">Relatie</span>
+                            @endif
+                            @if($child->member_date_end !== null && $child->accepted == false)
+                                <span title="Uitgeschreven"
+                                      class="badge rounded-pill bg-danger text-white fs-6 p-2">Uitgeschreven lid</span>
+                            @endif
+                            @if($child->children->count() >= 1)
+                                <span title="Ouder"
+                                      class="badge rounded-pill bg-success text-white fs-6 p-2">Ouder</span>
+                            @endif
                             @foreach ($child->roles as $role)
                                 <span title="{{ $role->description }}"
                                       class="badge rounded-pill text-bg-primary text-white fs-6 p-2">{{ $role->role }}</span>

@@ -3,6 +3,68 @@
 @vite('resources/js/search-user.js')
 
 @section('content')
+
+    <div id="popup-unsubscribe" class="popup d-none" style="margin-top: -122px">
+        <div class="popup-body">
+            <h2>Weet je zeker dat je {{$account->name}} wilt uitschrijven?</h2>
+
+            <div class="button-container">
+                <a class="btn btn-outline-danger"
+                   href="{{ route('admin.account-management.unsubscribe', $account->id) }}">Uitschrijven</a>
+                <a id="popup-unsubscribe-button-close" class="btn btn-success">Annuleren</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="popup-subscribe" class="popup d-none" style="margin-top: -122px">
+        <div class="popup-body">
+            <h2>Weet je zeker dat je {{$account->name}} opnieuw wilt inschrijven?</h2>
+
+            <div class="button-container">
+                <a class="btn btn-outline-danger"
+                   href="{{ route('admin.account-management.subscribe', $account->id) }}">Opnieuw inschrijven</a>
+                <a id="popup-subscribe-button-close" class="btn btn-success">Annuleren</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        @if($account->member_date_end == null && $account->accepted == true)
+        document.addEventListener('DOMContentLoaded', function () {
+
+            let unsubscribePopup = document.getElementById('popup-unsubscribe');
+            let unsubscribePopupButton = document.getElementById('popup-unsubscribe-button');
+            let unsubscribePopupButtonClose = document.getElementById('popup-unsubscribe-button-close');
+
+
+            unsubscribePopupButton.addEventListener('click', function () {
+                unsubscribePopup.classList.remove('d-none');
+            });
+
+            unsubscribePopupButtonClose.addEventListener('click', function () {
+                unsubscribePopup.classList.add('d-none');
+            });
+        });
+        @else
+        document.addEventListener('DOMContentLoaded', function () {
+
+            let subscribePopup = document.getElementById('popup-subscribe');
+            let subscribePopupButton = document.getElementById('popup-subscribe-button');
+            let subscribePopupButtonClose = document.getElementById('popup-subscribe-button-close');
+
+            subscribePopupButton.addEventListener('click', function () {
+                subscribePopup.classList.remove('d-none');
+            });
+
+            subscribePopupButtonClose.addEventListener('click', function () {
+                subscribePopup.classList.add('d-none');
+            });
+        });
+        @endif
+
+    </script>
+
+
     <div class="container col-md-11">
         <h1>Bewerk @if($account !== null)
                 {{$account->name}} {{$account->infix}} {{$account->last_name}}
@@ -35,8 +97,12 @@
 
         @if($account !== null)
             @if($account->is_associate == 1)
-        <div class="alert alert-primary">Je bewerkt een relatie.
-                    </div>
+                <div class="alert alert-primary">Je bewerkt een relatie.
+                </div>
+            @endif
+
+            @if($account->member_date_end !== null && $account->accepted == false)
+                <div class="alert alert-primary"> Je bewerkt een uitgeschreven lid.</div>
             @endif
             <form method="POST" action="{{ route('admin.account-management.store', $account) }}"
                   enctype="multipart/form-data">
@@ -159,7 +225,9 @@
                                                aria-label="Zoeken" aria-describedby="basic-addon1">
                                     </div>
                                     <div class="user-list no-scrolbar">
-                                        <div class="w-100 h-100 d-flex justify-content-center align-items-center"><span class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span></div>
+                                        <div class="w-100 h-100 d-flex justify-content-center align-items-center"><span
+                                                class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -176,7 +244,8 @@
                             <th><label for="parents" class="col-md-4 col-form-label ">Ouder link</label></th>
                             <th class="position-relative">
                                 <input id="parents" type="text" value="{{ $parent_ids }}"
-                                       class="user-select-window form-control @error('parents') is-invalid @enderror" name="parents"
+                                       class="user-select-window form-control @error('parents') is-invalid @enderror"
+                                       name="parents"
                                        autocomplete="parents">
                                 <div class="user-select-window-popup d-none">
                                     <h3>Selecteer Leden</h3>
@@ -188,7 +257,9 @@
                                                aria-label="Zoeken" aria-describedby="basic-addon1">
                                     </div>
                                     <div class="user-list no-scrolbar">
-                                        <div class="w-100 h-100 d-flex justify-content-center align-items-center"><span class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span></div>
+                                        <div class="w-100 h-100 d-flex justify-content-center align-items-center"><span
+                                                class="material-symbols-rounded rotating" style="font-size: xxx-large">progress_activity</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <small id="help-2">{{ $account->name }} wordt het kind account.</small>
@@ -291,6 +362,12 @@
                                     </span>
                                 @enderror</th>
                         </tr>
+                        @if($account->member_date_end !== null && $account->accepted == false)
+                            <tr>
+                                <th>Uitgeschreven op</th>
+                                <th>{{ \Carbon\Carbon::parse($account->member_date_end)->format('d-m-Y') }}</th>
+                            </tr>
+                        @endif
                         <tr>
                             <th>Aangepast op</th>
                             <th>{{ \Carbon\Carbon::parse($account->updated_at)->format('d-m-Y H:i:s') }}</th>
@@ -326,13 +403,28 @@
                             handleButtonClick(this)"
                         class="btn btn-success flex flex-row align-items-center justify-content-center">
                         <span class="button-text">Opslaan</span>
-                        <span style="display: none" class="loading-spinner spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span style="display: none" class="loading-spinner spinner-border spinner-border-sm"
+                              aria-hidden="true"></span>
                         <span style="display: none" class="loading-text" role="status">Laden...</span>
                     </button>
                     <a href="{{ route('admin.account-management.details', ['id' => $account->id]) }}"
                        class="btn btn-danger text-white">Annuleren</a>
                     <a href="{{ route('admin.account-management.password', ['id' => $account->id]) }}"
-                       class="btn btn-dark text-white">@if($account->is_associate == 1) Zet de relatie om naar een normaal account @else Wijzig wachtwoord @endif</a>
+                       class="btn btn-dark text-white">@if($account->is_associate == 1)
+                            Zet de relatie om naar een normaal account
+                        @else
+                            Wijzig wachtwoord
+                        @endif</a>
+                        @if($account->member_date_end == null && $account->accepted == true && $account->is_associate == 0)
+
+                            <a class="btn btn-outline-danger" id="popup-unsubscribe-button">Uitschrijven</a>
+
+                        @else
+                            <a class="btn btn-primary text-white" id="popup-subscribe-button">Schrijf dit lid opnieuw
+                                in</a>
+
+                        @endif
+
                     <a class="delete-button btn btn-outline-danger"
                        data-id="{{ $account->id }}"
                        data-name="{{ $account->name . ' ' . $account->infix . ' ' . $account->last_name }}"
@@ -340,7 +432,7 @@
                 </div>
 
                 @if($account->is_associate != 1)
-                <p class="mt-2">Wanneer je op 'Opslaan' drukt, krijgt de gebruiker hier een notificatie van.</p>
+                    <p class="mt-2">Wanneer je op 'Opslaan' drukt, krijgt de gebruiker hier een notificatie van.</p>
                 @endif
                 @else
                     <div class="alert alert-warning d-flex align-items-center" role="alert">
