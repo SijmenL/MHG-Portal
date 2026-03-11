@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 use ZipArchive;
 
 class FileController extends Controller
@@ -31,7 +32,6 @@ class FileController extends Controller
             return strcasecmp($a->file_name, $b->file_name);
         })->values();
 
-
         $breadcrumbs = $this->generateBreadcrumbs($locationId, $location, $folderId);
 
         return [
@@ -45,161 +45,153 @@ class FileController extends Controller
      */
     private function generateBreadcrumbs($locationId, $location, $folderId)
     {
-        $breadcrumbs = [];
-        if ($location === "Lesson") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('lessons.environment.lesson.files', [
-                    'lessonId' => $locationId,
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Archive") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('archive', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Admin") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('admin.files', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Dolfijnen") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('dolfijnen.files', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Zeeverkenners") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('zeeverkenners.files', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Loodsen") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('loodsen.files', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Afterloodsen") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('afterloodsen.files', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-        if ($location === "Leiding") {
-            $breadcrumbs[] = [
-                'name' => 'Bestanden',
-                'url' => route('leiding.files', [
-                    'folder' => null,
-                ]),
-            ];
-        }
-
-
-        $currentFolder = $folderId ? File::find($folderId) : null;
-
-
-        $trail = [];
-        while ($currentFolder) {
-            if ($location === "Lesson") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('lessons.environment.lesson.files', [
-                        'lessonId' => $locationId,
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Archive") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('archive', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Admin") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('admin.files', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Dolfijnen") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('dolfijnen.files', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Zeeverkenners") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('zeeverkenners.files', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Loodsen") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('loodsen.files', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Afterloodsen") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('afterloodsen.files', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            if ($location === "Leiding") {
-                $trail[] = [
-                    'name' => $currentFolder->file_name,
-                    'url' => route('leiding.files', [
-                        'folder' => $currentFolder->id,
-                    ]),
-                ];
-            }
-            $currentFolder = $currentFolder->parent; // parent-relatie in File model
-        }
-
-        // Draai de maptrail om (root → current folder)
-        $trail = array_reverse($trail);
-
-        // Voeg toe aan breadcrumbs
-        $breadcrumbs = array_merge($breadcrumbs, $trail);
-
-        return $breadcrumbs;
+//        $breadcrumbs = [];
+//        // Base breadcrumbs
+//        $routes = [
+//            'Lesson' => 'lessons.environment.lesson.files',
+//            'Archive' => 'archive',
+//            'Admin' => 'admin.files',
+//            'Dolfijnen' => 'dolfijnen.files',
+//            'Zeeverkenners' => 'zeeverkenners.files',
+//            'Loodsen' => 'loodsen.files',
+//            'Afterloodsen' => 'afterloodsen.files',
+//            'Leiding' => 'leiding.files',
+//        ];
+//
+//        if (array_key_exists($location, $routes)) {
+//            $params = ['folder' => null];
+//            if ($location === "Lesson") $params['lessonId'] = $locationId;
+//            $breadcrumbs[] = ['name' => 'Bestanden', 'url' => route($routes[$location], $params)];
+//        }
+//
+//        $currentFolder = $folderId ? File::find($folderId) : null;
+//        $trail = [];
+//
+//        while ($currentFolder) {
+//            if (array_key_exists($location, $routes)) {
+//                $params = ['folder' => $currentFolder->id];
+//                if ($location === "Lesson") $params['lessonId'] = $locationId;
+//
+//                $trail[] = [
+//                    'name' => $currentFolder->file_name,
+//                    'url' => route($routes[$location], $params),
+//                ];
+//            }
+//            $currentFolder = $currentFolder->parent;
+//        }
+//
+//        $trail = array_reverse($trail);
+//        return array_merge($breadcrumbs, $trail);
     }
 
+    /**
+     * Centralized Batch Action processor for Move, Copy, Delete, and Rename
+     */
+    public function batchAction(Request $request, $location, $locationId)
+    {
+        $action = $request->input('action'); // rename, move, copy, delete
+        $fileIds = $request->input('file_ids', []);
+        $targetFolderId = $request->input('target_folder_id'); // Can be null (root folder)
+        $newName = $request->input('new_name');
+
+        if (empty($fileIds)) {
+            return response()->json(['error' => 'Geen bestanden geselecteerd.'], 400);
+        }
+
+        try {
+            foreach ($fileIds as $id) {
+                $file = File::findOrFail($id);
+
+                // Check specific lesson permissions if applicable
+                if ($location === "Lesson" && $file->user_id !== Auth::id()) {
+                    if (!$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) {
+                        continue; // Skip file if user lacks permission
+                    }
+                }
+
+                switch ($action) {
+                    case 'rename':
+                        $file->update(['file_name' => $newName]);
+                        break;
+
+                    case 'move':
+                        // Prevent moving a folder into itself or its own subdirectories
+                        if ($file->type == 2 && $this->isDescendantFolder($file, $targetFolderId)) {
+                            return response()->json(['error' => 'Kan een map niet naar zichzelf of een onderliggende map verplaatsen.'], 400);
+                        }
+                        $file->update(['folder_id' => $targetFolderId]);
+                        break;
+
+                    case 'copy':
+                        $this->copyFileRecursive($file, $targetFolderId, $location, $locationId);
+                        break;
+
+                    case 'delete':
+                        $this->deleteFolderContents($file);
+                        if ($file->file_path && Storage::disk('public')->exists($file->file_path)) {
+                            Storage::disk('public')->delete($file->file_path);
+                        }
+
+                        $log = new Log();
+                        $log->createLog(Auth::id(), 2, 'Delete file (Batch)', "Fileable_type ".$file->fileable_type, "Location ".$file->fileable_id, 'Bestand verwijderd: '.$file->file_name);
+                        $file->delete();
+                        break;
+                }
+            }
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            \Log::error('Batch Action Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Er is een interne serverfout opgetreden: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Helps prevent infinitely recursive folder moves
+     */
+    private function isDescendantFolder($folder, $targetId) {
+        if ($targetId == $folder->id) return true;
+
+        $target = File::find($targetId);
+        while ($target && $target->folder_id) {
+            if ($target->folder_id == $folder->id) return true;
+            $target = File::find($target->folder_id);
+        }
+        return false;
+    }
+
+    /**
+     * Recursively duplicates a file/folder and physical storage objects
+     */
+    private function copyFileRecursive($file, $targetFolderId, $location, $locationId) {
+        $newFile = $file->replicate();
+        $newFile->folder_id = $targetFolderId;
+        $newFile->user_id = Auth::id(); // Copied by current user
+
+        // If it's a physical file, duplicate it on the disk
+        if ($file->type == 0 && !empty($file->file_path) && Storage::disk('public')->exists($file->file_path)) {
+            $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
+            $newPath = $location . '/' . $locationId . '/' . Str::random(40) . ($extension ? '.' . $extension : '');
+
+            Storage::disk('public')->copy($file->file_path, $newPath);
+            $newFile->file_path = $newPath;
+        }
+
+        $newFile->save();
+
+        // If it's a folder, recursively copy its children
+        if ($file->type == 2) {
+            $children = File::where('folder_id', $file->id)->get();
+            foreach ($children as $child) {
+                $this->copyFileRecursive($child, $newFile->id, $location, $locationId);
+            }
+        }
+    }
 
     /**
      * Store a newly created file, folder or hyperlink in storage.
      */
-
     public function filesStore(Request $request, $location, $locationId)
     {
         try {
@@ -220,6 +212,7 @@ class FileController extends Controller
                         $newFile = new File();
                         $newFile->location = $location;
                         $newFile->location_id = $locationId;
+                        $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
                         $newFile->folder_id = $folderId;
                         $newFile->file_name = $uploadedFile->getClientOriginalName();
                         $newFile->file_path = $filePath;
@@ -228,13 +221,16 @@ class FileController extends Controller
                         $newFile->access = $request->input('access');
                         $newFile->save();
                     }
-                    return redirect()->back();
+
+                    if ($request->ajax() || $request->wantsJson()) return response()->json(['success' => true]);
+                    return redirect()->back()->with('success', 'Bestanden geüpload.');
 
                 case '1':
                     $request->validate(['file' => 'required|url', 'title' => 'required']);
                     $newFile = new File();
                     $newFile->location = $location;
                     $newFile->location_id = $locationId;
+                    $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
                     $newFile->folder_id = $folderId;
                     $newFile->file_name = $request->input('title');
                     $newFile->file_path = $request->input('file');
@@ -242,13 +238,14 @@ class FileController extends Controller
                     $newFile->type = 1;
                     $newFile->access = $request->input('access');
                     $newFile->save();
-                    return redirect()->back();
+                    return redirect()->back()->with('success', 'Hyperlink toegevoegd.');
 
                 case '2':
                     $request->validate(['title' => 'required']);
                     $newFile = new File();
                     $newFile->location = $location;
                     $newFile->location_id = $locationId;
+                    $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
                     $newFile->folder_id = $folderId;
                     $newFile->file_name = $request->input('title');
                     $newFile->file_path = "";
@@ -256,7 +253,7 @@ class FileController extends Controller
                     $newFile->type = 2;
                     $newFile->access = $request->input('access');
                     $newFile->save();
-                    return redirect()->back();
+                    return redirect()->back()->with('success', 'Map aangemaakt.');
 
                 case '3':
                     $request->validate([
@@ -277,6 +274,7 @@ class FileController extends Controller
                         $parentFolder = new File();
                         $parentFolder->location = $location;
                         $parentFolder->location_id = $locationId;
+                        $parentFolder->lesson_id = $location === 'Lesson' ? $locationId : null;
                         $parentFolder->folder_id = $folderId;
                         $parentFolder->file_name = $baseFolderName;
                         $parentFolder->file_path = "";
@@ -298,6 +296,7 @@ class FileController extends Controller
                                 $newFolder = new File();
                                 $newFolder->location = $location;
                                 $newFolder->location_id = $locationId;
+                                $newFolder->lesson_id = $location === 'Lesson' ? $locationId : null;
                                 $newFolder->folder_id = $currentParent->id;
                                 $newFolder->file_name = $folderName;
                                 $newFolder->file_path = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
@@ -314,6 +313,7 @@ class FileController extends Controller
                         $newFile = new File();
                         $newFile->location = $location;
                         $newFile->location_id = $locationId;
+                        $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
                         $newFile->folder_id = $currentParent->id;
                         $newFile->file_name = $uploadedFile->getClientOriginalName();
                         $newFile->file_path = $filePath;
@@ -322,15 +322,16 @@ class FileController extends Controller
                         $newFile->access = $request->input('access');
                         $newFile->save();
                     }
-                    return redirect()->back();
+
+                    if ($request->ajax() || $request->wantsJson()) return response()->json(['success' => true]);
+                    return redirect()->back()->with('success', 'Mappen geüpload.');
             }
         } catch (\Exception $e) {
-            // Log the exception for debugging purposes if needed
             \Log::error('Error in filesStore: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Toevoegen mislukt.');
+            if ($request->ajax() || $request->wantsJson()) return response()->json(['error' => 'Database fout: ' . $e->getMessage()], 500);
+            return redirect()->back()->with('error', 'Toevoegen mislukt: ' . $e->getMessage());
         }
     }
-
 
     public function downloadFile(Request $request, File $file)
     {
@@ -343,26 +344,20 @@ class FileController extends Controller
         $storedFileName = $file->file_name;
 
         try {
-            // Find the position of the last dot for the extension
             $lastDotPosition = strrpos($storedFileName, '.');
             $extension = ($lastDotPosition === false) ? '' : substr($storedFileName, $lastDotPosition + 1);
 
-            // Get the filename without the last underscore and everything after it
             $lastUnderscorePosition = strrpos($storedFileName, '_');
             $baseNameWithoutLastUnderscore = $lastUnderscorePosition !== false ? substr($storedFileName, 0, $lastUnderscorePosition) : $storedFileName;
 
-            // Find the second-to-last underscore within the cleaned base name
             $secondToLastUnderscorePosition = strrpos($baseNameWithoutLastUnderscore, '_');
 
-            // Extract the clean name
             if ($secondToLastUnderscorePosition !== false) {
                 $cleanBaseName = substr($baseNameWithoutLastUnderscore, 0, $secondToLastUnderscorePosition);
             } else {
-                // Fallback if the second-to-last underscore is not found
                 $cleanBaseName = $baseNameWithoutLastUnderscore;
             }
 
-            // Reconstruct the final download name
             $downloadName = $cleanBaseName;
             if (!empty($extension)) {
                 $downloadName .= '.' . $extension;
@@ -370,7 +365,7 @@ class FileController extends Controller
 
             return Response::download($filePath, $downloadName);
         } catch (\Exception $e) {
-            return Response::download($filePath, $file->name);
+            return Response::download($filePath, $file->file_name);
         }
     }
 
@@ -398,9 +393,6 @@ class FileController extends Controller
         }
     }
 
-    /**
-     * Recursively add a folder's contents to a ZIP archive.
-     */
     private function zipDirectory(ZipArchive $zip, File $folder, $basePath = '')
     {
         $contents = $folder->children()->get();
@@ -419,10 +411,7 @@ class FileController extends Controller
         }
     }
 
-    /**
-     * Delete a file.
-     */
-    public function destroyFile($location, $fileId,)
+    public function destroyFile($location, $fileId)
     {
         $file = File::findOrFail($fileId);
 
@@ -432,46 +421,34 @@ class FileController extends Controller
             }
         }
 
-        // Recursive function to delete files in the folder
         $this->deleteFolderContents($file);
-
-        // Delete the file from storage
-        Storage::disk('public')->delete($file->file_path);
-
-        // Delete the file record from the database
+        if ($file->file_path && Storage::disk('public')->exists($file->file_path)) {
+            Storage::disk('public')->delete($file->file_path);
+        }
         $file->delete();
 
-        // Log the deletion
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Delete file', "Fileable_type ".$file->fileable_type, "Location ".$file->fileable_id, 'Bestand verwijderd');
+        $log->createLog(Auth::id(), 2, 'Delete file', "Fileable_type ".$file->fileable_type, "Location ".$file->fileable_id, 'Bestand verwijderd');
 
         return redirect()->back()->with('success', 'Bestand succesvol verwijderd.');
     }
 
     private function deleteFolderContents($folder)
     {
-        // If the file is a folder (type 2), recursively delete its contents
         if ($folder->type == 2) {
-            // Get all files inside this folder (those whose `folder_id` is this folder's ID)
             $filesInFolder = File::where('folder_id', $folder->id)->get();
-
             foreach ($filesInFolder as $file) {
-                // If the file is a folder itself, recursively delete its contents
                 $this->deleteFolderContents($file);
-
-                // Delete the file from storage
-                Storage::disk('public')->delete($file->file_path);
-
-                // Delete the file record from the database
+                if ($file->file_path && Storage::disk('public')->exists($file->file_path)) {
+                    Storage::disk('public')->delete($file->file_path);
+                }
                 $file->delete();
             }
         }
     }
 
-
     public function toggleFileAccess($location, $fileId)
     {
-        // Fetch the file and ensure it belongs to the specified lesson
         $file = File::findOrFail($fileId);
 
         if ($location === "Lesson") {
@@ -480,17 +457,12 @@ class FileController extends Controller
             }
         }
 
-        // Toggle the file's access
         $newAccess = $file->access === 'teachers' ? 'all' : 'teachers';
         $file->update(['access' => $newAccess]);
 
         $log = new Log();
-        $log->createLog(auth()->user()->id, 2, 'Update file permissions', "Fileable_type ".$file->fileable_type, "Location ".$file->fileable_id, 'Toegang gewijzigd '.$file->access);
+        $log->createLog(Auth::id(), 2, 'Update file permissions', "Fileable_type ".$file->fileable_type, "Location ".$file->fileable_id, 'Toegang gewijzigd '.$file->access);
 
-
-        return redirect()->back()
-            ->with('success', 'Toegang succesvol aangepast.');
+        return redirect()->back()->with('success', 'Toegang succesvol aangepast.');
     }
-
-
 }

@@ -67,6 +67,10 @@
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('dolfijnen.post', $post->id) }}"><span
                                     class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
+                        @if($post-> location === 5)
+                            <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('technisch_team.post', $post->id) }}"><span
+                                    class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
+                        @endif
                     </div>
                     <span class="message-arrow"></span>
                 @endif

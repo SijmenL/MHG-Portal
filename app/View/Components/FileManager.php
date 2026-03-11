@@ -5,78 +5,23 @@ namespace App\View\Components;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use App\Models\File;
 
 class FileManager extends Component
 {
-    /**
-     * The files.
-     *
-     * @var \Illuminate\Support\Collection
-     */
     public $files;
-
-    /**
-     * The breadcrumbs.
-     *
-     * @var array
-     */
     public $breadcrumbs;
-
-    /**
-     * The folder ID.
-     *
-     * @var int|null
-     */
     public $folderId;
-
-    /**
-     * If the user has admin capabilities.
-     *
-     * @var bool
-     */
     public $hasAdminViewers;
-
-    /**
-     * If the user has admin capabilities.
-     *
-     * @var bool
-     */
     public $isAdmin;
-
-    /**
-     * The storage URL.
-     *
-     * @var string
-     */
     public $storageUrl;
-
-    /**
-     * The name for users with admin power
-     *
-     * @var string
-     */
     public $adminName;
-
-    /**
-     * The name for users that arent the admin
-     *
-     * @var string
-     */
     public $nonAdminName;
-
-    /**
-     * The location of the file viewer, e.g. Lessen
-     *
-     * @var string
-     */
     public $location;
-
-    /**
-     * The locations id if relevant
-     *
-     * @var string
-     */
     public $locationId;
+
+    // New property for the sidebar and move/copy modals
+    public $flatFolders;
 
     public function __construct(
         $files,
@@ -100,11 +45,33 @@ class FileManager extends Component
         $this->storageUrl = $storageUrl;
         $this->location = $location;
         $this->locationId = $locationId;
+
+        // Fetch all folders for this location to build the hierarchical tree
+        $allFolders = File::where('location', $location)
+            ->where('location_id', $locationId)
+            ->where('type', 2)
+            ->orderBy('file_name')
+            ->get();
+
+        $this->flatFolders = $this->buildFlatTree($allFolders);
     }
 
     /**
-     * Get the view / contents that represent the component.
+     * Recursively flattens the folder tree and adds a depth indicator for UI rendering
      */
+    private function buildFlatTree($folders, $parentId = null, $depth = 0) {
+        $flat = [];
+        foreach ($folders as $folder) {
+            if ($folder->folder_id == $parentId) {
+                $folder->depth = $depth;
+                $flat[] = $folder;
+                // Recursively fetch children and merge them into the flat array
+                $flat = array_merge($flat, $this->buildFlatTree($folders, $folder->id, $depth + 1));
+            }
+        }
+        return $flat;
+    }
+
     public function render(): View|Closure|string
     {
         return view('components.file_manager');

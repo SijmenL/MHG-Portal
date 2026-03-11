@@ -205,6 +205,11 @@ pre {
     flex-flow: column;
 }
 
+#popup-upload {
+    margin-top: 0 !important;
+    top: 0 !important;
+}
+
 .flex-row-responsive-reverse {
     flex-flow: column-reverse;
 }

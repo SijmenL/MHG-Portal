@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DolfijnenController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ParentController;
+use App\Http\Controllers\TechnischTeamController;
 use App\Http\Controllers\ZeeverkennerController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -145,6 +146,8 @@ Route::middleware(['checkAccepted', 'auth'])->group(function () {
     Route::get('/files/{folder}/zip', [FileController::class, 'downloadFolder'])->name('files.zip');
 
     Route::post('/files/{fileableType}/{filableId}', [FileController::class, 'filesStore'])->name('files.store');
+
+    Route::post('/files/{location}/{locationId}/batch', [FileController::class, 'batchAction'])->name('files.batch');
 
 });
 
@@ -538,6 +541,36 @@ Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur,Oud
 
 Route::middleware(['checkRole:Administratie,Afterloodsen Organisator,Bestuur'])->group(function () {
     Route::get('/afterloodsen/leden/details/{id}', [AfterloodsenController::class, 'groupDetails'])->name('afterloodsen.groep.details');
+});
+
+// Technisch Team
+Route::middleware(['checkRole:Administratie,Technisch Team,Hoofd Technisch Team,Bestuur,Ouderraad', 'checkAccepted'])->group(function () {
+    Route::get('/technisch-team', [TechnischTeamController::class, 'view'])->name('technisch_team');
+
+    Route::get('/technisch-team/bestanden', [TechnischTeamController::class, 'files'])->name('technisch_team.files');
+
+
+    Route::post('/technisch-team', [TechnischTeamController::class, 'postMessage'])->name('technisch_team.message-post');
+
+    Route::get('/technisch-team/post/{id}', [TechnischTeamController::class, 'viewPost'])->name('technisch_team.post');
+    Route::post('/technisch-team/post/{id}', [TechnischTeamController::class, 'postComment'])->name('technisch_team.comment-post');
+    Route::post('/technisch-team/post/reaction/{id}/{commentId}', [TechnischTeamController::class, 'postReaction'])->name('technisch_team.reaction-post');
+
+    Route::get('/technisch-team/post/edit/{id}', [TechnischTeamController::class, 'editPost'])->name('technisch_team.post.edit');
+    Route::post('/technisch-team/post/edit/{id}', [TechnischTeamController::class, 'storePost'])->name('technisch_team.post.store');
+
+    Route::get('/technisch-team/post/delete/{id}', [TechnischTeamController::class, 'deletePost'])->name('technisch_team.post.delete');
+    Route::get('/technisch-team/comment/delete/{id}/{postId}', [TechnischTeamController::class, 'deleteComment'])->name('technisch_team.comment.delete');
+});
+
+Route::middleware(['checkRole:Administratie,Hoofd Technisch Team,Bestuur,Ouderraad'])->group(function () {
+    Route::get('/technisch-team/groep', [TechnischTeamController::class, 'group'])->name('technisch_team.groep');
+    Route::post('/technisch-team/groep', [TechnischTeamController::class, 'groupSearch'])->name('technisch_team.group.search');
+    Route::post('/technisch-team/groep/export', [TechnischTeamController::class, 'exportData'])->name('technisch_team.groep.export');
+});
+
+Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur'])->group(function () {
+    Route::get('/technisch-team/groep/details/{id}', [TechnischTeamController::class, 'groupDetails'])->name('technisch_team.groep.details');
 });
 
 // Forum

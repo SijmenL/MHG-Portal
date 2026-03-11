@@ -115,7 +115,9 @@
                                     @if($post-> location === 4)
                                         <p><b>Leiding</b></p>
                                     @endif
-
+                                    @if($post-> location === 5)
+                                        <p><b>Technisch Team</b></p>
+                                    @endif
                                 </div>
 
                                 <span class="message-arrow"></span>

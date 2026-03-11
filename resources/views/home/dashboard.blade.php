@@ -482,6 +482,18 @@
                             </a>
                         @endif
 
+                        @if($user && $user->accepted === 1 &&
+                            ($user->roles->contains('role', 'Teachnisch Team') ||
+                            $user->roles->contains('role', 'Hoofd Technisch Team') ||
+                            $user->roles->contains('role', 'Administratie') ||
+                            $user->roles->contains('role', 'Bestuur'))
+                        )
+                            <a class="btn btn-dark quick-action" href="{{ route('technisch_team') }}">
+                                <span class="material-symbols-rounded">construction</span>
+                                <p>Technisch Team</p>
+                            </a>
+                        @endif
+
                         @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
                                 $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
                              })->where('accepted', true)->whereNull('member_date_end')->exists()))
