@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/technisch_team/Image-1-scaled.jpeg') }})">
+    <div class="header" style="background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)), url({{ asset('files/technisch_team/Image-3.jpeg') }})">
         <div>
             <p class="header-title">Technisch Team</p>
             <p class="header-text">Welkom op de digitale omgeving van het Technisch Team! </p>
@@ -23,9 +23,9 @@
         @endif
 
         <div class="d-flex flex-row-responsive justify-content-center align-items-center gap-5">
-            <div class="">
+            <div class="w-100">
                 <h1 class="">Opties</h1>
-                <p>Welkom op het Technisch Team portaal! Hier kun je dingen delen met elkaar en de leiding. Ook kun je de leiding bekijken. Meld je aan of af voor het groepdraaien via <a href="{{ route('agenda.month') }}">de agenda</a>!</p>
+                <p>Welkom op het Technisch Team portaal!</p>
 
                 <div class="bg-light rounded-2 p-3">
                     <h2>Acties</h2>
@@ -99,7 +99,7 @@
                     @foreach($posts as $post)
                         <div id="{{$post->id}}" class="mt-5 rounded bg-white">
                             <div
-                                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Hoofd Technisch Team') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id === Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
+                                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Hoofd Technisch Team') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id == Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
                                 @if(isset($post->user))
                                     <div
                                         class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">
@@ -149,7 +149,7 @@
                                         </div>
 
                                         <div class="d-flex flex-row">
-                                            @if($post->user->id === Auth::id())
+                                            @if($post->user->id == Auth::id())
                                                 <a href="{{ route('technisch_team.post.edit', $post->id) }}"
                                                    class="btn d-flex align-items-center edit"><span
                                                         class="material-symbols-rounded">edit</span></a>

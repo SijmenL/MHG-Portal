@@ -46,7 +46,7 @@
 
                 console.log(page)
 
-                if (page === 1) {
+                if (page == 1) {
                     stepDisplay1.classList.remove('form-step-active')
                     stepDisplay2.classList.add('form-step-active')
                     stepDisplay3.classList.remove('form-step-active')
@@ -58,7 +58,7 @@
                     previous.classList.remove('disabled')
                 }
 
-                if (page === 2) {
+                if (page == 2) {
                     stepDisplay1.classList.remove('form-step-active')
                     stepDisplay2.classList.remove('form-step-active')
                     stepDisplay3.classList.add('form-step-active')
@@ -78,7 +78,7 @@
 
                 console.log(page)
 
-                if (page === 1) {
+                if (page == 1) {
                     stepDisplay1.classList.remove('form-step-active')
                     stepDisplay2.classList.add('form-step-active')
                     stepDisplay3.classList.remove('form-step-active')
@@ -90,7 +90,7 @@
                     next.classList.remove('disabled')
                 }
 
-                if (page === 0) {
+                if (page == 0) {
                     stepDisplay1.classList.add('form-step-active')
                     stepDisplay2.classList.remove('form-step-active')
                     stepDisplay3.classList.remove('form-step-active')

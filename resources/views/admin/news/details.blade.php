@@ -58,7 +58,7 @@
             <a href="{{ route('admin.news.edit', $news->id) }}" class="btn btn-dark">Bewerken</a>
             <a href="{{ route('admin.news.publish', $news->id) }}"
                class="btn btn-outline-dark">
-                @if($news->accepted === 0)
+                @if($news->accepted == 0)
                     Publiceer dit nieuws
                 @else
                     Haal dit nieuws offline

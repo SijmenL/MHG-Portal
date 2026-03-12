@@ -145,11 +145,11 @@
         @endif
 
         @if(!in_array('roles', $hide))
-            @if($user->roles->count() > 0 || $user->is_associate === 1 || ($user->member_date_end !== null && $user->accepted == false) || $user->children->count() >= 1)
+            @if($user->roles->count() > 0 || $user->is_associate == 1 || ($user->member_date_end !== null && $user->accepted == false) || $user->children->count() >= 1)
             <tr>
                 <th>Rollen</th>
                 <td>
-                    @if($user->is_associate === 1)
+                    @if($user->is_associate == 1)
                         <span title="Relatie"
                               class="badge rounded-pill bg-dark text-white fs-6 p-2">Relatie</span>
                     @endif

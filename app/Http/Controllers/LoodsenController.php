@@ -196,7 +196,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             return view('speltakken.loodsen.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('loodsen')->with('error', 'Je mag deze post niet bewerken.');
@@ -214,7 +214,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             $validatedData = $request->validate([
                 'content' => 'string|max:65535',
             ]);
@@ -248,7 +248,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -282,7 +282,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'Loodsen Stamoudste') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
@@ -389,7 +389,7 @@ class LoodsenController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Loodsen") {
                 return redirect()->route('loodsen.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('loodsen.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -426,7 +426,7 @@ class LoodsenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('loodsen')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('loodsen')->with('error', 'Dit account bestaat niet.');
@@ -532,7 +532,7 @@ class LoodsenController extends Controller
 
             return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
         }
-        if ($music === null) {
+        if ($music == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Save music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
 
@@ -552,7 +552,7 @@ class LoodsenController extends Controller
 
             return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
         }
-        if ($music === null) {
+        if ($music == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Save music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
 
@@ -609,7 +609,7 @@ class LoodsenController extends Controller
             return redirect()->route('loodsen')->with('error', 'Deze muziek bestaat niet.');
         }
 
-        if ($music === null) {
+        if ($music == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete music', 'Loodsen', 'Music id: ' . $id, 'Muziek bestaat niet');
 
@@ -696,7 +696,7 @@ class LoodsenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('loodsen.inbox')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('loodsen.inbox')->with('error', 'Dit account bestaat niet.');
@@ -744,16 +744,16 @@ class LoodsenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('loodsen.signup')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'loodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('loodsen.signup')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('loodsen.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();

@@ -18,14 +18,14 @@
 
         window.addEventListener('message', (event) => {
             console.log('Message received from:', event.origin);
-            if (event.origin === 'https://waterscoutingmhg.nl' && event.data === 'getHeight') {
+            if (event.origin == 'https://waterscoutingmhg.nl' && event.data == 'getHeight') {
                 console.log('Valid request for height');
                 sendHeight();
             }
         });
 
 
-        if (window.top === window.self) {
+        if (window.top == window.self) {
             // Redirect to the parent page if the child page is accessed directly
             window.location.href = `https://waterscoutingmhg.nl/over-onze-club/activiteiten`;
         } else {
@@ -107,7 +107,7 @@
                             $weekEventCounts[$currentWeek] = max($weekEventCounts[$currentWeek] ?? 0, $activitiesForDay->count());
                         }
 
-                        if (($i + $firstDayOfWeek) % 7 === 0) {
+                        if (($i + $firstDayOfWeek) % 7 == 0) {
                             $currentWeek++;
                         }
                     }
@@ -212,7 +212,7 @@
                     </div>
 
                     @php
-                        if (($i + $firstDayOfWeek) % 7 === 0) {
+                        if (($i + $firstDayOfWeek) % 7 == 0) {
                             $currentWeek++;
                         }
                     @endphp

@@ -30,7 +30,7 @@
 
         <div id="{{$post->id}}" class="mt-5 rounded bg-white">
             <div
-                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Hoofd Technisch Team') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id === Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
+                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Hoofd Technisch Team') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id == Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
                 @if(isset($post->user))
                     <div
                         class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">

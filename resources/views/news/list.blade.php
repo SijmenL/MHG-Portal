@@ -13,14 +13,14 @@
 
             window.addEventListener('message', (event) => {
                 console.log('Message received from:', event.origin);
-                if (event.origin === 'https://waterscoutingmhg.nl' && event.data === 'getHeight') {
+                if (event.origin == 'https://waterscoutingmhg.nl' && event.data == 'getHeight') {
                     console.log('Valid request for height');
                     sendHeight();
                 }
             });
 
 
-            if (window.top === window.self) {
+            if (window.top == window.self) {
                 // Redirect to the parent page if the child page is accessed directly
                 window.location.href = `https://waterscoutingmhg.nl/over-onze-club/nieuws`;
             } else {

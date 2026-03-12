@@ -211,7 +211,7 @@ class DolfijnenController extends Controller
             return redirect()->route('dolfijnen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             return view('speltakken.dolfijnen.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('dolfijnen')->with('error', 'Je mag deze post niet bewerken.');
@@ -229,7 +229,7 @@ class DolfijnenController extends Controller
             return redirect()->route('dolfijnen')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             $validatedData = $request->validate([
                 'content' => 'string|max:65535',
             ]);
@@ -263,7 +263,7 @@ class DolfijnenController extends Controller
             return redirect()->route('dolfijnen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -297,7 +297,7 @@ class DolfijnenController extends Controller
             return redirect()->route('dolfijnen')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'dolfijnen Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
@@ -352,7 +352,7 @@ class DolfijnenController extends Controller
             ->where('accepted', true);
 
         // If the selected role is 'Ouders', find users who are parents of users with the 'Dolfijn' role
-        if ($selected_role === 'Ouders') {
+        if ($selected_role == 'Ouders') {
             $usersQuery->whereHas('children', function ($query) {
                 $query->whereHas('roles', function ($roleQuery) {
                     $roleQuery->where('role', 'Dolfijn');
@@ -418,7 +418,7 @@ class DolfijnenController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Dolfijnen") {
                 return redirect()->route('dolfijnen.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('dolfijnen.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -443,7 +443,7 @@ class DolfijnenController extends Controller
         $users = json_decode($request->input('user_ids'));
         $export_type = $request->input('type');
 
-        if ($export_type === 'Dolfijnen') {
+        if ($export_type == 'Dolfijnen') {
             $type = 'dolfijnen';
         } else {
             $type = 'dolfijnen-ouders';
@@ -553,7 +553,7 @@ class DolfijnenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'dolfijnen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('dolfijnen.inbox')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'dolfijnen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('dolfijnen.inbox')->with('error', 'Dit account bestaat niet.');
@@ -601,16 +601,16 @@ class DolfijnenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'dolfijnen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('dolfijnen.signup')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'dolfijnen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('dolfijnen.signup')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('dolfijnen.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();

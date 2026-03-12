@@ -189,24 +189,24 @@ class NonLoggedInController extends Controller
             $account = User::create($data);
             $notify = "";
 
-            if ($request->input('speltak') === 'dolfijnen') {
+            if ($request->input('speltak') == 'dolfijnen') {
                 $role = Role::where('role', 'Dolfijn')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
                 $notify = "Dolfijnen Hoofdleiding";
             }
-            if ($request->input('speltak') === 'zeeverkenners') {
+            if ($request->input('speltak') == 'zeeverkenners') {
                 $role = Role::where('role', 'Zeeverkenner')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
                 $notify = "Zeeverkenners Hoofdleiding";
 
             }
-            if ($request->input('speltak') === 'loodsen') {
+            if ($request->input('speltak') == 'loodsen') {
                 $role = Role::where('role', 'Loods')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
                 $notify = "Loodsen Stamoudste";
 
             }
-            if ($request->input('speltak') === 'afterloodsen') {
+            if ($request->input('speltak') == 'afterloodsen') {
                 $role = Role::where('role', 'Afterloods')->first();
                 $account->roles()->syncWithoutDetaching([$role->id]);
                 $notify = "Afterloodsen Organisator";
@@ -253,7 +253,7 @@ class NonLoggedInController extends Controller
                 $formElement = ActivityFormElement::findOrFail($formElementId);
 
                 // Handle checkbox inputs which are arrays
-                if ($formElement->type === 'checkbox' && is_array($response)) {
+                if ($formElement->type == 'checkbox' && is_array($response)) {
                     foreach ($response as $checkboxValue) {
                         ActivityFormResponses::create([
                             'activity_id' => $activity->id,

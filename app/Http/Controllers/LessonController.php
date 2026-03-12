@@ -162,7 +162,7 @@ class LessonController extends Controller
 
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            $lesson->user_id === $user->id ||
+            $lesson->user_id == $user->id ||
             $lesson->users()
                 ->where('user_id', $user->id)
                 ->wherePivot('teacher', true)
@@ -320,7 +320,7 @@ class LessonController extends Controller
 
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            $lesson->user_id === $user->id ||
+            $lesson->user_id == $user->id ||
             $lesson->users()
                 ->where('user_id', $user->id)
                 ->wherePivot('teacher', true)
@@ -423,7 +423,7 @@ class LessonController extends Controller
 
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            $lesson->user_id === $user->id ||
+            $lesson->user_id == $user->id ||
             $lesson->users()
                 ->where('user_id', $user->id)
                 ->wherePivot('teacher', true)
@@ -441,7 +441,7 @@ class LessonController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location_id !== (int)$lessonId) {
                 return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isTeacher) {
+            if ($currentFolder->access == "teachers" && !$isTeacher) {
                 return redirect()->route('lessons.environment.lesson.files', $lessonId)->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -474,7 +474,7 @@ class LessonController extends Controller
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            $lesson->user_id === $user->id ||
+            $lesson->user_id == $user->id ||
             $lesson->users()
                 ->where('user_id', $user->id)
                 ->wherePivot('teacher', true)
@@ -644,7 +644,7 @@ class LessonController extends Controller
 
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            $lesson->user_id === $user->id ||
+            $lesson->user_id == $user->id ||
             $lesson->users()
                 ->where('user_id', $user->id)
                 ->wherePivot('teacher', true)
@@ -1004,7 +1004,7 @@ class LessonController extends Controller
                 return redirect()->route('lessons.environment.lesson', $lessonId)->with('error', 'Je mag deze post niet bekijken.');
             }
 
-            if ($post->user_id === Auth::id()) {
+            if ($post->user_id == Auth::id()) {
                 return view('lessons.environments.post_edit', ['user' => $user, 'post' => $post, 'roles' => $roles, 'lesson' => $lesson]);
             } else {
                 return redirect()->route('lessons.environment.lesson', $lesson->id)->with('error', 'Je mag deze post niet bewerken.');
@@ -1027,7 +1027,7 @@ class LessonController extends Controller
                 return redirect()->route('lessons.environment.lesson', $lessonId)->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
             }
 
-            if ($post->user_id === Auth::id()) {
+            if ($post->user_id == Auth::id()) {
                 $validatedData = $request->validate([
                     'content' => 'string|max:65535',
                 ]);
@@ -1066,7 +1066,7 @@ class LessonController extends Controller
                 return redirect()->route('lessons.environment.lesson', $lessonId)->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
             }
 
-            if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Praktijkbegeleider') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+            if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'Praktijkbegeleider') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
                 foreach ($post->comments as $comment) {
                     $comment->delete();
@@ -1104,7 +1104,7 @@ class LessonController extends Controller
                 return redirect()->route('lessons.environment.lesson', $lessonId)->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
             }
 
-            if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'Praktijkbegeleider') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+            if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'Praktijkbegeleider') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
                 $comment->delete();
                 $log = new Log();

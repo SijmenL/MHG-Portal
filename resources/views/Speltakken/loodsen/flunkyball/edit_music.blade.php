@@ -84,12 +84,12 @@
                 <div class="form-group">
                     <label for="play_type">Type geluid</label>
                     <select class="form-control" id="play_type" name="play_type">
-                        <option @if($music->music_type === 1) selected @endif class='' value="1">Muziek (loop, fade,
+                        <option @if($music->music_type == 1) selected @endif class='' value="1">Muziek (loop, fade,
                             onthou positie)
                         </option>
-                        <option @if($music->music_type === 2) selected @endif class='' value="2">Muziek (loop, fade)
+                        <option @if($music->music_type == 2) selected @endif class='' value="2">Muziek (loop, fade)
                         </option>
-                        <option @if($music->music_type === 3) selected @endif class='' value="3">Sound Effect (speel
+                        <option @if($music->music_type == 3) selected @endif class='' value="3">Sound Effect (speel
                             zonder de muziek te stoppen)
                         </option>
                     </select>

@@ -194,7 +194,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             return view('speltakken.afterloodsen.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('afterloodsen')->with('error', 'Je mag deze post niet bewerken.');
@@ -212,7 +212,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             $validatedData = $request->validate([
                 'content' => 'string|max:65535',
             ]);
@@ -246,7 +246,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -280,7 +280,7 @@ class AfterloodsenController extends Controller
             return redirect()->route('afterloodsen')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'afterloodsen') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
@@ -338,7 +338,7 @@ class AfterloodsenController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Afterloodsen") {
                 return redirect()->route('afterloodsen.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('afterloodsen.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -430,7 +430,7 @@ class AfterloodsenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('afterloodsen')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('afterloodsen')->with('error', 'Dit account bestaat niet.');
@@ -513,7 +513,7 @@ class AfterloodsenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('afterloodsen.inbox')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('afterloodsen.inbox')->with('error', 'Dit account bestaat niet.');
@@ -561,16 +561,16 @@ class AfterloodsenController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('afterloodsen.signup')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'afterloodsen', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('afterloodsen.signup')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('afterloodsen.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();

@@ -47,27 +47,27 @@
                             <p class="text-center">{{ $post->updated_at}} bewerkt</p>
                         @endif
 
-                        @if($post-> location === 0)
+                        @if($post-> location == 0)
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('dolfijnen.post', $post->id) }}"><span
                                     class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
-                        @if($post-> location === 1)
+                        @if($post-> location == 1)
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('zeeverkenners.post', $post->id) }}"><span
                                         class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
-                        @if($post-> location === 2)
+                        @if($post-> location == 2)
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('loodsen.post', $post->id) }}"><span
                                     class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
-                        @if($post-> location === 3)
+                        @if($post-> location == 3)
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('afterloodsen.post', $post->id) }}"><span
                                     class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
-                        @if($post-> location === 4)
+                        @if($post-> location == 4)
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('dolfijnen.post', $post->id) }}"><span
                                     class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
-                        @if($post-> location === 5)
+                        @if($post-> location == 5)
                             <a class="btn btn-dark mb-4 d-flex align-items-center gap-2" target="_blank" href="{{ route('technisch_team.post', $post->id) }}"><span
                                     class="material-symbols-rounded">open_in_new</span><b> Open origineel</b></a>
                         @endif
@@ -110,7 +110,7 @@
                 @endif</h1>
 
             @foreach($post->comments as $comment)
-                @if ($comment->comment_id === null)
+                @if ($comment->comment_id == null)
                     <div class="comment mt-3 p-3 rounded bg-white" data-comment-id="{{ $comment->id }}"
                          id="{{ $comment->id }}">
                         <div class="d-flex flex-row gap-2">
@@ -124,7 +124,7 @@
                             <div class="w-100 p-1" style=" width: 100%; overflow: auto">
                                 <div class="d-flex flex-row-responsive" style="margin-bottom: -15px;">
                                     <p><span
-                                            class="fw-bold @if($post->user_id === $comment->user_id) post-op @endif">
+                                            class="fw-bold @if($post->user_id == $comment->user_id) post-op @endif">
                                                 {{ $comment->user->name.' '.$comment->user->infix.' '.$comment->user->last_name }}
                                             </span>
                                     </p>
@@ -169,7 +169,7 @@
                                         <div class="w-100 p-1" style=" width: 100%; overflow: auto">
                                             <div class="d-flex flex-row-responsive" style="margin-bottom: -15px;">
                                                 <p><span
-                                                        class="fw-bold @if($post->user_id === $reaction->user_id) post-op @endif">
+                                                        class="fw-bold @if($post->user_id == $reaction->user_id) post-op @endif">
                                                             {{ $reaction->user->name.' '.$reaction->user->infix.' '.$reaction->user->last_name }}
                                                         </span>
                                                 </p>

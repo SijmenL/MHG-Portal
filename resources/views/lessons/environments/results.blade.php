@@ -195,7 +195,7 @@
                                                         @php
 
                                                             $isUserTeacher =
-                                                                $lesson->user_id === $user->id ||
+                                                                $lesson->user_id == $user->id ||
                                                                 $lesson->users()
                                                                     ->where('user_id', $user->id)
                                                                     ->wherePivot('teacher', true)

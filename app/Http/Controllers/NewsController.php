@@ -69,7 +69,7 @@ class NewsController extends Controller
 
     public function viewNewsItem($id)
     {
-        if ($id === '-1') {
+        if ($id == '-1') {
             $news = null;
         } else {
             try {
@@ -79,7 +79,7 @@ class NewsController extends Controller
                 $log->createLog(auth()->user()->id, 1, 'View news items', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
                 $news = null;
             }
-            if ($news === null) {
+            if ($news == null) {
                 $log = new Log();
                 $log->createLog(auth()->user()->id, 1, 'View news items', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
                 $news = null;
@@ -201,13 +201,13 @@ class NewsController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News details', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News details', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
         }
 
-        if ($news->accepted === 1 || $news->user_id !== Auth::id()) {
+        if ($news->accepted == 1 || $news->user_id !== Auth::id()) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News details', 'news', 'News id: ' . $id, 'Nieuws mag niet bewerkt worden');
             return redirect()->route('news.user')->with('error', 'Je mag dit nieuws niet bewerken.');
@@ -235,7 +235,7 @@ class NewsController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News edit', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News edit', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
@@ -295,13 +295,13 @@ class NewsController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News delete', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News delete', 'news', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
         }
 
-        if ($news->accepted === 1 || $news->user_id !== Auth::id()) {
+        if ($news->accepted == 1 || $news->user_id !== Auth::id()) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News delete', 'news', 'News id: ' . $id, 'Nieuws mag niet verwijderd worden');
             return redirect()->route('news.user')->with('error', 'Je mag dit nieuws niet verwijderen.');

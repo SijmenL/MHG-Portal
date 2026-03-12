@@ -100,22 +100,22 @@
                                         </p>
                                     @endif
 
-                                    @if($post-> location === 0)
+                                    @if($post-> location == 0)
                                         <p><b>Dolfijnen</b></p>
                                     @endif
-                                    @if($post-> location === 1)
+                                    @if($post-> location == 1)
                                         <p><b>Zeeverkenners</b></p>
                                     @endif
-                                    @if($post-> location === 2)
+                                    @if($post-> location == 2)
                                         <p><b>Loodsen</b></p>
                                     @endif
-                                    @if($post-> location === 3)
+                                    @if($post-> location == 3)
                                         <p><b>Afterloodsen</b></p>
                                     @endif
-                                    @if($post-> location === 4)
+                                    @if($post-> location == 4)
                                         <p><b>Leiding</b></p>
                                     @endif
-                                    @if($post-> location === 5)
+                                    @if($post-> location == 5)
                                         <p><b>Technisch Team</b></p>
                                     @endif
                                 </div>

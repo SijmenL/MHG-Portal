@@ -108,9 +108,9 @@
                                         <select id="sex" type="text"
                                                 class="form-select @error('sex') is-invalid @enderror"
                                                 name="sex">
-                                            <option @if($user->sex === 'Man') selected @endif >Man</option>
-                                            <option @if($user->sex === 'Vrouw') selected @endif >Vrouw</option>
-                                            <option @if($user->sex === 'Anders') selected @endif >Anders</option>
+                                            <option @if($user->sex == 'Man') selected @endif >Man</option>
+                                            <option @if($user->sex == 'Vrouw') selected @endif >Vrouw</option>
+                                            <option @if($user->sex == 'Anders') selected @endif >Anders</option>
                                         </select>
                                         @error('sex')
                                         <span class="invalid-feedback" role="alert">
@@ -200,8 +200,8 @@
                     <div>
                         <label for="avg" class="col-md-4 col-form-label ">AVG Toestemming</label>
                         <select id="avg" type="text" class="form-select @error('avg') is-invalid @enderror" name="avg">
-                            <option @if($user->avg === 1) selected @endif value="1">Ja</option>
-                            <option @if($user->avg === 0) selected @endif value="0">Nee</option>
+                            <option @if($user->avg == 1) selected @endif value="1">Ja</option>
+                            <option @if($user->avg == 0) selected @endif value="0">Nee</option>
                         </select>
                         @error('avg')
                         <span class="invalid-feedback" role="alert">

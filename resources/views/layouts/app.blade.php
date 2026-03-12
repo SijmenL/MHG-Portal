@@ -57,7 +57,7 @@
                         <div class="rolls fade-out-left fade-out-right"
                              title="@auth()@foreach ($roles as $role){{ $role->role }}, @endforeach @endauth">
                             @auth()
-                                @if($user->is_associate === 1)
+                                @if($user->is_associate == 1)
                                     <span title="Relatie"
                                           class="badge rounded-pill bg-dark text-white m-1">Relatie</span>
                                 @endif

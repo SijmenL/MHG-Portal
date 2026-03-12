@@ -85,7 +85,7 @@
                     </thead>
                     <tbody>
                     @foreach($logs as $log)
-                        <tr class="@if($log->action === 0) table-danger @endif @if($log->action === 1) table-warning @endif">
+                        <tr class="@if($log->action == 0) table-danger @endif @if($log->action == 1) table-warning @endif">
                             <th scope="row">{{ $log->created_at }}</th>
                             <td>
                                 @if($log->user)

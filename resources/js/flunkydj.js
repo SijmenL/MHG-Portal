@@ -55,7 +55,7 @@ BufferLoader.prototype.loadBuffer = function (url, index) {
                     return;
                 }
                 loader.bufferList[index] = buffer;
-                if (++loader.loadCount === loader.urlList.length) {
+                if (++loader.loadCount == loader.urlList.length) {
                     loader.onload(loader.bufferList);
                 }
             },
@@ -130,7 +130,7 @@ function init() {
 
     for (let i = 0; i < allSources.length; i++) {
         allSources[i].addEventListener('click', function (e) {
-            if (isStopping === false) {
+            if (isStopping == false) {
                 if (allSources[i].getAttribute('data-play-type') !== '3') {
 
                     // Clear the 'selected' class from all buttons
@@ -187,7 +187,7 @@ function init() {
         if (timeSinceButtonPressed >= 0) {
             timeSinceButtonPressed++
         }
-        if (paused === true) {
+        if (paused == true) {
             pauseTime++
         }
     }, 10)
@@ -201,7 +201,7 @@ function init() {
 }
 
 function stop(allSources) {
-    if (isStopping === true) {
+    if (isStopping == true) {
         clearInterval(decreasePlaybackRate)
         clear(allSources);
         stopButton.classList.remove('is-stopping');
@@ -210,7 +210,7 @@ function stop(allSources) {
         stopAudio.volume = 0.25;
         stopAudio.currentTime = 0;
     }
-    if (isStopping === false && paused === false) {
+    if (isStopping == false && paused == false) {
         stopButton.classList.add('is-stopping');
         isStopping = true;
         console.log(gainNode.playbackRate)
@@ -286,11 +286,11 @@ function setPlayingClass(element) {
 
     if (element !== null) {
         // Add 'playing' class to the current button
-        if (element === currentlyPlayingElement) {
-            if (element.getAttribute('data-play-type') === '1') {
+        if (element == currentlyPlayingElement) {
+            if (element.getAttribute('data-play-type') == '1') {
                 element.classList.add('playing');
             }
-            if (element.getAttribute('data-play-type') === '2') {
+            if (element.getAttribute('data-play-type') == '2') {
                 element.classList.add('playing-no-remember');
             }
         } else {
@@ -300,7 +300,7 @@ function setPlayingClass(element) {
 }
 
 function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType) {
-    if (musicPlaying === newBuffer) {
+    if (musicPlaying == newBuffer) {
         // If the clicked song is the same as the currently playing song, ignore the click
         console.log('Same song pressed')
         console.log(musicPlaying)
@@ -323,7 +323,7 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
     // Calculate the current time
     const currentTime = context.currentTime;
 
-    if (playType === '1') {
+    if (playType == '1') {
         if (timeSinceButtonPressed < 0) {
             timeSinceButtonPressed = 0;
         }
@@ -356,10 +356,10 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
 
     let elapsedTime;
     // Calculate the elapsed time for the new song
-    if (playType === '1') {
+    if (playType == '1') {
         elapsedTime = elapsedTimes[index];
     }
-    if (playType === '2') {
+    if (playType == '2') {
         elapsedTime = 0
     }
 
@@ -392,13 +392,13 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
 
 
     for (let i = 0; i < playingAudio.length; i++) {
-        if (playingAudio[i] !== undefined && playingAudio[i] !== playingAudio[playingAudio.length - 1] && playingAudio[i] !== musicPlaying && playingAudio[i].buffer === selectedSong) {
+        if (playingAudio[i] !== undefined && playingAudio[i] !== playingAudio[playingAudio.length - 1] && playingAudio[i] !== musicPlaying && playingAudio[i].buffer == selectedSong) {
             console.warn('Spam detected')
             playingAudio[i].stop();
         }
     }
 
-    if (fadeOutTime === 0) {
+    if (fadeOutTime == 0) {
         for (let i = 0; i < playingAudio.length; i++) {
             if (playingAudio[i] !== undefined && playingAudio[i] !== playingAudio[playingAudio.length - 1]) {
                 console.warn('Previous fade in aborted.')
@@ -408,7 +408,7 @@ function crossfadeToNewSong(newBuffer, index, fadeOut, fadeIn, element, playType
     }
 
     if (element !== currentlyPlayingElement && fadeIn !== 0) {
-        if (selectedSong === newBuffer) {
+        if (selectedSong == newBuffer) {
             // Schedule a linear fade-in for the new source
             console.info(`Fade in: CT:${currentTime + fadeOutTime} FT:${fadeInTime}`)
             newGainNode.gain.setValueAtTime(0, currentTime + fadeOutTime); // Adjusted to start from 0 after fade-out

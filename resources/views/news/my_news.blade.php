@@ -110,7 +110,7 @@
                 </div>
             @endif
         @else
-            @if($search === null)
+            @if($search == null)
                 <div class="alert alert-warning d-flex align-items-center" role="alert">
                     <span class="material-symbols-rounded me-2">unsubscribe</span>Je hebt nog geen nieuws ingestuurd!
                 </div>

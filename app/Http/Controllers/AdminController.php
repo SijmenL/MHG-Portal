@@ -55,7 +55,7 @@ class AdminController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Admin") {
                 return redirect()->route('admin.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('admin.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -172,7 +172,7 @@ class AdminController extends Controller
             $seen = 'all';
         }
 
-        if ($seen === 'all') {
+        if ($seen == 'all') {
             $contact_submissions = Contact::query()
                 ->when($search, function ($query, $search) {
                     return $query->where(function ($query) use ($search) {
@@ -185,7 +185,7 @@ class AdminController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(25);
         }
-        if ($seen === 'seen') {
+        if ($seen == 'seen') {
             $contact_submissions = Contact::query()
                 ->when($search, function ($query, $search) {
                     return $query->where(function ($query) use ($search) {
@@ -199,7 +199,7 @@ class AdminController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(25);
         }
-        if ($seen === 'unseen') {
+        if ($seen == 'unseen') {
             $contact_submissions = Contact::query()
                 ->when($search, function ($query, $search) {
                     return $query->where(function ($query) use ($search) {
@@ -230,7 +230,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Contact details', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
             return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
         }
-        if ($contact === null) {
+        if ($contact == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Contact details', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
             return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
@@ -266,13 +266,13 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete contact', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
             return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
         }
-        if ($contact === null) {
+        if ($contact == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete contact', 'admin', 'Contact id: ' . $id, 'Contact bestaat niet');
             return redirect()->route('admin.contact')->with('error', 'Dit contact bestaat niet.');
         }
 
-        if ($contact === null) {
+        if ($contact == null) {
             return redirect()->route('admin.contact')->with('error', 'Geen contact gevonden om te verwijderen');
         }
 
@@ -325,7 +325,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
@@ -363,16 +363,16 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.signup')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.signup')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('admin.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();
@@ -398,7 +398,7 @@ class AdminController extends Controller
             $accepted = 'all';
         }
 
-        if ($accepted === 'all') {
+        if ($accepted == 'all') {
             $news = News::query()
                 ->when($search, function ($query, $search) {
                     return $query->where(function ($query) use ($search) {
@@ -413,7 +413,7 @@ class AdminController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(25);
         }
-        if ($accepted === 'accepted') {
+        if ($accepted == 'accepted') {
             $news = News::query()
                 ->when($search, function ($query, $search) {
                     return $query->where(function ($query) use ($search) {
@@ -429,7 +429,7 @@ class AdminController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(25);
         }
-        if ($accepted === 'unaccepted') {
+        if ($accepted == 'unaccepted') {
             $news = News::query()
                 ->when($search, function ($query, $search) {
                     return $query->where(function ($query) use ($search) {
@@ -466,7 +466,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
@@ -487,7 +487,7 @@ class AdminController extends Controller
 
         $news->accepted = !$news->accepted;
 
-        if ($news->accepted === true) {
+        if ($news->accepted == true) {
             $notification = new Notification();
             $notification->sendNotification(null, [$news->user_id], 'Je nieuwsitem ' . $news->title . ' is gepubliceerd!', route('news.item', $news->id), '', 'news_accepted', $news->id);
         }
@@ -509,7 +509,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News details', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
@@ -537,7 +537,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News edit', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News edit', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('admin.news')->with('error', 'Dit nieuws bestaat niet.');
@@ -597,7 +597,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'News delete', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
         }
-        if ($news === null) {
+        if ($news == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'News delete', 'admin', 'News id: ' . $id, 'Nieuws bestaat niet');
             return redirect()->route('news.user')->with('error', 'Dit nieuws bestaat niet.');
@@ -651,15 +651,15 @@ class AdminController extends Controller
         // Apply role filters if selected role is not empty
         if (!empty($selected_role) && $selected_role !== 'none') {
             if (in_array($selected_role, ['parent', 'parent_dolfijnen', 'parent_zeeverkenners', 'associate', 'unsubscribed'])) {
-                if ($selected_role === 'parent') {
+                if ($selected_role == 'parent') {
                     $usersQuery->has('children');
-                } elseif ($selected_role === 'associate') {
+                } elseif ($selected_role == 'associate') {
                     $usersQuery->where('is_associate', true);
-                } elseif ($selected_role === 'unsubscribed') {
+                } elseif ($selected_role == 'unsubscribed') {
                     $usersQuery->whereNotNull('member_date_end');
                 }
                 else {
-                    $roleName = $selected_role === 'parent_dolfijnen' ? 'Dolfijn' : 'Zeeverkenner';
+                    $roleName = $selected_role == 'parent_dolfijnen' ? 'Dolfijn' : 'Zeeverkenner';
                     $usersQuery->whereHas('children.roles', function ($query) use ($roleName) {
                         $query->where('role', $roleName);
                     });
@@ -722,7 +722,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
@@ -750,7 +750,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
@@ -801,7 +801,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
@@ -892,16 +892,16 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Unsubscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Unsubscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om uit te schrijven');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet uitschrijven.');
         } else {
 
@@ -929,16 +929,16 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Subscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Subscribe user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om in te schrijven');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet inschrijven.');
         } else {
 
@@ -967,16 +967,16 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete user', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('admin.account-management')->with('error', 'Geen gebruiker gevonden om te verwijderen');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();
@@ -1161,7 +1161,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Change user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Change user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
@@ -1179,7 +1179,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Edit user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit user password', 'admin', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.account-management')->with('error', 'Dit account bestaat niet.');
@@ -1239,7 +1239,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
         }
-        if ($role === null) {
+        if ($role == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
@@ -1262,7 +1262,7 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
         }
-        if ($role === null) {
+        if ($role == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Edit role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
@@ -1293,13 +1293,13 @@ class AdminController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
         }
-        if ($role === null) {
+        if ($role == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete role', 'admin', 'Role id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('admin.role-management')->with('error', 'Deze rol bestaat niet.');
         }
 
-        if ($role === null) {
+        if ($role == null) {
             return redirect()->route('admin.role-management')->with('error', 'Geen rol gevonden om te verwijderen');
         }
 

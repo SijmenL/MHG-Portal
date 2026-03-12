@@ -184,10 +184,10 @@
                 }
                 isPlayingLoadingSound = true;
 
-                if (type === 'album') {
+                if (type == 'album') {
                     loadingSound.src = "{{ asset('foutecd/files/cd_open.mp3') }}";
                 }
-                if (type === 'song') {
+                if (type == 'song') {
                     loadingSound.src = "{{ asset('foutecd/files/cd_loading.mp3') }}";
                 }
 
@@ -200,14 +200,14 @@
                     loadingSound.onended = () => {
                         loadingSound.onended = null;
                         isPlayingLoadingSound = false;
-                        if (callback && typeof callback === 'function') {
+                        if (callback && typeof callback == 'function') {
                             callback();
                         }
                     };
                 }).catch(error => {
                     console.error("Error playing loading sound:", error);
                     isPlayingLoadingSound = false;
-                    if (callback && typeof callback === 'function') {
+                    if (callback && typeof callback == 'function') {
                         callback();
                     }
                 });
@@ -227,7 +227,7 @@
 
             function updateMediaSession(type) {
                 if ('mediaSession' in navigator) {
-                    if (type === 'loading') {
+                    if (type == 'loading') {
                         const metadata = {
                             title: 'Loading disc',
                         };
@@ -273,7 +273,7 @@
                     return;
                 }
 
-                if (audioPlayer.paused || type === 'play') {
+                if (audioPlayer.paused || type == 'play') {
                     if (currentSongs.length > 0 && currentIndex !== -1) { // Prevent playing if no album is selected or no song selected
                         audioPlayer.play().catch(error => {
                             console.error("Error playing main audio:", error);
@@ -286,7 +286,7 @@
             }
 
             function playPreviousSong() {
-                if (isPlayingLoadingSound || currentSongs.length === 0 || currentIndex === -1) {
+                if (isPlayingLoadingSound || currentSongs.length == 0 || currentIndex == -1) {
                     return;
                 }
 
@@ -301,7 +301,7 @@
                     playSong(prevIndex, true);
                 } else {
                     // At the beginning of the list
-                    if (repeatMode === 1) { // Repeat Album/All
+                    if (repeatMode == 1) { // Repeat Album/All
                         prevIndex = currentSongs.length - 1; // Loop to the last song
                         playLoadingSound(() => playSong(prevIndex, true), 'song');
                     } else { // Repeat Off
@@ -318,14 +318,14 @@
             }
 
             function playNextSong() {
-                if (isPlayingLoadingSound || currentSongs.length === 0 || currentIndex === -1) {
+                if (isPlayingLoadingSound || currentSongs.length == 0 || currentIndex == -1) {
                     return;
                 }
 
                 loadingSound.pause();
                 isPlayingLoadingSound = false;
 
-                if (repeatMode === 2) { // Repeat Song
+                if (repeatMode == 2) { // Repeat Song
                     playSong(currentIndex, false); // Pass false to avoid adding to history again
                     return;
                 }
@@ -338,12 +338,12 @@
                     playSong(nextIndex, true);
                 } else {
                     // End of the current list (shuffled or not)
-                    if (repeatMode === 1) { // Repeat Album/All
+                    if (repeatMode == 1) { // Repeat Album/All
                         console.log('End of current list, repeating.');
                         nextIndex = 0; // Loop back to the first song in the current list
                         playLoadingSound(() => playSong(nextIndex, true), 'song');
                     } else { // Repeat Off (repeatMode 0)
-                        if (shuffleMode === 2) { // If in Shuffle All mode and Repeat Off, stop at the end
+                        if (shuffleMode == 2) { // If in Shuffle All mode and Repeat Off, stop at the end
                             console.log('End of all songs in shuffle all. Repeat Off. Stopping playback.');
                             audioPlayer.pause();
                             updateRadioDisplay('Stopped', '');
@@ -385,7 +385,7 @@
                     playbackHistory = playbackHistory.slice(0, historyIndex + 1);
                     playbackHistory.push(currentIndex);
                     historyIndex = playbackHistory.length - 1;
-                } else if (shuffleMode === 0) {
+                } else if (shuffleMode == 0) {
                     // In non-shuffle mode, clear history when a new song is played directly
                     playbackHistory = [];
                     historyIndex = -1;
@@ -429,7 +429,7 @@
 
                 // Find the index of the album that contains the song
                 currentAlbumIndex = allAlbums.findIndex(album =>
-                    album.songs.some(searchSong => searchSong.filename === song.filename)
+                    album.songs.some(searchSong => searchSong.filename == song.filename)
                 );
 
 
@@ -521,9 +521,9 @@
                 renderTracklist(allAlbums[currentAlbumIndex]); // Render the tracklist for the selected album
                 // Only play the first song if shuffle mode is off or album shuffle is active
                 // If shuffle all is active, selecting an album doesn't change the playing list immediately.
-                if (shuffleMode === 0 || shuffleMode === 1) {
+                if (shuffleMode == 0 || shuffleMode == 1) {
                     currentIndex = 0; // Start at the beginning of the new list (of the selected album)
-                    if (type === "last") {
+                    if (type == "last") {
                         playLoadingSound(() => playSong(currentSongs.length - 1), 'album'); // Play the first song of the new list
                     } else {
                         playLoadingSound(() => playSong(0), 'album'); // Play the first song of the new list
@@ -538,13 +538,13 @@
                 const tracklistContainer = document.getElementById('tracklist');
                 tracklistContainer.innerHTML = '';
 
-                if (!album && currentAlbumIndex === -1 && shuffleMode !== 2) { // Show default message if no album selected and not in shuffle all
+                if (!album && currentAlbumIndex == -1 && shuffleMode !== 2) { // Show default message if no album selected and not in shuffle all
                     return;
                 }
 
                 const albumData = album || (currentAlbumIndex !== -1 ? allAlbums[currentAlbumIndex] : null);
 
-                if (shuffleMode === 2) { // If in Shuffle All mode, show a general title
+                if (shuffleMode == 2) { // If in Shuffle All mode, show a general title
                     const title = document.createElement('h2');
                     title.textContent = 'Alle nummers (Shuffle)';
                     tracklistContainer.appendChild(title);
@@ -561,7 +561,7 @@
                     const li = document.createElement('li');
                     li.classList.add('song');
                     li.textContent = `${song.title}`;
-                    if (shuffleMode === 2 && song.album) { // Add album info in Shuffle All mode
+                    if (shuffleMode == 2 && song.album) { // Add album info in Shuffle All mode
                         li.textContent += ` - ${song.album}`;
                     }
                     li.addEventListener('click', () => {
@@ -583,7 +583,7 @@
                     for (let i = 0; i < songElements.length; i++) {
                         if (songElements[i].textContent.includes(currentSong.title)) {
                             // Add more robust matching if titles can be similar
-                            if (shuffleMode === 2 && songElements[i].textContent.includes(currentSong.album)) {
+                            if (shuffleMode == 2 && songElements[i].textContent.includes(currentSong.album)) {
                                 songElements[i].scrollIntoView({behavior: 'smooth', block: 'nearest'});
                                 break;
                             } else if (shuffleMode !== 2) {
@@ -594,7 +594,7 @@
 
                     }
 
-                    currentIndex = currentSongs.findIndex(song => song.title === currentSongTitle);
+                    currentIndex = currentSongs.findIndex(song => song.title == currentSongTitle);
 
                     for (let i = 0; i < songElements.length; i++) {
                         if (songElements[i].textContent.includes(currentSongTitle)) {
@@ -609,7 +609,7 @@
 
             function updateRadioDisplay(albumName, trackTitle) {
                 let display = '';
-                if (shuffleMode === 2) {
+                if (shuffleMode == 2) {
                     display = 'Shuffle All';
                     if (trackTitle) {
                         display += ` - ${trackTitle}`;
@@ -652,7 +652,7 @@
             }
 
             function toggleShuffleMode() {
-                const wasShuffleOff = shuffleMode === 0;
+                const wasShuffleOff = shuffleMode == 0;
                 shuffleMode = (shuffleMode + 1) % 3; // Cycle through 0, 1, 2
                 updateShuffleButton();
                 console.log('Shuffle mode:', ShuffleTitles[shuffleMode]);
@@ -667,7 +667,7 @@
                         // We don't need to call playSong again here, it should continue playing.
                         // Just ensure the tracklist is updated to show the new order with the current song at the top.
                         renderTracklist(currentAlbumIndex !== -1 ? allAlbums[currentAlbumIndex] : null);
-                    } else if (!audioPlayer.paused && audioPlayer.src && shuffleMode === 0 && !wasShuffleOff) {
+                    } else if (!audioPlayer.paused && audioPlayer.src && shuffleMode == 0 && !wasShuffleOff) {
                         // Switched from shuffle back to off, song should ideally stay the same if in the album
                         // rebuildCurrentSongs already handles finding the song in the non-shuffled list
                         renderTracklist(currentAlbumIndex !== -1 ? allAlbums[currentAlbumIndex] : null);
@@ -698,20 +698,20 @@
 
                 if (currentlyPlayingSongSrc) {
                     // Find the currently playing song object in the *original* allSongs list
-                    currentlyPlayingSong = allSongs.find(song => encodeURI(song.filename) === currentlyPlayingSongSrc);
+                    currentlyPlayingSong = allSongs.find(song => encodeURI(song.filename) == currentlyPlayingSongSrc);
                 }
 
                 let newCurrentSongs = [];
 
-                if (shuffleMode === 0) { // Shuffle Off
+                if (shuffleMode == 0) { // Shuffle Off
                     newCurrentSongs = originalAlbumTracklist;
-                } else if (shuffleMode === 1) { // Shuffle Album
+                } else if (shuffleMode == 1) { // Shuffle Album
                     if (currentAlbumIndex !== -1) {
                         newCurrentSongs = shuffleArray(originalAlbumTracklist.slice());
                         // If a song is currently playing AND it's in the current album,
                         // ensure it's placed at the beginning of the shuffled list.
                         if (currentlyPlayingSong) {
-                            const isSongInCurrentAlbum = originalAlbumTracklist.some(song => song.filename === currentlyPlayingSong.filename);
+                            const isSongInCurrentAlbum = originalAlbumTracklist.some(song => song.filename == currentlyPlayingSong.filename);
                             if (isSongInCurrentAlbum) {
                                 // Remove the currently playing song from the shuffled list if it's there
                                 newCurrentSongs = newCurrentSongs.filter(song => song.filename !== currentlyPlayingSong.filename);
@@ -723,7 +723,7 @@
                         // Should not happen in normal flow if shuffle album is selected without an album
                         newCurrentSongs = [];
                     }
-                } else if (shuffleMode === 2) { // Shuffle All
+                } else if (shuffleMode == 2) { // Shuffle All
                     newCurrentSongs = shuffleArray(allSongs.slice());
                     // If a song is currently playing, ensure it's placed at the beginning of the shuffled list.
                     if (currentlyPlayingSong) {
@@ -743,14 +743,14 @@
 
                 // Update currentIndex and history based on the new currentSongs list and currently playing song
                 if (currentlyPlayingSong) {
-                    const newIndex = currentSongs.findIndex(song => song.filename === currentlyPlayingSong.filename);
+                    const newIndex = currentSongs.findIndex(song => song.filename == currentlyPlayingSong.filename);
                     if (newIndex !== -1) {
                         currentIndex = newIndex;
                         if (resetHistory && shuffleMode !== 0) {
                             // If history was reset and we are in shuffle mode, add the current song as the first history entry
                             playbackHistory.push(currentIndex);
                             historyIndex = 0;
-                        } else if (shuffleMode === 0) {
+                        } else if (shuffleMode == 0) {
                             // If switched back to non-shuffle, history is cleared, and current index is set
                             // No need to add to history as history is for shuffle
                         }

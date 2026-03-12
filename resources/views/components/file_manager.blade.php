@@ -44,7 +44,7 @@
     // Filter out restricted folders for non-admins
     if (!$isAdmin && !$isPublic) {
         $allFolders = $allFoldersQuery->reject(function($folder) {
-            return $folder->access === 'teachers';
+            return $folder->access == 'teachers';
         });
     } else {
         $allFolders = $allFoldersQuery;
@@ -633,7 +633,7 @@
             @php
                 $accessCount = 0;
                 foreach ($files as $file) {
-                   if(!($file->access === 'teachers' && !$isAdmin)) $accessCount++;
+                   if(!($file->access == 'teachers' && !$isAdmin)) $accessCount++;
                 }
             @endphp
 
@@ -657,7 +657,7 @@
                             </thead>
                             <tbody class="border-top-0">
                             @foreach($files as $file)
-                                @if(!($file->access === 'teachers' && !$isAdmin))
+                                @if(!($file->access == 'teachers' && !$isAdmin))
                                     @php
                                         $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
                                         $isImage = in_array(strtolower($extension), ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "avif"]);
@@ -667,7 +667,7 @@
                                         $isOffice = in_array(strtolower($extension), ["doc", "docx", "xls", "xlsx", "ppt", "pptx"]);
 
                                         $icon = 'unknown.webp';
-                                        if ($file->type === 0 || $file->type === null) {
+                                        if ($file->type == 0 || $file->type == null) {
                                             switch(strtolower($extension)) {
                                                 case 'pdf': $icon = 'pdf.webp'; break;
                                                 case 'jpeg': case 'jpg': $icon = 'jpg.webp'; break;
@@ -687,8 +687,8 @@
                                                 case 'svg': $icon = 'ai.webp'; break;
                                                 case 'showm': $icon = 'showm.webp'; break;
                                             }
-                                        } elseif ($file->type === 1) { $icon = 'url.webp'; }
-                                          elseif ($file->type === 2) { $icon = 'folder.webp'; }
+                                        } elseif ($file->type == 1) { $icon = 'url.webp'; }
+                                          elseif ($file->type == 2) { $icon = 'folder.webp'; }
 
                                         // DYNAMIC URLS
                                         $fileLink = $file->file_path;
@@ -697,7 +697,7 @@
                                             ? route('files.shared_public_download', ['hash' => $shareHash, 'file' => $file->id])
                                             : route('files.download', ['file' => $file->id]);
 
-                                        if ($file->type === 2) {
+                                        if ($file->type == 2) {
                                             $fileLink = $isPublic
                                                 ? route('files.shared_public', ['hash' => $shareHash, 'folder_id' => $file->id])
                                                 : '?folder=' . $file->id;
@@ -705,7 +705,7 @@
                                             $downloadUrl = $isPublic
                                                 ? route('files.shared_public_zip', ['hash' => $shareHash, 'folder' => $file->id])
                                                 : route('files.zip', ['folder' => $file->id]);
-                                        } elseif ($file->type === 0 || $file->type === null) {
+                                        } elseif ($file->type == 0 || $file->type == null) {
                                             $fileLink = $storageUrl . '/' . ltrim($file->file_path, '/');
                                         }
 
@@ -754,7 +754,7 @@
                                             <td class="date-cell d-none d-lg-table-cell text-muted small">{{ $file->updated_at->format('d M Y H:i') }}</td>
                                             @if($hasAdminViewers && !$isPublic)
                                                 <td class="access-cell small">
-                                                    @if($file->access === 'teachers')
+                                                    @if($file->access == 'teachers')
                                                         <span class="badge bg-danger rounded-pill px-3 py-1 fw-medium">{{ $adminName }}</span>
                                                     @else
                                                         <span class="badge bg-success rounded-pill px-3 py-1 fw-medium">Iedereen</span>
@@ -809,7 +809,7 @@
                 const targetId = toggle.getAttribute('data-target');
                 const ul = document.getElementById('folder-children-' + targetId);
                 if (ul) {
-                    const isHidden = ul.style.display === 'none';
+                    const isHidden = ul.style.display == 'none';
                     ul.style.display = isHidden ? 'block' : 'none';
                     toggle.textContent = isHidden ? 'expand_more' : 'chevron_right';
 
@@ -838,7 +838,7 @@
                 newConfirmBtn.addEventListener('click', () => {
                     const modalInstance = getModal('customConfirmModal');
                     if (modalInstance) modalInstance.hide();
-                    if (typeof onConfirmCallback === 'function') onConfirmCallback();
+                    if (typeof onConfirmCallback == 'function') onConfirmCallback();
                 });
             }
             const modalInstance = getModal('customConfirmModal');
@@ -852,7 +852,7 @@
                 if (modalEl) {
                     const modalInstance = getModal(modalEl.id);
                     if (modalInstance) modalInstance.hide();
-                    if (modalEl.id === 'previewModal') closeAndCleanPreview();
+                    if (modalEl.id == 'previewModal') closeAndCleanPreview();
                 }
             });
         });
@@ -872,11 +872,11 @@
             });
 
             function setViewMode(view) {
-                if(view === 'grid') fileBrowserContainer.classList.add('view-mode-grid');
+                if(view == 'grid') fileBrowserContainer.classList.add('view-mode-grid');
                 else fileBrowserContainer.classList.remove('view-mode-grid');
                 localStorage.setItem('fileManagerView', view);
                 viewToggleBtns.forEach(b => {
-                    if(b.dataset.view === view) {
+                    if(b.dataset.view == view) {
                         b.classList.add('active');
                         b.querySelector('span').classList.remove('text-secondary');
                     } else {
@@ -917,7 +917,7 @@
         if (uploadOptionRadios.length > 0) {
             uploadOptionRadios.forEach(radio => {
                 radio.addEventListener('change', function () {
-                    if (this.value === 'files') {
+                    if (this.value == 'files') {
                         filesUploadContainer.classList.remove('d-none');
                         folderUploadContainer.classList.add('d-none');
                         uploadTypeInput.value = '0';
@@ -933,13 +933,13 @@
         if (uploadButton !== null) {
             uploadButton.addEventListener('click', function () {
                 let files = [];
-                let isFolderUpload = uploadTypeInput.value === '3';
+                let isFolderUpload = uploadTypeInput.value == '3';
                 let inputElement;
 
                 if (isFolderUpload) {
                     inputElement = folderInput;
                     files = inputElement.files;
-                    if (files.length === 0) {
+                    if (files.length == 0) {
                         uploadStatus.style.display = 'block';
                         uploadStatus.textContent = 'Gebruik de "Map" tab om een lege map aan te maken.';
                         return;
@@ -947,7 +947,7 @@
                 } else {
                     inputElement = filesInput;
                     files = inputElement.files;
-                    if (files.length === 0) {
+                    if (files.length == 0) {
                         uploadStatus.style.display = 'block';
                         uploadStatus.textContent = 'Selecteer bestanden om te uploaden.';
                         return;
@@ -1005,7 +1005,7 @@
 
                 xhr.onload = function () {
                     const button = document.getElementById('upload-button');
-                    if (xhr.status === 200 || xhr.status === 201) {
+                    if (xhr.status == 200 || xhr.status == 201) {
                         location.reload();
                     } else {
                         try {
@@ -1045,7 +1045,7 @@
             const num = selectedFiles.length;
             if(countText) countText.textContent = `${num} item(s) geselecteerd`;
 
-            document.querySelectorAll('.batch-multi-action').forEach(btn => btn.disabled = num === 0);
+            document.querySelectorAll('.batch-multi-action').forEach(btn => btn.disabled = num == 0);
             document.querySelectorAll('.batch-single-action').forEach(btn => btn.disabled = num !== 1);
 
             document.querySelectorAll('tr.file').forEach(row => {
@@ -1059,7 +1059,7 @@
 
             const selectAll = document.getElementById('selectAll');
             const totalRows = document.querySelectorAll('tr.file').length;
-            if(selectAll) selectAll.checked = (num > 0 && num === totalRows);
+            if(selectAll) selectAll.checked = (num > 0 && num == totalRows);
         }
 
         const selectAllInput = document.getElementById('selectAll');
@@ -1082,17 +1082,17 @@
 
         document.querySelectorAll('tr.file').forEach(row => {
             row.addEventListener('click', function (e) {
-                if (e.target.closest('.checkbox-cell') || e.target.tagName.toLowerCase() === 'input') return;
+                if (e.target.closest('.checkbox-cell') || e.target.tagName.toLowerCase() == 'input') return;
 
                 const link = row.dataset.link;
                 const target = row.dataset.target || "_self";
 
-                if(row.dataset.type === '2') {
+                if(row.dataset.type == '2') {
                     window.location.href = link;
                     return;
                 }
 
-                if (row.dataset.isImage === 'true' || row.dataset.isVideo === 'true' || row.dataset.isAudio === 'true' || row.dataset.isPdf === 'true' || row.dataset.isOffice === 'true') {
+                if (row.dataset.isImage == 'true' || row.dataset.isVideo == 'true' || row.dataset.isAudio == 'true' || row.dataset.isPdf == 'true' || row.dataset.isOffice == 'true') {
                     e.preventDefault();
                     openPreviewGallery(row);
                     return;
@@ -1239,9 +1239,9 @@
         });
 
         window.handleMenuAction = function(action) {
-            if(selectedFiles.length === 0) return;
+            if(selectedFiles.length == 0) return;
 
-            if (action === 'download') {
+            if (action == 'download') {
                 selectedFiles.forEach((id, index) => {
                     const row = document.querySelector(`tr[data-id="${id}"]`);
                     if (row && row.dataset.downloadUrl) {
@@ -1258,7 +1258,7 @@
                 return;
             }
 
-            if (action === 'share') {
+            if (action == 'share') {
                 document.getElementById('shareFileId').value = selectedFiles.join(',');
                 let hash = '';
                 let perm = 'read';
@@ -1293,7 +1293,7 @@
                 return;
             }
 
-            if (action === 'toggle-access') {
+            if (action == 'toggle-access') {
                 customConfirm(`Weet u zeker dat u de rechten van ${selectedFiles.length} item(s) wilt wijzigen?`, () => {
                     const btn = document.querySelector('button[onclick="handleMenuAction(\'toggle-access\')"]');
                     if(btn) {
@@ -1312,7 +1312,7 @@
                 return;
             }
 
-            if(action === 'delete') {
+            if(action == 'delete') {
                 customConfirm(`Weet u zeker dat u ${selectedFiles.length} item(s) wilt verwijderen? Dit is definitief.`, () => {
                     executeBatchAjax('delete', selectedFiles);
                 });
@@ -1324,15 +1324,15 @@
             const title = document.getElementById('batchActionTitle');
             container.innerHTML = '';
 
-            if (action === 'rename') {
+            if (action == 'rename') {
                 title.textContent = 'Bestand/Map Hernoemen';
                 const row = document.querySelector(`tr[data-id="${selectedFiles[0]}"]`);
                 container.innerHTML = `
                     <label class="form-label text-muted small text-uppercase fw-bold">Nieuwe naam</label>
                     <input type="text" class="form-control rounded-3" id="batchActionNewName" value="${row.dataset.name}">
                 `;
-            } else if (action === 'move' || action === 'copy') {
-                title.textContent = action === 'move' ? 'Verplaatsen naar...' : 'Kopiëren naar...';
+            } else if (action == 'move' || action == 'copy') {
+                title.textContent = action == 'move' ? 'Verplaatsen naar...' : 'Kopiëren naar...';
                 container.innerHTML = `
                     <label class="form-label text-muted small text-uppercase fw-bold">Selecteer doelmap</label>
                     <select class="form-select rounded-3" id="batchActionTargetFolder">
@@ -1392,7 +1392,7 @@
         let currentPreviewIndex = -1;
 
         document.querySelectorAll('tr.file').forEach((row) => {
-            const isMedia = row.dataset.isImage === 'true' || row.dataset.isVideo === 'true' || row.dataset.isAudio === 'true' || row.dataset.isPdf === 'true' || row.dataset.isOffice === 'true';
+            const isMedia = row.dataset.isImage == 'true' || row.dataset.isVideo == 'true' || row.dataset.isAudio == 'true' || row.dataset.isPdf == 'true' || row.dataset.isOffice == 'true';
             if (isMedia) previewableFilesList.push(row);
         });
 
@@ -1431,22 +1431,22 @@
             document.getElementById('previewPrev').style.display = index > 0 ? 'block' : 'none';
             document.getElementById('previewNext').style.display = index < previewableFilesList.length - 1 ? 'block' : 'none';
 
-            if (row.dataset.isImage === 'true') {
+            if (row.dataset.isImage == 'true') {
                 container.innerHTML = `<img src="${link}" class="img-fluid" style="max-height: 85vh; max-width: 100%; object-fit: contain;">`;
-            } else if (row.dataset.isPdf === 'true') {
+            } else if (row.dataset.isPdf == 'true') {
                 container.innerHTML = `
                     <div class="w-100 h-100" style="max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                         <iframe src="${link}#toolbar=0" class="w-100 h-100 border-0" style="min-height: 85vh; display: block;"></iframe>
                     </div>`;
-            } else if (row.dataset.isVideo === 'true') {
+            } else if (row.dataset.isVideo == 'true') {
                 container.innerHTML = `<video controls autoplay class="w-100 bg-black" style="max-height: 85vh;"><source src="${link}"></video>`;
-            } else if (row.dataset.isAudio === 'true') {
+            } else if (row.dataset.isAudio == 'true') {
                 container.innerHTML = `
                     <div class="p-5 rounded-4 bg-white border w-100 d-flex flex-column align-items-center" style="max-width: 400px;">
                         <img src="${customIconUrl}" alt="Audio Icon" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 1.5rem;">
                         <audio controls autoplay class="w-100"><source src="${link}"></audio>
                     </div>`;
-            } else if (row.dataset.isOffice === 'true') {
+            } else if (row.dataset.isOffice == 'true') {
                 container.innerHTML = `
                     <div class="d-flex flex-column align-items-center justify-content-center bg-white border rounded-4 w-100 p-5" style="max-width: 600px;">
                         <img src="${customIconUrl}" alt="Office Icon" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 1.5rem;">
@@ -1461,7 +1461,7 @@
         }
 
         function openPreviewGallery(row) {
-            const index = previewableFilesList.findIndex(r => r === row);
+            const index = previewableFilesList.findIndex(r => r == row);
             if(index !== -1) {
                 document.body.classList.add('preview-open');
                 const modalInstance = getModal('previewModal');
@@ -1475,13 +1475,13 @@
 
         document.addEventListener('keydown', function(e) {
             if (document.body.classList.contains('preview-open')) {
-                if (e.key === 'ArrowLeft') {
+                if (e.key == 'ArrowLeft') {
                     const prevBtn = document.getElementById('previewPrev');
                     if (prevBtn && prevBtn.style.display !== 'none') prevBtn.click();
-                } else if (e.key === 'ArrowRight') {
+                } else if (e.key == 'ArrowRight') {
                     const nextBtn = document.getElementById('previewNext');
                     if (nextBtn && nextBtn.style.display !== 'none') nextBtn.click();
-                } else if (e.key === 'Escape') {
+                } else if (e.key == 'Escape') {
                     const modalInstance = getModal('previewModal');
                     if (modalInstance) modalInstance.hide();
                     closeAndCleanPreview();
@@ -1492,7 +1492,7 @@
         const previewBackdrop = document.getElementById('previewBackdrop');
         if(previewBackdrop) {
             previewBackdrop.addEventListener('click', function(e) {
-                if (e.target === this || e.target.id === 'previewContainer') {
+                if (e.target == this || e.target.id == 'previewContainer') {
                     const modalInstance = getModal('previewModal');
                     if (modalInstance) modalInstance.hide();
                     closeAndCleanPreview();

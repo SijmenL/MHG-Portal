@@ -42,9 +42,9 @@
                             <span class="material-symbols-rounded">done</span></label>
                         <select id="seen" name="seen" class="form-select"
                                 aria-label="seen" aria-describedby="basic-addon1" onchange="this.form.submit();">
-                            <option @if($seen === 'all') selected @endif value="all">Alles</option>
-                            <option @if($seen === 'seen') selected @endif value="seen">Afgehandeld</option>
-                            <option @if($seen === 'unseen') selected @endif value="unseen">Niet afgehandeld</option>
+                            <option @if($seen == 'all') selected @endif value="all">Alles</option>
+                            <option @if($seen == 'seen') selected @endif value="seen">Afgehandeld</option>
+                            <option @if($seen == 'unseen') selected @endif value="unseen">Niet afgehandeld</option>
                         </select>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                     <thead class="thead-dark table-bordered table-hover">
                     <tr>
                         <th scope="col">Datum</th>
-                        @if($seen === 'all')
+                        @if($seen == 'all')
                             <th scope="col">Afgehandeld</th>
                         @endif
                         <th scope="col">Naam</th>
@@ -68,11 +68,11 @@
                     <tbody>
 
                     @foreach ($contact_submissions as $contact)
-                        <tr id="{{ $contact->id }}" class="@if($contact->done === 1 && $seen === 'all') table-success @endif">
+                        <tr id="{{ $contact->id }}" class="@if($contact->done == 1 && $seen == 'all') table-success @endif">
                             <th>{{ $contact->created_at}}</th>
-                            @if($seen === 'all')
+                            @if($seen == 'all')
                             <th>
-                                @if($contact->done === 1)
+                                @if($contact->done == 1)
                                     <span class="material-symbols-rounded">check</span>
                                 @else
                                     <span class="material-symbols-rounded">close</span>

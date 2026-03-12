@@ -44,9 +44,9 @@
                             <span class="material-symbols-rounded">done</span></label>
                         <select id="accepted" name="accepted" class="form-select"
                                 aria-label="seen" aria-describedby="basic-addon1" onchange="this.form.submit();">
-                            <option @if($accepted === 'all') selected @endif value="all">Alles</option>
-                            <option @if($accepted === 'accepted') selected @endif value="accepted">Geaccepteerd</option>
-                            <option @if($accepted === 'unaccepted') selected @endif value="unaccepted">Niet geaccepteerd</option>
+                            <option @if($accepted == 'all') selected @endif value="all">Alles</option>
+                            <option @if($accepted == 'accepted') selected @endif value="accepted">Geaccepteerd</option>
+                            <option @if($accepted == 'unaccepted') selected @endif value="unaccepted">Niet geaccepteerd</option>
                         </select>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                     @foreach ($news as $news_item)
                         <tr id="{{ $news_item->id }}">
                             <th>
-                                @if($news_item->accepted === 1)
+                                @if($news_item->accepted == 1)
                                     <span class="material-symbols-rounded">check</span>
                                 @else
                                     <span class="material-symbols-rounded">close</span>

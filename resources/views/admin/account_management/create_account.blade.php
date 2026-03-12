@@ -136,9 +136,9 @@
                         <th><label for="sex" class="col-md-4 col-form-label ">Geslacht</label></th>
                         <th>
                             <select id="sex" type="text" class="form-select @error('sex') is-invalid @enderror" name="sex" >
-                                <option @if(old('sex') === 'Man') selected @endif >Man</option>
-                                <option @if(old('sex') === 'Vrouw') selected @endif >Vrouw</option>
-                                <option @if(old('sex') === 'Anders') selected @endif >Anders</option>
+                                <option @if(old('sex') == 'Man') selected @endif >Man</option>
+                                <option @if(old('sex') == 'Vrouw') selected @endif >Vrouw</option>
+                                <option @if(old('sex') == 'Anders') selected @endif >Anders</option>
                             </select>
                             @error('sex')
                             <span class="invalid-feedback" role="alert">
@@ -195,8 +195,8 @@
                     <tr>
                         <th><label for="avg" class="col-md-4 col-form-label ">AVG Toestemming</label></th>
                         <th><select id="avg" type="text" class="form-select @error('avg') is-invalid @enderror" name="avg" >
-                                <option @if(old('avg') === '0') selected @endif value="0">Nee</option>
-                                <option @if(old('avg') === '1') selected @endif value="1">Ja</option>
+                                <option @if(old('avg') == '0') selected @endif value="0">Nee</option>
+                                <option @if(old('avg') == '1') selected @endif value="1">Ja</option>
                             </select>
                             @error('avg')
                             <span class="invalid-feedback" role="alert">

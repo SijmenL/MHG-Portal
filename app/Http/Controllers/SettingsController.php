@@ -183,7 +183,7 @@ class SettingsController extends Controller
 
                 if (!$parent) {
                     $fail('Er bestaat geen account met dit email adres.');
-                } elseif ($user->id === $parent->id) {
+                } elseif ($user->id == $parent->id) {
                     $fail('Je kan niet gekoppeld zijn aan jezelf.');
                 } elseif ($user->parents->contains($parent->id)) {
                     $fail('Er is al een ouder koppeling met dit account.');

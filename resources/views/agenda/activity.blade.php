@@ -68,7 +68,7 @@
             </div>
 
             <div>
-                @if($activity->user_id === \Illuminate\Support\Facades\Auth::id() ||
+                @if($activity->user_id == \Illuminate\Support\Facades\Auth::id() ||
                      $user->roles->contains('role', 'Dolfijnen Leiding') ||
                      $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                      $user->roles->contains('role', 'Loodsen Stamoudste') ||
@@ -98,7 +98,7 @@
                     </li>
 
                     <li class="breadcrumb-item"><a
-                            @if($view === 'month') href="{{ route('agenda.month', ['month' => $month, 'all' => $wantViewAll ? 1 : 0, 'lessonId' => $lesson->id]) }}"
+                            @if($view == 'month') href="{{ route('agenda.month', ['month' => $month, 'all' => $wantViewAll ? 1 : 0, 'lessonId' => $lesson->id]) }}"
                             @else href="{{ route('agenda.schedule', ['month' => $month, 'all' => $wantViewAll ? 1 : 0, 'lessonId' => $lesson->id]) }}" @endif>Planning</a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page">{{ $activity->title }}</li>
@@ -108,7 +108,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a
-                            @if($view === 'month') href="{{ route('agenda.month', ['month' => $month, 'all' => $wantViewAll ? 1 : 0]) }}"
+                            @if($view == 'month') href="{{ route('agenda.month', ['month' => $month, 'all' => $wantViewAll ? 1 : 0]) }}"
                             @else href="{{ route('agenda.schedule', ['month' => $month, 'all' => $wantViewAll ? 1 : 0]) }}" @endif>Mijn
                             agenda</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ $activity->title }}</li>
@@ -247,7 +247,7 @@
                                         @if($presenceStatus !== "1")
                                             href="{{ route('agenda.activity.present', [$activity->id, $user->id]) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                         @endif
-                                        class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "1") btn-success @else btn-outline-success @endif">
+                                        class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus == "1") btn-success @else btn-outline-success @endif">
                                         <span class="material-symbols-rounded me-2">event_available</span>
                                         <span>Aanmelden</span>
                                     </a>
@@ -255,7 +255,7 @@
                                         @if($presenceStatus !== "0")
                                             href="{{ route('agenda.activity.absent', [$activity->id, $user->id]) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                         @endif
-                                        class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus === "0") btn-danger @else btn-outline-danger @endif">
+                                        class="d-flex flex-row align-items-center justify-content-center btn @if($presenceStatus == "0") btn-danger @else btn-outline-danger @endif">
                                         <span class="material-symbols-rounded me-2">event_busy</span>
                                         <span>Afmelden</span>
                                     </a>
@@ -277,7 +277,7 @@
                                                 @if($child->presence_status !== "1")
                                                     href="{{ route('agenda.activity.present', ['id' => $activity->id, 'user' => $child->id]) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                                 @endif
-                                                class="d-flex flex-row align-items-center justify-content-center btn @if($child->presence_status === "1") btn-success @else btn-outline-success @endif">
+                                                class="d-flex flex-row align-items-center justify-content-center btn @if($child->presence_status == "1") btn-success @else btn-outline-success @endif">
                                                 <span class="material-symbols-rounded me-2">event_available</span>
                                                 <span>Aanmelden</span>
                                             </a>
@@ -285,7 +285,7 @@
                                                 @if($child->presence_status !== "0")
                                                     href="{{ route('agenda.activity.absent', ['id' => $activity->id, 'user' => $child->id]) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                                 @endif
-                                                class="d-flex flex-row align-items-center justify-content-center btn @if($child->presence_status === "0") btn-danger @else btn-outline-danger @endif">
+                                                class="d-flex flex-row align-items-center justify-content-center btn @if($child->presence_status == "0") btn-danger @else btn-outline-danger @endif">
                                                 <span class="material-symbols-rounded me-2">event_busy</span>
                                                 <span>Afmelden</span>
                                             </a>

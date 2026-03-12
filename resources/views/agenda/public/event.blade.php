@@ -26,13 +26,13 @@
             }
 
             window.addEventListener('message', (event) => {
-                if (event.origin === 'https://waterscoutingmhg.nl' && event.data === 'getHeight') {
+                if (event.origin == 'https://waterscoutingmhg.nl' && event.data == 'getHeight') {
                     sendHeight();
                 }
             });
 
 
-            if (window.top === window.self) {
+            if (window.top == window.self) {
                 // Redirect to the parent page if the child page is accessed directly
                 window.location.href = `https://waterscoutingmhg.nl/over-onze-club/activiteit/?id={{ $activity->id }}`;
             } else {
@@ -42,7 +42,7 @@
         </script>
         <script>
             function breakOut(type) {
-                if (type === "month") {
+                if (type == "month") {
                     window.parent.location.href = `https://waterscoutingmhg.nl/over-onze-club/activiteiten?view=month`;
                 } else {
                     window.parent.location.href = `https://waterscoutingmhg.nl/over-onze-club/activiteiten?view=schedule`;
@@ -50,7 +50,7 @@
             }
         </script>
 
-        <a @if($view === 'month') onclick="{breakOut('month')}"
+        <a @if($view == 'month') onclick="{breakOut('month')}"
            @else onclick="{breakOut('agenda')}"
            @endif class="btn m-4 d-flex flex-row gap-4 align-items-center justify-content-center"
            style="margin-left: 25%; margin-right: 25%"

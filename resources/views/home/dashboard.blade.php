@@ -6,39 +6,37 @@
     {{-- Blade file, e.g., home/dashboard.blade.php --}}
     <div id="newPopUp" class="popup" style="margin-top: -122px; display: none;">
         <div class="popup-body overflow-hidden" style="height: 90vh; width: 95vw">
-            <h2>Wat is er nieuw in versie 3.1?</h2>
+            <h2>Wat is er nieuw in versie 5.0?</h2>
 
             <div class="tab-container no-scrolbar" style="overflow-x: auto; white-space: nowrap;">
                 <ul class="nav nav-tabs flex-nowrap" style="max-width: calc(100vw - 40px)" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <a class="nav-link active" id="tab1-tab" href="#tab1" role="tab" aria-controls="tab1"
-                           aria-selected="true">Lessen</a>
+                           aria-selected="true">Technisch Team</a>
                     </li>
                     <li class="nav-item" role="presentation">
                         <a class="nav-link" id="tab2-tab" href="#tab2" role="tab" aria-controls="tab2"
-                           aria-selected="true">Activiteiten</a>
+                           aria-selected="true">Bestanden</a>
                     </li>
                 </ul>
             </div>
 
-            <div
-                    class="tab-content h-100 w-100 bg-light rounded d-flex flex-column justify-content-between align-items-center p-4">
+            <div class="tab-content h-100 w-100 bg-light rounded d-flex flex-column justify-content-between align-items-center p-4">
                 <div>
                     <div class="text-start tab-pane fade show active" id="tab1" role="tabpanel"
                          aria-labelledby="tab1-tab">
-                        <h4>Lessen</h4>
+                        <h4>Technisch Team</h4>
 
-                        <p>Lesbestanden kunnen in mapjes worden gezet, waar de bestandsgrootte en wijzigingsdatum in het
-                            overzicht te vinden zijn</p>
-                        <p>Resultaten is hernoemd naar Examens</p>
-                        <p>De CWO competentielijst is toegevoegd. De CWO competenties kunnen hier op worden gezet en per
-                            deelnemer worden afgestreept.</p>
+                        <p>Het Technisch Team heeft nu toegang tot Portal en staat ook vermeld in de Leiding & Organisatie lijst.</p>
                     </div>
 
                     <div class="text-start tab-pane fade" id="tab2" role="tabpanel"
                          aria-labelledby="tab2-tab">
-                        <h4>Activiteiten</h4>
-                        <p>Het aanmelden voor activiteiten kan nu beperkt worden door een deadline.</p>
+                        <h4>Bestanden</h4>
+                        <p>De bestand verkenner is geupdate en werkt nu veel fijner.</p>
+                        <div class="d-flex w-100 align-items-center justify-content-center">
+                        <img class="zoomable-image w-50" src="{{ asset('img/tutorial/files-explorer.png') }}" alt="bestanden">
+                        </div>
                     </div>
                 </div>
 
@@ -360,7 +358,7 @@
                         </a>
                     @endif
 
-                    @if($user && $user->accepted === 1 && (
+                    @if($user && $user->accepted == 1 && (
             $user->roles->contains('role', 'Administratie') ||
             $user->roles->contains('role', 'Zeeverkenners Leiding') ||
             $user->roles->contains('role', 'Praktijkbegeleider') ||
@@ -418,7 +416,7 @@
                     @endif
 
 
-                        @if($user && $user->accepted === 1 &&
+                        @if($user && $user->accepted == 1 &&
           ($user->roles->contains('role', 'Dolfijn') ||
           $user->roles->contains('role', 'Dolfijnen Leiding') ||
           $user->roles->contains('role', 'Administratie') ||
@@ -434,7 +432,7 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 &&
+                        @if($user && $user->accepted == 1 &&
                             ($user->roles->contains('role', 'Zeeverkenner') ||
                             $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                             $user->roles->contains('role', 'Administratie') ||
@@ -450,7 +448,7 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 &&
+                        @if($user && $user->accepted == 1 &&
                             ($user->roles->contains('role', 'Loods') ||
                             $user->roles->contains('role', 'Loodsen Stamoudste') ||
                             $user->roles->contains('role', 'Administratie') ||
@@ -467,7 +465,7 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 &&
+                        @if($user && $user->accepted == 1 &&
                             ($user->roles->contains('role', 'Afterloods') ||
                             $user->roles->contains('role', 'Afterloodsen Organisator') ||
                             $user->roles->contains('role', 'Administratie') ||
@@ -483,7 +481,7 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 &&
+                        @if($user && $user->accepted == 1 &&
                             ($user->roles->contains('role', 'Technisch Team') ||
                             $user->roles->contains('role', 'Hoofd Technisch Team') ||
                             $user->roles->contains('role', 'Administratie') ||
@@ -495,7 +493,7 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
+                        @if($user && $user->accepted == 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
                                 $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
                              })->where('accepted', true)->whereNull('member_date_end')->exists()))
 
@@ -506,7 +504,7 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
+                        @if($user && $user->accepted == 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
                                $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods', 'Technisch Team']);
                             })->where('accepted', true)->whereNull('member_date_end')->exists()))
 
@@ -516,8 +514,8 @@
                             </a>
                         @endif
 
-                        @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
-                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods'. 'Technisch Team']);
+                        @if($user && $user->accepted == 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
+                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods', 'Technisch Team']);
                             })->where('accepted', true)->whereNull('member_date_end')->exists()))
 
                             <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">

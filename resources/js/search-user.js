@@ -41,7 +41,7 @@ function init() {
     }
 
         userSelectSearch[index].addEventListener('keypress', function (event) {
-            if (event.key === "Enter") {
+            if (event.key == "Enter") {
                 event.preventDefault(); // Prevent form submission
             }
         });
@@ -111,10 +111,10 @@ function searchUsers(searchTerm, index) {
 
                 listItem.textContent = `${user.name}${user.infix ? ' ' + user.infix : ''} ${user.last_name}`;
                 listItem.addEventListener('click', () => {
-                    if (userSelectSearch[index].dataset.type === 'multiple') {
+                    if (userSelectSearch[index].dataset.type == 'multiple') {
                         toggleUserId(index, user.id, listItem);
                     }
-                    if (userSelectSearch[index].dataset.type === 'single') {
+                    if (userSelectSearch[index].dataset.type == 'single') {
                         setUserId(index, user.id, listItem);
                     }
                 });
@@ -161,7 +161,7 @@ function toggleUserId(index, userId, listItem) {
 
     let userIdIndex = userList.indexOf(userId.toString());
 
-    if (userIdIndex === -1) {
+    if (userIdIndex == -1) {
         userList.push(userId);
         listItem.classList.add('user-selected')
     } else {
@@ -213,7 +213,7 @@ function handleSearchInput(index, event) {
 function isDescendant(child, parent) {
     // Traverse up the DOM tree from the child element
     while (child !== null) {
-        if (child === parent) {
+        if (child == parent) {
             return true; // Found the parent
         }
         child = child.parentNode; // Move up to the parent node

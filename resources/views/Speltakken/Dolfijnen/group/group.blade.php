@@ -6,7 +6,7 @@
     <div id="popUp" class="popup d-none" style="margin-top: -122px">
         <div class="popup-body">
             <h2>Exporteer leden</h2>
-            <p>Alle @if($selected_role === 'Dolfijnen') dolfijnen @else ouders @endif die aan je zoekopdracht voldoen worden geëxporteerd.</p>
+            <p>Alle @if($selected_role == 'Dolfijnen') dolfijnen @else ouders @endif die aan je zoekopdracht voldoen worden geëxporteerd.</p>
             <div class="bg-light rounded-2 p-3">
                 <h2>Opties</h2>
                 <div class="quick-action-bar">
@@ -71,8 +71,8 @@
                             <span class="material-symbols-rounded">diversity_3</span></label>
                         <select id="role" name="role" class="form-select"
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
-                            <option @if($selected_role === 'Dolfijnen') selected @endif>Dolfijnen</option>
-                            <option @if($selected_role === 'Ouders') selected @endif>Ouders</option>
+                            <option @if($selected_role == 'Dolfijnen') selected @endif>Dolfijnen</option>
+                            <option @if($selected_role == 'Ouders') selected @endif>Ouders</option>
                         </select>
 
                         <a @if($users->count() > 0) id="export-button" @endif class="input-group-text @if($users->count() < 1)disabled @endif" style="text-decoration: none; cursor: pointer">
@@ -149,7 +149,7 @@
             {{ $users->links() }}
         @else
             <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <span class="material-symbols-rounded me-2">person_off</span>Geen @if($selected_role === 'Dolfijnen')dolfijnen @else ouders @endif gevonden...
+                <span class="material-symbols-rounded me-2">person_off</span>Geen @if($selected_role == 'Dolfijnen')dolfijnen @else ouders @endif gevonden...
             </div>
         @endif
     </div>

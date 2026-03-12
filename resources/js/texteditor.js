@@ -304,7 +304,7 @@ const initializer = () => {
         document.addEventListener('selectionchange', function (event) {
             const activeElement = document.activeElement;
 
-            if (activeElement === textInput || textInput.contains(activeElement)) {
+            if (activeElement == textInput || textInput.contains(activeElement)) {
                 // Update format buttons (bold, italic, etc.)
                 formatButtons.forEach(button => {
                     const command = button.id;
@@ -362,7 +362,7 @@ const likeButton = (button) => {
             button.innerHTML = `${data.likeCount} <span
                                                 class="material-symbols-rounded">favorite</span>`
 
-            if (data.isLiked === true) {
+            if (data.isLiked == true) {
                 button.classList.add('liked')
                 button.classList.add('user-liked')
             } else {
@@ -397,7 +397,7 @@ function addImage() {
         let xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload-image', true);
         xhr.onload = () => {
-            if (xhr.status === 200) {
+            if (xhr.status == 200) {
                 // Log the response from the server
                 console.log(xhr.responseText);
                 // Image uploaded successfully
@@ -461,7 +461,7 @@ function addPdf() {
         let xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload-pdf', true);
         xhr.onload = () => {
-            if (xhr.status === 200) {
+            if (xhr.status == 200) {
                 // Log the response from the server
                 console.log(xhr.responseText);
                 // Image uploaded successfully
@@ -579,7 +579,7 @@ function addYouTubeVideoToDiv(videoURL) {
         videoId = videoURL.split('youtu.be/')[1];
     }
 
-    if (videoId === '') {
+    if (videoId == '') {
         invalidVideo();
         console.error('No YouTube video detected.')
     }

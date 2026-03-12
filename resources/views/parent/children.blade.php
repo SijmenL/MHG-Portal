@@ -36,7 +36,7 @@
                         <h2 class="card-title">{{ $child->name.' '.$child->infix.' '.$child->last_name }}</h2>
 
                         <div class="d-flex flex-row gap-1 flex-wrap">
-                            @if($child->is_associate === 1)
+                            @if($child->is_associate == 1)
                                 <span title="Relatie"
                                       class="badge rounded-pill bg-dark text-white fs-6 p-2">Relatie</span>
                             @endif

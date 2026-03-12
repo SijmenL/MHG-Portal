@@ -78,20 +78,20 @@
                         <select id="role" name="role" class="form-select"
                                 aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
                             <option value="none">Filter</option>
-                            <option @if($selected_role === 'associate') selected @endif value="associate">Relaties
-                            <option @if($selected_role === 'unsubscribed') selected @endif value="unsubscribed">
+                            <option @if($selected_role == 'associate') selected @endif value="associate">Relaties
+                            <option @if($selected_role == 'unsubscribed') selected @endif value="unsubscribed">
                                 Uitgeschreven leden
                             </option>
-                            <option @if($selected_role === 'parent') selected @endif value="parent">Ouders</option>
-                            <option @if($selected_role === 'parent_dolfijnen') selected @endif value="parent_dolfijnen">
+                            <option @if($selected_role == 'parent') selected @endif value="parent">Ouders</option>
+                            <option @if($selected_role == 'parent_dolfijnen') selected @endif value="parent_dolfijnen">
                                 Ouders Dolfijnen
                             </option>
-                            <option @if($selected_role === 'parent_zeeverkenners') selected
+                            <option @if($selected_role == 'parent_zeeverkenners') selected
                                     @endif value="parent_zeeverkenners">Ouders Zeeverkenners
                             </option>
 
                             @foreach($all_roles as $role)
-                                <option @if($selected_role === $role->role) selected @endif>{{ $role->role }}</option>
+                                <option @if($selected_role == $role->role) selected @endif>{{ $role->role }}</option>
                             @endforeach
                         </select>
 
@@ -108,7 +108,7 @@
         @if($users->count() > 0)
             <p>
                 {{ $user_ids->count() }}
-                {{ $user_ids->count() === 1 ? 'lid gevonden' : 'leden gevonden' }}.
+                {{ $user_ids->count() == 1 ? 'lid gevonden' : 'leden gevonden' }}.
             </p>
 
             <div class=" no-scrolbar" style="max-width: 100vw">
@@ -142,7 +142,7 @@
                             </th>
                             <th class="no-mobile">
                                 <div class="d-flex flex-row gap-1 flex-wrap">
-                                    @if($all_user->is_associate === 1)
+                                    @if($all_user->is_associate == 1)
                                         <span title="Relatie"
                                               class="badge rounded-pill bg-dark text-white fs-6 p-2">Relatie</span>
                                     @endif

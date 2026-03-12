@@ -49,7 +49,7 @@ class LeidingController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Leiding") {
                 return redirect()->route('leiding.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('leiding.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -229,7 +229,7 @@ class LeidingController extends Controller
             return redirect()->route('leiding')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             return view('leiding.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('leiding')->with('error', 'Je mag deze post niet bewerken.');
@@ -247,7 +247,7 @@ class LeidingController extends Controller
             return redirect()->route('leiding')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             $validatedData = $request->validate([
                 'content' => 'string|max:65535',
             ]);
@@ -281,7 +281,7 @@ class LeidingController extends Controller
             return redirect()->route('leiding')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'leiding Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'leiding Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -315,7 +315,7 @@ class LeidingController extends Controller
             return redirect()->route('leiding')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'leiding Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'leiding Leiding') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();

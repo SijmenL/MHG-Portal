@@ -55,7 +55,7 @@
                     </div>
                 </a>
 
-                @if($user->accepted === 1)
+                @if($user->accepted == 1)
                 <div class="devider"></div>
                 <a class="setting" href="{{ route('settings.parent') }}">
                     <div class="setting-text">

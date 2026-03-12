@@ -57,14 +57,14 @@ class FileController extends Controller
         if (empty($fileIds)) return response()->json(['error' => 'Geen bestanden geselecteerd.'], 400);
 
         try {
-            if ($action === 'share') {
+            if ($action == 'share') {
                 $isShared = $request->input('is_shared');
                 $permission = $request->input('share_permission', 'read');
                 $shareMode = $request->input('share_mode', 'merge');
                 $commonHash = null;
 
                 if ($isShared) {
-                    if ($shareMode === 'merge') {
+                    if ($shareMode == 'merge') {
                         $firstFile = File::find($fileIds[0]);
                         if ($firstFile) {
                             $currentParentId = $firstFile->folder_id;
@@ -96,7 +96,7 @@ class FileController extends Controller
 
                 foreach ($fileIds as $id) {
                     $file = File::findOrFail($id);
-                    if ($location === "Lesson" && $file->user_id !== Auth::id()) {
+                    if ($location == "Lesson" && $file->user_id !== Auth::id()) {
                         if (!$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) continue;
                     }
                     if ($isShared) $this->applyShareSettingsRecursively($file, $commonHash, $permission);
@@ -107,7 +107,7 @@ class FileController extends Controller
 
             foreach ($fileIds as $id) {
                 $file = File::findOrFail($id);
-                if ($location === "Lesson" && $file->user_id !== Auth::id()) {
+                if ($location == "Lesson" && $file->user_id !== Auth::id()) {
                     if (!$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) continue;
                 }
 
@@ -161,7 +161,7 @@ class FileController extends Controller
         $newName = $request->input('new_name');
 
         if (empty($fileIds)) return response()->json(['error' => 'Geen bestanden geselecteerd.'], 400);
-        if ($action === 'share' || $action === 'toggle-access') return response()->json(['error' => 'Actie niet toegestaan.'], 403);
+        if ($action == 'share' || $action == 'toggle-access') return response()->json(['error' => 'Actie niet toegestaan.'], 403);
 
         try {
             foreach ($fileIds as $id) {
@@ -255,7 +255,7 @@ class FileController extends Controller
                 foreach ($request->file('file') as $uploadedFile) {
                     $filePath = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
                     $newFile = new File();
-                    $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
+                    $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location == 'Lesson' ? $locationId : null;
                     $newFile->folder_id = $folderId; $newFile->file_name = $uploadedFile->getClientOriginalName();
                     $newFile->file_path = $filePath; $newFile->type = 0; $newFile->user_id = $userId;
                     $newFile->access = $access; $newFile->share_hash = $parentShareHash; $newFile->share_permission = $parentSharePermission;
@@ -267,7 +267,7 @@ class FileController extends Controller
             case '1':
                 $request->validate(['file' => 'required|url', 'title' => 'required']);
                 $newFile = new File();
-                $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
+                $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location == 'Lesson' ? $locationId : null;
                 $newFile->folder_id = $folderId; $newFile->file_name = $request->input('title');
                 $newFile->file_path = $request->input('file'); $newFile->user_id = $userId;
                 $newFile->type = 1; $newFile->access = $access;
@@ -279,7 +279,7 @@ class FileController extends Controller
             case '2':
                 $request->validate(['title' => 'required']);
                 $newFile = new File();
-                $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
+                $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location == 'Lesson' ? $locationId : null;
                 $newFile->folder_id = $folderId; $newFile->file_name = $request->input('title');
                 $newFile->file_path = ""; $newFile->user_id = $userId;
                 $newFile->type = 2; $newFile->access = $access;
@@ -298,7 +298,7 @@ class FileController extends Controller
 
                 if (!$parentFolder) {
                     $parentFolder = new File();
-                    $parentFolder->location = $location; $parentFolder->location_id = $locationId; $parentFolder->lesson_id = $location === 'Lesson' ? $locationId : null;
+                    $parentFolder->location = $location; $parentFolder->location_id = $locationId; $parentFolder->lesson_id = $location == 'Lesson' ? $locationId : null;
                     $parentFolder->folder_id = $folderId; $parentFolder->file_name = $baseFolderName;
                     $parentFolder->file_path = ""; $parentFolder->user_id = $userId;
                     $parentFolder->type = 2; $parentFolder->access = $access;
@@ -316,7 +316,7 @@ class FileController extends Controller
                         $existingFolder = $currentParent->children()->where('file_name', $folderName)->first();
                         if (!$existingFolder) {
                             $newFolder = new File();
-                            $newFolder->location = $location; $newFolder->location_id = $locationId; $newFolder->lesson_id = $location === 'Lesson' ? $locationId : null;
+                            $newFolder->location = $location; $newFolder->location_id = $locationId; $newFolder->lesson_id = $location == 'Lesson' ? $locationId : null;
                             $newFolder->folder_id = $currentParent->id; $newFolder->file_name = $folderName;
                             $newFolder->file_path = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
                             $newFolder->user_id = $userId; $newFolder->type = 2; $newFolder->access = $access;
@@ -329,7 +329,7 @@ class FileController extends Controller
                     }
                     $filePath = Storage::disk('public')->putFile($location . '/' . $locationId, $uploadedFile);
                     $newFile = new File();
-                    $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location === 'Lesson' ? $locationId : null;
+                    $newFile->location = $location; $newFile->location_id = $locationId; $newFile->lesson_id = $location == 'Lesson' ? $locationId : null;
                     $newFile->folder_id = $currentParent->id; $newFile->file_name = $uploadedFile->getClientOriginalName();
                     $newFile->file_path = $filePath; $newFile->user_id = $userId; $newFile->type = 0; $newFile->access = $access;
                     $newFile->share_hash = $parentShareHash; $newFile->share_permission = $parentSharePermission;
@@ -388,7 +388,7 @@ class FileController extends Controller
         $storedFileName = $file->file_name;
         try {
             $lastDotPosition = strrpos($storedFileName, '.');
-            $extension = ($lastDotPosition === false) ? '' : substr($storedFileName, $lastDotPosition + 1);
+            $extension = ($lastDotPosition == false) ? '' : substr($storedFileName, $lastDotPosition + 1);
             $lastUnderscorePosition = strrpos($storedFileName, '_');
             $baseNameWithoutLastUnderscore = $lastUnderscorePosition !== false ? substr($storedFileName, 0, $lastUnderscorePosition) : $storedFileName;
             $secondToLastUnderscorePosition = strrpos($baseNameWithoutLastUnderscore, '_');
@@ -408,7 +408,7 @@ class FileController extends Controller
             $zipFileName = $folder->file_name . '.zip';
             $zipFilePath = sys_get_temp_dir() . '/' . $zipFileName;
             $zip = new ZipArchive();
-            if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) == true) {
                 $this->zipDirectory($zip, $folder);
                 $zip->close();
             } else throw new \Exception('Kon het ZIP-bestand niet aanmaken.');
@@ -435,10 +435,10 @@ class FileController extends Controller
         $contents = $folder->children()->get();
         foreach ($contents as $item) {
             $itemPath = $basePath . $item->file_name;
-            if ($item->type === 2) {
+            if ($item->type == 2) {
                 $zip->addEmptyDir($itemPath . '/');
                 $this->zipDirectory($zip, $item, $itemPath . '/');
-            } elseif ($item->type === 0) {
+            } elseif ($item->type == 0) {
                 $realFilePath = Storage::disk('public')->path($item->file_path);
                 if (file_exists($realFilePath)) $zip->addFile($realFilePath, $itemPath);
             }
@@ -448,7 +448,7 @@ class FileController extends Controller
     public function destroyFile($location, $fileId)
     {
         $file = File::findOrFail($fileId);
-        if ($location === "Lesson") {
+        if ($location == "Lesson") {
             if ($file->user_id !== Auth::id() && !$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) {
                 return redirect()->route('lessons.environment.lesson.files', $file->filable_id)->with('error', 'Geen toestemming.');
             }
@@ -475,12 +475,12 @@ class FileController extends Controller
     public function toggleFileAccess($location, $fileId)
     {
         $file = File::findOrFail($fileId);
-        if ($location === "Lesson") {
+        if ($location == "Lesson") {
             if ($file->user_id !== Auth::id() && !$file->lesson->users()->wherePivot('teacher', true)->where('user_id', Auth::id())->exists()) {
                 return redirect()->route('lessons.environment.lesson.files', $file->filable_id)->with('error', 'Geen toestemming.');
             }
         }
-        $newAccess = $file->access === 'teachers' ? 'all' : 'teachers';
+        $newAccess = $file->access == 'teachers' ? 'all' : 'teachers';
         $file->update(['access' => $newAccess]);
         return redirect()->back()->with('success', 'Toegang aangepast.');
     }

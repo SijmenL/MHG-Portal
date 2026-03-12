@@ -7,7 +7,7 @@
             $folderId = $currentFolder ? $currentFolder->id : null;
 
             // Bepaal of de gebruiker bestanden mag toevoegen/aanpassen op basis van de link
-            $isAdmin = $sharedRoot->share_permission === 'write';
+            $isAdmin = $sharedRoot->share_permission == 'write';
         @endphp
 
         <x-file-manager

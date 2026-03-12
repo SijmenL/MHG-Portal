@@ -26,6 +26,7 @@
                 <li class="added">Bestanden kunnen makkelijker bewerkt, bekijken, hernoemd en zelfs publiek gedeeld worden.</li>
             </ul>
             <li class="added">Het WYSIWYG veld is verbeterd met een nieuw design en backend verbeteringen.</li>
+            <li class="added">Sieb kan agendapunten aanpassen 😜😜.</li>
 
         </ul>
 

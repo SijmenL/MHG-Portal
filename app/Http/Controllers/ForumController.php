@@ -117,7 +117,7 @@ class ForumController extends Controller
             ]);
 
             $post = null;
-            if ($postType === '0') {
+            if ($postType == '0') {
                 $post = Post::findOrFail($postId);
             } else {
                 $comment = Comment::findOrFail($postId);
@@ -147,7 +147,7 @@ class ForumController extends Controller
 
             if ($post->user_id !== Auth::id()) {
                 $notification = new Notification();
-                if ($postType === '0') {
+                if ($postType == '0') {
                     $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je post geliket!', '/' . $location . '/post/' . $post->id, $location, 'liked_post');
                 } else {
                     $notification->sendNotification(Auth::id(), [$post->user_id], 'Heeft je reactie geliket!', '/' . $location . '/post/' . $post->id, $location, 'liked_comment');
@@ -184,7 +184,7 @@ class ForumController extends Controller
             // Find the comment by ID
             $comment = Comment::findOrFail($id);
 
-            if ($comment->user_id === Auth::id()) {
+            if ($comment->user_id == Auth::id()) {
                 // Update the comment content
                 $comment->content = $request->input('content');
                 $comment->save();
@@ -299,7 +299,7 @@ class ForumController extends Controller
 
         foreach ($elements as $element) {
             $classes = $element->getAttribute('class');
-            if (!empty($classes) && strpos($classes, 'forum-image') === false && strpos($classes, 'forum-pdf') === false) {
+            if (!empty($classes) && strpos($classes, 'forum-image') == false && strpos($classes, 'forum-pdf') == false) {
                 $containsClasses = true;
                 break;
             }

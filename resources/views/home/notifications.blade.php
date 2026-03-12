@@ -23,33 +23,33 @@
                 <div class="d-flex flex-column gap-3 justify-content-center">
                     @foreach($notifications as $notification)
                         <div
-                            class="notification w-100 @if($notification->seen === 0) bg-secondary-subtle @else bg-dark-subtle @endif">
+                            class="notification w-100 @if($notification->seen == 0) bg-secondary-subtle @else bg-dark-subtle @endif">
                             <div
                                 class="d-flex align-items-end justify-content-center flex-row-responsive gap-2"
                                 style="height: 50px">
                                 @if($notification->location !== null)
 
                                     <div class="notification-icon">
-                                        @if($notification->location === 'dolfijnen')
+                                        @if($notification->location == 'dolfijnen')
                                             <img class="w-100" alt="dolfijnen"
                                                  src="{{ asset('img/icons/dolfijnen.png') }}">
                                         @endif
-                                        @if($notification->location === 'zeeverkenners')
+                                        @if($notification->location == 'zeeverkenners')
                                             <img class="w-100" alt="zeeverkenners"
                                                  src="{{ asset('img/icons/zeeverkenners.png') }}">
                                         @endif
-                                        @if($notification->location === 'loodsen')
+                                        @if($notification->location == 'loodsen')
                                             <img class="w-100" alt="loodsen" src="{{ asset('img/icons/loodsen.png') }}">
                                         @endif
-                                        @if($notification->location === 'afterloodsen')
+                                        @if($notification->location == 'afterloodsen')
                                             <img class="w-100" alt="afterloodsen"
                                                  src="{{ asset('img/icons/after_loodsen.png') }}">
                                         @endif
-                                        @if($notification->location === 'leiding')
+                                        @if($notification->location == 'leiding')
                                             <span
                                                 class="material-symbols-rounded notification-icon">supervisor_account</span>
                                         @endif
-                                            @if($notification->location === 'les')
+                                            @if($notification->location == 'les')
                                                 <span
                                                     class="material-symbols-rounded notification-icon">school</span>
                                             @endif

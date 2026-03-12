@@ -65,16 +65,6 @@
                                placeholder="Zoeken op naam, email, adres etc."
                                aria-label="Zoeken" aria-describedby="basic-addon1" value="{{ $search }}"
                                onchange="this.form.submit();">
-                    </div>
-                    <div class="input-group">
-                        <label for="role" class="input-group-text" id="basic-addon1">
-                            <span class="material-symbols-rounded">diversity_3</span></label>
-                        <select id="role" name="role" class="form-select"
-                                aria-label="Rol" aria-describedby="basic-addon1" onchange="this.form.submit();">
-                            <option @if($selected_role === 'Zeeverkenner') selected @endif>Technisch Team</option>
-                            <option @if($selected_role === 'Ouders') selected @endif>Ouders</option>
-                        </select>
-
                         <a @if($users->count() > 0) id="export-button" @endif class="input-group-text @if($users->count() < 1)disabled @endif" style="text-decoration: none; cursor: pointer">
                             <span class="material-symbols-rounded">ios_share</span></a>
                     </div>
@@ -91,9 +81,6 @@
                         <th scope="col">Naam</th>
                         <th class="no-mobile" scope="col">Email</th>
                         <th class="no-mobile" scope="col">Telefoonnummer</th>
-                        @if ($selected_role !== 'Zeeverkenner')
-                            <th scope="col">Kinderen</th>
-                        @endif
                         @if(auth()->user() && (auth()->user()->roles->contains('role', 'Hoofd Technisch Team') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')))
                             <th scope="col">Opties</th>
                         @endif
@@ -115,24 +102,6 @@
                             <th>{{ $all_user->name .' '. $all_user->infix.' '. $all_user->last_name }}</th>
                             <th class="no-mobile"><a href="mailto:{{ $all_user->email }}">{{ $all_user->email }}</a></th>
                             <th class="no-mobile"><a href="tel:{{ $all_user->phone }}">{{ $all_user->phone }}</a></th>
-                            @if ($selected_role !== 'Zeeverkenner')
-                                <th class="d-flex flex-row gap-2 flex-wrap">
-                                    @foreach ($all_user->children as $child)
-                                        <div
-                                            class="d-flex flex-column gap-1 align-items-center m-2 bg-light p-2 rounded" >
-                                            @if($child->profile_picture)
-                                                <img alt="profielfoto" class="profle-picture"
-                                                     src="{{ asset('/profile_pictures/' . $child->profile_picture) }}">
-                                            @else
-                                                <img alt="profielfoto" class="profle-picture"
-                                                     src="{{ asset('img/no_profile_picture.webp') }}">
-                                            @endif
-                                            {{ $child->name.' '.$child->infic.' '.$child->last_name }}
-                                        </div>
-                                    @endforeach
-                                </th>
-                            @endif
-
                             @if(auth()->user() && (auth()->user()->roles->contains('role', 'Hoofd Technisch Team') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')))
                                 <th>
                                     <div class="d-flex flex-row flex-wrap gap-2">

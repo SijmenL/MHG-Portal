@@ -210,7 +210,7 @@ class ZeeverkennerController extends Controller
             return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             return view('speltakken.zeeverkenners.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('zeeverkenners')->with('error', 'Je mag deze post niet bewerken.');
@@ -228,7 +228,7 @@ class ZeeverkennerController extends Controller
             return redirect()->route('zeeverkenners')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             $validatedData = $request->validate([
                 'content' => 'string|max:65535',
             ]);
@@ -262,7 +262,7 @@ class ZeeverkennerController extends Controller
             return redirect()->route('zeeverkenners')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'zeeverkenners') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'zeeverkenners') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -296,7 +296,7 @@ class ZeeverkennerController extends Controller
             return redirect()->route('zeeverkenners')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'zeeverkenners') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'zeeverkenners') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
@@ -351,7 +351,7 @@ class ZeeverkennerController extends Controller
             ->where('accepted', true);
 
         // If the selected role is 'Ouders', find users who are parents of users with the 'Zeeverkenner' role
-        if ($selected_role === 'Ouders') {
+        if ($selected_role == 'Ouders') {
             $usersQuery->whereHas('children', function ($query) {
                 $query->whereHas('roles', function ($roleQuery) {
                     $roleQuery->where('role', 'Zeeverkenner');
@@ -417,7 +417,7 @@ class ZeeverkennerController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Zeeverkenners") {
                 return redirect()->route('zeeverkenners.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('zeeverkenners.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -443,7 +443,7 @@ class ZeeverkennerController extends Controller
         $users = json_decode($request->input('user_ids'));
         $export_type = $request->input('type');
 
-        if ($export_type === 'Zeeverkenners') {
+        if ($export_type == 'Zeeverkenners') {
             $type = 'zeeverkenners';
         } else {
             $type = 'zeeverkenners-ouders';
@@ -554,7 +554,7 @@ class ZeeverkennerController extends Controller
             $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('zeeverkenners.inbox')->with('error', 'Dit account bestaat niet.');
         }
-        if ($account === null) {
+        if ($account == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View user', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('zeeverkenners.inbox')->with('error', 'Dit account bestaat niet.');
@@ -602,16 +602,16 @@ class ZeeverkennerController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('zeeverkenners.signup')->with('error', 'Dit account bestaat niet.');
         }
-        if ($user === null) {
+        if ($user == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete signup', 'zeeverkenners', 'Account id: ' . $id, 'Gebruiker bestaat niet');
             return redirect()->route('zeeverkenners.signup')->with('error', 'Dit account bestaat niet.');
         }
 
-        if ($user === null) {
+        if ($user == null) {
             return redirect()->route('zeeverkenners.signup')->with('error', 'Geen inschrijving gevonden om te verwijderen');
         }
-        if ($id === (string)Auth::id()) {
+        if ($id == (string)Auth::id()) {
             return redirect()->back()->with('error', 'Je kunt jezelf niet verwijderen.');
         } else {
             $user->delete();

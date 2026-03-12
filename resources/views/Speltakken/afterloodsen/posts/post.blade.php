@@ -31,7 +31,7 @@
 
         <div id="{{$post->id}}" class="mt-5 rounded bg-white">
             <div
-                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Zeeverkenner Leiding') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id === Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
+                class="@if(isset($post->user) && $post->user->roles->contains('role', 'Zeeverkenner Leiding') && $post->user->id !== Auth::id()) bg-danger-subtle @elseif($post->user->id == Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
                 @if(isset($post->user))
                     <div
                         class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">
@@ -73,7 +73,7 @@
             </div>
 
             <div class="d-flex flex-row">
-                @if($post->user->id === Auth::id())
+                @if($post->user->id == Auth::id())
                     <a href="{{ route('afterloodsen.post.edit', $post->id) }}"
                        class="btn d-flex align-items-center edit"><span
                             class="material-symbols-rounded">edit</span></a>
@@ -82,7 +82,7 @@
                     <a class="delete-button btn d-flex align-items-center"
                        data-id="{{ $post->id }}"
 
-                       @if($post->user->id === Auth::id())
+                       @if($post->user->id == Auth::id())
                            data-name="je post en alle reacties eronder"
                        @else
                            data-name="deze post en alle reacties eronder"
@@ -153,7 +153,7 @@
 
 
             @foreach($post->comments as $comment)
-                @if ($comment->comment_id === null)
+                @if ($comment->comment_id == null)
                     <div class="comment mt-3 p-3 rounded bg-white" data-comment-id="{{ $comment->id }}"
                          id="{{ $comment->id }}">
                         <div class="d-flex flex-row gap-2">
@@ -167,7 +167,7 @@
                             <div class="w-100 p-1" style=" width: 100%; overflow: auto">
                                 <div class="d-flex flex-row-responsive" style="margin-bottom: -15px;">
                                     <p><span
-                                            class="fw-bold @if($post->user_id === $comment->user_id) post-op @endif">
+                                            class="fw-bold @if($post->user_id == $comment->user_id) post-op @endif">
                                                 {{ $comment->user->name.' '.$comment->user->infix.' '.$comment->user->last_name }}
                                             </span>
                                     </p>
@@ -189,16 +189,16 @@
                                         <a title="beantwoorden"
                                            class="btn d-flex align-items-center add-comment"><span
                                                 class="material-symbols-rounded">add_comment</span></a>
-                                        @if($comment->user->id === Auth::id())
+                                        @if($comment->user->id == Auth::id())
                                             <a
                                                 class="edit-button btn d-flex align-items-center edit"><span
                                                     class="material-symbols-rounded">edit</span></a>
                                         @endif
-                                        @if($comment->user->id === Auth::id() || (auth()->user()->roles->contains('role', 'Afterloodsen Organisator') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
+                                        @if($comment->user->id == Auth::id() || (auth()->user()->roles->contains('role', 'Afterloodsen Organisator') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
                                             <a class="delete-button btn d-flex align-items-center"
                                                data-id="{{ $post->id }}"
 
-                                               @if($comment->user->id === Auth::id())
+                                               @if($comment->user->id == Auth::id())
                                                    data-name="je reactie"
                                                @else
                                                    data-name="deze reactie"
@@ -250,7 +250,7 @@
                                     </form>
                                 </div>
 
-                                @if($comment->user->id === Auth::id())
+                                @if($comment->user->id == Auth::id())
                                     <form class="editable-content mt-2" style="display: none"
                                           onsubmit="e.preventDefault()">
                                         @csrf <!-- Add CSRF token field if not already present -->
@@ -294,7 +294,7 @@
                                         <div class="w-100 p-1" style=" width: 100%; overflow: auto">
                                             <div class="d-flex flex-row-responsive" style="margin-bottom: -15px;">
                                                 <p><span
-                                                        class="fw-bold @if($post->user_id === $reaction->user_id) post-op @endif">
+                                                        class="fw-bold @if($post->user_id == $reaction->user_id) post-op @endif">
                                                             {{ $reaction->user->name.' '.$reaction->user->infix.' '.$reaction->user->last_name }}
                                                         </span>
                                                 </p>
@@ -313,16 +313,16 @@
                                                        data-post-id="{{ $reaction->id }}"
                                                        data-post-type="1">{{ $reaction->likes->count() }} <span
                                                             class="material-symbols-rounded">favorite</span></a>
-                                                    @if($reaction->user->id === Auth::id())
+                                                    @if($reaction->user->id == Auth::id())
                                                         <a
                                                             class="edit-button btn d-flex align-items-center edit"><span
                                                                 class="material-symbols-rounded">edit</span></a>
                                                     @endif
-                                                    @if($reaction->user->id === Auth::id() || (auth()->user()->roles->contains('role', 'Afterloodsen Organisator') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
+                                                    @if($reaction->user->id == Auth::id() || (auth()->user()->roles->contains('role', 'Afterloodsen Organisator') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur')|| auth()->user()->roles->contains('role', 'Ouderraad')))
                                                         <a class="delete-button btn d-flex align-items-center"
                                                            data-id="{{ $post->id }}"
 
-                                                           @if($reaction->user->id === Auth::id())
+                                                           @if($reaction->user->id == Auth::id())
                                                                data-name="je reactie"
                                                            @else
                                                                data-name="deze reactie"
@@ -336,7 +336,7 @@
                                                 </div>
                                             </div>
 
-                                            @if($reaction->user->id === Auth::id())
+                                            @if($reaction->user->id == Auth::id())
                                                 <form class="editable-content mt-2" style="display: none"
                                                       onsubmit="e.preventDefault()">
                                                     @csrf <!-- Add CSRF token field if not already present -->

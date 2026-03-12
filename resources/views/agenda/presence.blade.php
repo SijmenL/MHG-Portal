@@ -49,7 +49,7 @@
 
                                     @foreach($all_roles as $role)
                                         <option
-                                            @if($selected_role === $role->role) selected @endif>{{ $role->role }}</option>
+                                            @if($selected_role == $role->role) selected @endif>{{ $role->role }}</option>
                                     @endforeach
                                 </select>
                                 @endif
@@ -124,24 +124,24 @@
                     @php
                         // Filter users to get only those who are present
                         $presentUsers = $users->filter(function ($user) {
-                            return $user->presence["status"] === 'present';
+                            return $user->presence["status"] == 'present';
                         });
 
                         $absentUsers = $users->filter(function ($user) {
-                            return $user->presence["status"] === 'absent';
+                            return $user->presence["status"] == 'absent';
                         });
                     @endphp
 
                     <p>
 
-                        @if($presentUsers->count() === 1)
+                        @if($presentUsers->count() == 1)
                             <span>Er is {{ $presentUsers->count() }} iemand aanwezig en</span>
                         @else
                             <span>Er zijn {{ $presentUsers->count() }} mensen aanwezig en</span>
                         @endif
 
 
-                        @if($absentUsers->count() === 1)
+                        @if($absentUsers->count() == 1)
                             <span>er is {{ $absentUsers->count() }} iemand afwezig.</span>
                         @else
                             <span>er zijn {{ $absentUsers->count() }} mensen afwezig.</span>
@@ -188,17 +188,17 @@
                                         @endif
                                     </th>
                                     <th>{{ $all_user->name .' '. $all_user->infix.' '. $all_user->last_name }}</th>
-                                    @if($all_user->presence["status"] === 'present')
+                                    @if($all_user->presence["status"] == 'present')
                                         <th class="bg-success-subtle">
                                             Aangemeld
                                         </th>
                                     @endif
-                                    @if($all_user->presence["status"] === 'absent')
+                                    @if($all_user->presence["status"] == 'absent')
                                         <th class="bg-danger-subtle">
                                             Afgemeld
                                         </th>
                                     @endif
-                                    @if($all_user->presence["status"] === 'null')
+                                    @if($all_user->presence["status"] == 'null')
                                         <th>
                                             Niets laten weten
                                         </th>

@@ -667,7 +667,7 @@ table, th, td, label {
     backdrop-filter: blur(3px) brightness(20%);
     opacity: 0;
     transition: opacity 0.3s ease;
-    z-index: 10000; /* Overlay above everything */
+    z-index: 100000; /* Overlay above everything */
     pointer-events: none; /* Allow clicks to pass through */
     cursor: zoom-out;
 }
@@ -680,7 +680,7 @@ table, th, td, label {
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 10001;
+    z-index: 100001;
     cursor: zoom-out !important;
 }
 

@@ -69,7 +69,7 @@
 
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    @if($view === "month")
+                    @if($view == "month")
                         <li class="breadcrumb-item"><a
                                 href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll]) }}">Agenda</a>
                         </li>
@@ -88,7 +88,7 @@
                 <li class="breadcrumb-item"><a
                         href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a>
                 </li>
-                @if($view === "month")
+                @if($view == "month")
                     <li class="breadcrumb-item"><a
                             href="{{ route('agenda.month', ['lessonId' => $lesson->id, 'month' => $monthOffset, 'all' => $wantViewAll]) }}">Planning</a>
                     </li>
@@ -509,7 +509,7 @@
                                 const dateContainer = document.getElementById("date-container");
 
                                 function toggleDateInput() {
-                                    if (presenceSelect.value === "1") {
+                                    if (presenceSelect.value == "1") {
                                         dateContainer.style.display = "block";
                                     } else {
                                         dateContainer.style.display = "none";

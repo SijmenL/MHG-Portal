@@ -210,7 +210,7 @@ class TechnischTeamController extends Controller
             return redirect()->route('technisch_team')->with('error', 'Je mag deze post niet bekijken.');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             return view('speltakken.technisch_team.posts.post_edit', ['user' => $user, 'post' => $post]);
         } else {
             return redirect()->route('technisch_team')->with('error', 'Je mag deze post niet bewerken.');
@@ -228,7 +228,7 @@ class TechnischTeamController extends Controller
             return redirect()->route('technisch_team')->with('error', 'We hebben je post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id()) {
+        if ($post->user_id == Auth::id()) {
             $validatedData = $request->validate([
                 'content' => 'string|max:65535',
             ]);
@@ -262,7 +262,7 @@ class TechnischTeamController extends Controller
             return redirect()->route('technisch_team')->with('error', 'We hebben deze post niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($post->user_id === Auth::id() || auth()->user()->roles->contains('role', 'technisch_team') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($post->user_id == Auth::id() || auth()->user()->roles->contains('role', 'technisch_team') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             foreach ($post->comments as $comment) {
                 $comment->delete();
@@ -296,7 +296,7 @@ class TechnischTeamController extends Controller
             return redirect()->route('technisch_team')->with('error', 'We hebben deze reactie niet gevonden, waarschijnlijk is deze verplaatst of verwijderd!');
         }
 
-        if ($comment->user_id === Auth::id() || auth()->user()->roles->contains('role', 'technisch_team') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
+        if ($comment->user_id == Auth::id() || auth()->user()->roles->contains('role', 'technisch_team') || auth()->user()->roles->contains('role', 'Administratie') || auth()->user()->roles->contains('role', 'Bestuur') || auth()->user()->roles->contains('role', 'Ouderraad')) {
 
             $comment->delete();
             $log = new Log();
@@ -328,7 +328,7 @@ class TechnischTeamController extends Controller
             ->where('accepted', true);
 
         // If the selected role is 'Ouders', find users who are parents of users with the 'Zeeverkenner' role
-        if ($selected_role === 'Ouders') {
+        if ($selected_role == 'Ouders') {
             $usersQuery->whereHas('children', function ($query) {
                 $query->whereHas('roles', function ($roleQuery) {
                     $roleQuery->where('role', 'Technisch Team');
@@ -394,7 +394,7 @@ class TechnischTeamController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Technisch Team") {
                 return redirect()->route('technisch_team.files')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('technisch_team.files')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }
@@ -420,7 +420,7 @@ class TechnischTeamController extends Controller
         $users = json_decode($request->input('user_ids'));
         $export_type = $request->input('type');
 
-        if ($export_type === 'Technisch Team') {
+        if ($export_type == 'Technisch Team') {
             $type = 'technisch_team';
         } else {
             $type = 'technisch_team-ouders';

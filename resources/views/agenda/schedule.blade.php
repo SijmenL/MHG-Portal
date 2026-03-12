@@ -80,7 +80,7 @@
 
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="show-all"
-                                   @if($wantViewAll === true) checked @endif>
+                                   @if($wantViewAll == true) checked @endif>
                             <label class="form-check-label" for="show-all">Laat alle agenda punten van de vereniging
                                 zien</label>
                         </div>
@@ -130,11 +130,11 @@
                                         document.querySelectorAll('.calendar-link').forEach(link => {
                                             const type = link.dataset.type;
 
-                                            if (type === 'google') {
+                                            if (type == 'google') {
                                                 link.href = `https://calendar.google.com/calendar/u/0/r?cid=${webcalUrl}`;
-                                            } else if (type === 'outlook') {
+                                            } else if (type == 'outlook') {
                                                 link.href = `https://outlook.office.com/owa?path=/calendar/action/compose&rru=addsubscription&url=${encodedWebcal}&name=${calendarName}`;
-                                            } else if (type === 'ical') {
+                                            } else if (type == 'ical') {
                                                 link.href = webcalUrl;
                                             } else {
                                                 link.href = webcalUrl;
@@ -294,7 +294,7 @@
                         $linkParams['lessonId'] = $activity->lesson_id;
                     }
 
-                    $canAccessLesson = $activity->lesson_id === null || in_array($user->id, $lessonUsers) || $isTeacher;
+                    $canAccessLesson = $activity->lesson_id == null || in_array($user->id, $lessonUsers) || $isTeacher;
                 @endphp
 
                 <a

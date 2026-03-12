@@ -15,14 +15,14 @@
 
         window.addEventListener('message', (event) => {
             console.log('Message received from:', event.origin);
-            if (event.origin === 'https://waterscoutingmhg.nl' && event.data === 'getHeight') {
+            if (event.origin == 'https://waterscoutingmhg.nl' && event.data == 'getHeight') {
                 console.log('Valid request for height');
                 sendHeight();
             }
         });
 
 
-        if (window.top === window.self) {
+        if (window.top == window.self) {
             // Redirect to the parent page if the child page is accessed directly
             window.location.href = `https://waterscoutingmhg.nl/over-onze-club/activiteiten`;
         } else {
@@ -37,7 +37,7 @@
         }
     </script>
 
-    @if($limit === null)
+    @if($limit == null)
         <div>
             @else
                 <div class="bg-info">
@@ -63,7 +63,7 @@
                                 });
                             </script>
 
-                            @if($limit === null)
+                            @if($limit == null)
                                 <div id="nav">
                                     <ul class="nav nav-tabs flex-row-reverse mb-4">
                                         <li class="nav-item">
@@ -86,7 +86,7 @@
                         </div>
                     </div>
 
-                    @if($limit === null)
+                    @if($limit == null)
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex flex-row gap-0">
                                 <a href="{{ route('agenda.public.schedule', ['month' => $monthOffset - 1]) }}#agenda"
@@ -142,7 +142,7 @@
                                         <p class="day-number">{{ $activitiesStart->format('j') }}</p>
                                     </div>
                                     <div
-                                        class="event @if($limit === null) bg-light @else bg-white @endif mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between">
+                                        class="event @if($limit == null) bg-light @else bg-white @endif mt-2 w-100 d-flex flex-row-responsive-reverse justify-content-between">
                                         <div class="d-flex flex-column justify-content-between">
                                             <div>
                                                 @if($activitiesStart->isSameDay($activityEnd))

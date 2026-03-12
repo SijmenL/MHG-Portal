@@ -52,7 +52,7 @@ function init() {
 
 function showPage(index) {
     for (let i = 0; i < pages.length; i++) {
-        pages[i].style.display = (i === index) ? 'block' : 'none';
+        pages[i].style.display = (i == index) ? 'block' : 'none';
     }
 }
 

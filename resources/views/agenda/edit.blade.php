@@ -155,7 +155,7 @@
                     <li class="breadcrumb-item"><a
                             href="{{ route('lessons.environment.lesson', $lesson->id) }}">{{ $lesson->title }}</a></li>
                     <li class="breadcrumb-item"><a
-                            @if($view === 'month') href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0, 'lessonId' => $lesson->id]) }}"
+                            @if($view == 'month') href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0, 'lessonId' => $lesson->id]) }}"
                             @else href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0, 'lessonId' => $lesson->id]) }}" @endif>Planning</a>
                     </li>
                     <li class="breadcrumb-item"><a
@@ -168,7 +168,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a
-                            @if($view === 'month') href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0]) }}"
+                            @if($view == 'month') href="{{ route('agenda.month', ['month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0]) }}"
                             @else href="{{ route('agenda.schedule', ['month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0]) }}" @endif>Mijn
                             agenda</a></li>
                     <li class="breadcrumb-item"><a
@@ -295,10 +295,10 @@
                             </label>
                             <select id="reoccurrence" class="form-select @error('reoccurrence') is-invalid @enderror"
                                     name="reoccurrence">
-                                <option value="never" @if($activity->recurrence_rule === "never" || $activity->recurrence_rule === null) selected @endif>Nooit</option>
-                                <option value="daily" @if($activity->recurrence_rule === "daily") selected @endif>Dagelijks</option>
-                                <option value="weekly" @if($activity->recurrence_rule === "weekly") selected @endif>Wekelijks</option>
-                                <option value="monthly" @if($activity->recurrence_rule === "monthly") selected @endif>Maandelijks</option>
+                                <option value="never" @if($activity->recurrence_rule == "never" || $activity->recurrence_rule == null) selected @endif>Nooit</option>
+                                <option value="daily" @if($activity->recurrence_rule == "daily") selected @endif>Dagelijks</option>
+                                <option value="weekly" @if($activity->recurrence_rule == "weekly") selected @endif>Wekelijks</option>
+                                <option value="monthly" @if($activity->recurrence_rule == "monthly") selected @endif>Maandelijks</option>
                             </select>
                             @error('reoccurrence')
                             <span class="invalid-feedback" role="alert">
@@ -571,7 +571,7 @@
 
                                 <select id="presence" class="form-select @error('presence') is-invalid @enderror"
                                         name="presence">
-                                    <option @if($activity->presence === "0") selected @endif value="0">Nee</option>
+                                    <option @if($activity->presence == "0") selected @endif value="0">Nee</option>
                                     <option @if($activity->presence !== "0") selected @endif value="1">Ja</option>
                                 </select>
                                 @error('presence')
@@ -600,7 +600,7 @@
                                 const dateContainer = document.getElementById("date-container");
 
                                 function toggleDateInput() {
-                                    if (presenceSelect.value === "1") {
+                                    if (presenceSelect.value == "1") {
                                         dateContainer.style.display = "block";
                                     } else {
                                         dateContainer.style.display = "none";
@@ -626,8 +626,8 @@
                                 <select id="public" type="text"
                                         class="form-select @error('public') is-invalid @enderror"
                                         name="public">
-                                    <option @if($activity->public === false) selected @endif value="0">Nee</option>
-                                    <option @if($activity->public === true) selected @endif value="1">Ja</option>
+                                    <option @if($activity->public == false) selected @endif value="0">Nee</option>
+                                    <option @if($activity->public == true) selected @endif value="1">Ja</option>
                                 </select>
                                 @error('public')
                                 <span class="invalid-feedback" role="alert">
@@ -824,7 +824,7 @@
                         @if(isset($lesson))
                             <a class="btn btn-danger text-white"
                                href="{{route('agenda.activity', ['id' => $activity->id, 'lessonId' => $lesson->id, 'view' => $view, 'month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0, 'startDate' => date("Y-m-d", strtotime($activity->date_start))]) }}">Annuleren</a>
-                            @if ($activity->recurrence_rule === null || $activity->recurrence_rule === "never")
+                            @if ($activity->recurrence_rule == null || $activity->recurrence_rule == "never")
                                 <a class="delete-button btn btn-outline-danger"
                                    data-id="{{ $activity->id }}"
                                    data-name="{{ $activity->title }}"
@@ -841,7 +841,7 @@
                         @else
                             <a class="btn btn-danger text-white"
                                href="{{ route('agenda.activity', ['id' => $activity->id, 'view' => $view, 'month' => $monthOffset, 'all' => $wantViewAll ? 1 : 0, 'startDate' => date("Y-m-d", strtotime($activity->date_start))]) }}">Annuleren</a>
-                            @if ($activity->recurrence_rule === null || $activity->recurrence_rule === "never")
+                            @if ($activity->recurrence_rule == null || $activity->recurrence_rule == "never")
                                 <a class="delete-button btn btn-outline-danger"
                                    data-id="{{ $activity->id }}"
                                    data-name="{{ $activity->title }}"

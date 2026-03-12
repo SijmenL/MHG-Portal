@@ -177,7 +177,7 @@ function initImageViewer() {
 
     // Open gallery
     function openGallery(sources, index, types = []) {
-        if (!sources || sources.length === 0) return;
+        if (!sources || sources.length == 0) return;
         gallery = sources.slice();
         galleryTypes = types.length ? types.slice() : sources.map(() => "image");
         currentIndex = Math.max(0, Math.min(index, gallery.length - 1));
@@ -202,7 +202,7 @@ function initImageViewer() {
         const officeViewer = url =>
             `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
 
-        if (type === "video") {
+        if (type == "video") {
             const video = document.createElement("video");
             video.className = "enlarged-video";
             video.controls = true;
@@ -211,7 +211,7 @@ function initImageViewer() {
             video.src = src;
             mediaEl = video;
 
-        } else if (type === "audio") {
+        } else if (type == "audio") {
             const audio = document.createElement("audio");
             audio.className = "enlarged-audio";
             audio.controls = true;
@@ -220,7 +220,7 @@ function initImageViewer() {
             audio.src = src;
             mediaEl = audio;
 
-        } else if (type === "pdf") {
+        } else if (type == "pdf") {
             const frame = document.createElement("iframe");
             frame.className = "enlarged-pdf";
             frame.src = src;
@@ -228,7 +228,7 @@ function initImageViewer() {
             frame.setAttribute("allowfullscreen", "");
             mediaEl = frame;
 
-        } else if (type === "office") {
+        } else if (type == "office") {
             const frame = document.createElement("iframe");
             frame.className = "enlarged-office";
             frame.src = officeViewer(src);
@@ -250,11 +250,11 @@ function initImageViewer() {
 
 
     function preloadNeighbor(idx) {
-        if (galleryTypes[idx + 1] === "image" && gallery[idx + 1]) {
+        if (galleryTypes[idx + 1] == "image" && gallery[idx + 1]) {
             const i = new Image();
             i.src = gallery[idx + 1];
         }
-        if (galleryTypes[idx - 1] === "image" && gallery[idx - 1]) {
+        if (galleryTypes[idx - 1] == "image" && gallery[idx - 1]) {
             const i = new Image();
             i.src = gallery[idx - 1];
         }
@@ -266,8 +266,8 @@ function initImageViewer() {
             nextButton.style.display = 'none';
             return;
         }
-        prevButton.style.display = (currentIndex === 0) ? 'none' : 'block';
-        nextButton.style.display = (currentIndex === gallery.length - 1) ? 'none' : 'block';
+        prevButton.style.display = (currentIndex == 0) ? 'none' : 'block';
+        nextButton.style.display = (currentIndex == gallery.length - 1) ? 'none' : 'block';
     }
 
     function close() {
@@ -310,20 +310,20 @@ function initImageViewer() {
 
     overlay.addEventListener('click', close);
     container.addEventListener('click', e => {
-        if (e.target === container) close();
+        if (e.target == container) close();
     });
 
     document.addEventListener('keydown', e => {
-        if (container.style.display === 'flex') {
-            if (e.key === 'ArrowRight' && currentIndex < gallery.length - 1) {
+        if (container.style.display == 'flex') {
+            if (e.key == 'ArrowRight' && currentIndex < gallery.length - 1) {
                 currentIndex += 1;
                 setMedia(currentIndex);
                 updateNav();
-            } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+            } else if (e.key == 'ArrowLeft' && currentIndex > 0) {
                 currentIndex -= 1;
                 setMedia(currentIndex);
                 updateNav();
-            } else if (e.key === 'Escape') {
+            } else if (e.key == 'Escape') {
                 close();
             }
         }
@@ -375,16 +375,16 @@ function initImageViewer() {
             const link = fileRow.getAttribute('data-link');
             let target = fileRow.getAttribute('data-target');
             target = target ? target.trim() : '_self';
-            if (target === 'null') target = '_self';
+            if (target == 'null') target = '_self';
             if (link) window.open(link, target);
         }
     });
 
     function getTypeFromSrc(row) {
-        if (row.dataset.isImage === "true") return "image";
-        if (row.dataset.isVideo === "true") return "video";
-        if (row.dataset.isAudio === "true") return "audio";
-        if (row.dataset.isPdf === "true") return "pdf";
+        if (row.dataset.isImage == "true") return "image";
+        if (row.dataset.isVideo == "true") return "video";
+        if (row.dataset.isAudio == "true") return "audio";
+        if (row.dataset.isPdf == "true") return "pdf";
 
         const src =
             row.dataset.imageSrc ||

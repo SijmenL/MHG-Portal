@@ -32,7 +32,7 @@
             @php
                 $hide = ['created_at', 'updated_at', 'dolphin_name'];
 
-                if ($account->children->count() === 0) {
+                if ($account->children->count() == 0) {
                     // hide children if none exist
                     $hide[] = 'children';
                 } else {

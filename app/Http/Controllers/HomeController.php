@@ -100,7 +100,7 @@ class HomeController extends Controller
             if (!isset($currentFolder) || $currentFolder->type !== 2 || $currentFolder->location !== "Archive") {
                 return redirect()->route('archive')->with('error', 'Deze map bestaat niet.');
             }
-            if ($currentFolder->access === "teachers" && !$isAdmin) {
+            if ($currentFolder->access == "teachers" && !$isAdmin) {
                 return redirect()->route('archive')->with('error', 'Je hebt geen toegang tot deze map.');
             }
         }

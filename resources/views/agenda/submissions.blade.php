@@ -46,7 +46,7 @@
 
                 @if(empty($search))
                     @if($formSubmissions->count() > 0)
-                        @if($formSubmissions->count() === 1)
+                        @if($formSubmissions->count() == 1)
                 <p>Er heeft zich {{ $formSubmissions->count() }} iemand ingeschreven.</p>
                         @else
                 <p>Er hebben zich {{ $formSubmissions->count() }} mensen ingeschreven.</p>

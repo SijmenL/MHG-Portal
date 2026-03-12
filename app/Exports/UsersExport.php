@@ -64,7 +64,7 @@ class UsersExport
 
             $avg = 'Nee';
 
-            if ($user->avg === 1) {
+            if ($user->avg == 1) {
                 $avg = 'Ja';
             }
 

@@ -41,7 +41,7 @@ class AgendaController extends Controller
 
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->user_id == $user->id) ||
             ($lesson && $lesson->users()
                     ->where('user_id', $user->id)
                     ->wherePivot('teacher', true)
@@ -180,7 +180,7 @@ class AgendaController extends Controller
 
             // Presence date logic
             $presence = $request->input('presence');
-            if ($presence === "1" && $request->filled('presence-date')) {
+            if ($presence == "1" && $request->filled('presence-date')) {
                 $presence = $request->input('presence-date');
             }
 
@@ -210,11 +210,11 @@ class AgendaController extends Controller
             $log = new Log();
 
             // 3) Branch by editType
-            if ($editType === 'all' || !$activity->recurrence_rule) {
+            if ($editType == 'all' || !$activity->recurrence_rule) {
                 // Entire series
                 $activity->update($data);
 
-            } elseif ($editType === 'following') {
+            } elseif ($editType == 'following') {
 
                 // fetch *all* exceptions on the original activity
                 $originalExceptions = ActivityException::where('activity_id', $activity->id)->get();
@@ -394,7 +394,7 @@ class AgendaController extends Controller
 
         $teacherRoles = ['Administratie', 'Bestuur', 'Ouderraad', 'Praktijkbegeleider'];
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->user_id == $user->id) ||
             ($lesson && $lesson->users()->where('user_id', $user->id)->wherePivot('teacher', true)->exists());
 
         if ($lesson && !$isTeacher) {
@@ -534,7 +534,7 @@ class AgendaController extends Controller
             $order = ['present' => 1, 'absent' => 2, 'null' => 3];
             $ap = $order[$a->presence['status']] ?? 3;
             $bp = $order[$b->presence['status']] ?? 3;
-            return $ap === $bp
+            return $ap == $bp
                 ? strcmp($a->last_name, $b->last_name)
                 : $ap <=> $bp;
         })->values();
@@ -657,7 +657,7 @@ class AgendaController extends Controller
         }
 
         $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
-        if ($wantViewAll === false) {
+        if ($wantViewAll == false) {
             $canViewAll = false;
         }
 
@@ -666,7 +666,7 @@ class AgendaController extends Controller
 
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonthsNoOverflow($monthOffset);
+        $calculatedDate = $baseDate->copy()->addMonthsNoOverflow((int) $monthOffset);
         $calculatedDay = $calculatedDate->day;
         $calculatedMonth = $calculatedDate->month;
         $calculatedYear = $calculatedDate->year;
@@ -684,7 +684,7 @@ class AgendaController extends Controller
         $isTeacher = false;
         if (isset($lesson)) {
             $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-                $lesson->user_id === $user->id ||
+                $lesson->user_id == $user->id ||
                 $lesson->users()
                     ->where('user_id', $user->id)
                     ->wherePivot('teacher', true)
@@ -834,7 +834,7 @@ class AgendaController extends Controller
 
                 // Handle leap year birthdays
                 $day = $birthDate->day;
-                if ($birthDate->month === 2 && $day === 29 && !Carbon::create($calculatedYear)->isLeapYear()) {
+                if ($birthDate->month == 2 && $day == 29 && !Carbon::create($calculatedYear)->isLeapYear()) {
                     $day = 28;
                 }
 
@@ -942,7 +942,7 @@ class AgendaController extends Controller
         $monthOffset = $request->query('month', 0);
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonthsNoOverflow($monthOffset);
+        $calculatedDate = $baseDate->copy()->addMonthsNoOverflow((int) $monthOffset);
         $calculatedDay = $calculatedDate->day;
         $calculatedMonth = $calculatedDate->month;
         $calculatedYear = $calculatedDate->year;
@@ -1074,7 +1074,7 @@ class AgendaController extends Controller
         }
 
         $wantViewAll = filter_var($request->query('all', false), FILTER_VALIDATE_BOOLEAN);
-        if ($wantViewAll === false) {
+        if ($wantViewAll == false) {
             $canViewAll = false;
         }
 
@@ -1083,12 +1083,12 @@ class AgendaController extends Controller
 
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset)->addDays($dayOffset);
+        $calculatedDate = $baseDate->copy()->addMonths((int)$monthOffset)->addDays((int)$dayOffset);
         $monthName = $calculatedDate->translatedFormat('F');
         $calculatedYear = $calculatedDate->year;
 
         $rangeStart = $calculatedDate->copy()->startOfMonth()->startOfDay();
-        $rangeEnd = $calculatedDate->copy()->addMonths(5)->endOfMonth()->endOfDay();
+        $rangeEnd = $calculatedDate->copy()->addMonths((int)5)->endOfMonth()->endOfDay();
 
         $lessonId = $request->query('lessonId');
         $lesson = Lesson::find($lessonId);
@@ -1098,7 +1098,7 @@ class AgendaController extends Controller
         $isTeacher = false;
         if (isset($lesson)) {
             $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty()
-                || $lesson->user_id === $user->id
+                || $lesson->user_id == $user->id
                 || $lesson->users()
                     ->where('user_id', $user->id)
                     ->wherePivot('teacher', true)
@@ -1230,13 +1230,13 @@ class AgendaController extends Controller
 
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+        $calculatedDate = $baseDate->copy()->addMonths((int)$monthOffset);
         $monthName = $calculatedDate->translatedFormat('F');
         $calculatedYear = $calculatedDate->year;
 
         // Use a 3-month display period.
         $rangeStart = $calculatedDate->copy()->startOfMonth()->startOfDay();
-        $rangeEnd = $calculatedDate->copy()->addMonths(3)->endOfMonth()->endOfDay();
+        $rangeEnd = $calculatedDate->copy()->addMonths((int)3)->endOfMonth()->endOfDay();
 
         $query = Activity::where(function ($q) use ($rangeStart, $rangeEnd) {
             $q->whereBetween('date_start', [$rangeStart, $rangeEnd])
@@ -1292,7 +1292,7 @@ class AgendaController extends Controller
                     }
                 }
 
-                if ($activity->recurrence_rule === 'none' || $activity->recurrence_rule === 'never') {
+                if ($activity->recurrence_rule == 'none' || $activity->recurrence_rule == 'never') {
                     $requestedDate = $request->query('dateStart');
                     if ($requestedDate && $occDate !== Carbon::parse($requestedDate)->toDateString()) {
                         continue;
@@ -1359,7 +1359,7 @@ class AgendaController extends Controller
         }
 
         // Check if the user is either the authenticated user or a child of the authenticated user
-        if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
+        if ((int)$userId == Auth::id() || Auth::user()->children->contains('id', $userId)) {
             $presence = Presence::where('user_id', $userId)
                 ->where('activity_id', $activityId)
                 ->where('date_occurrence', $dateOccurrence)
@@ -1381,7 +1381,7 @@ class AgendaController extends Controller
             $queryParams = request()->query();
             $redirectUrl = route('agenda.activity', $activityId) . ($queryParams ? '?' . http_build_query($queryParams) : '');
 
-            if ($userId === Auth::id()) {
+            if ($userId == Auth::id()) {
                 return redirect($redirectUrl)->with('success', 'Je bent aanwezig gemeld!');
             } else {
                 return redirect($redirectUrl)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is aanwezig gemeld!');
@@ -1404,7 +1404,7 @@ class AgendaController extends Controller
         }
 
         // Check if the user is either the authenticated user or a child of the authenticated user
-        if ((int)$userId === Auth::id() || Auth::user()->children->contains('id', $userId)) {
+        if ((int)$userId == Auth::id() || Auth::user()->children->contains('id', $userId)) {
             $presence = Presence::where('user_id', $userId)
                 ->where('activity_id', $activityId)
                 ->where('date_occurrence', $dateOccurrence)
@@ -1426,7 +1426,7 @@ class AgendaController extends Controller
             $queryParams = request()->query();
             $redirectUrl = route('agenda.activity', $activityId) . ($queryParams ? '?' . http_build_query($queryParams) : '');
 
-            if ($userId === Auth::id()) {
+            if ($userId == Auth::id()) {
                 return redirect($redirectUrl)->with('success', 'Je bent afwezig gemeld, jammer dat je er niet bij bent!');
             } else {
                 return redirect($redirectUrl)->with('success', $user->name . ' ' . $user->infix . ' ' . $user->last_name . ' is afwezig gemeld!');
@@ -1456,10 +1456,10 @@ class AgendaController extends Controller
                 return true; // Already filtered earlier if before original
 
             case 'weekly':
-                return $startDate->diffInWeeks($targetDate, true) * 7 === $startDate->diffInDays($targetDate, true);
+                return $startDate->diffInWeeks($targetDate, true) * 7 == $startDate->diffInDays($targetDate, true);
 
             case 'monthly':
-                return $startDate->day === $targetDate->day &&
+                return $startDate->day == $targetDate->day &&
                     $startDate->lessThanOrEqualTo($targetDate);
 
             case null:
@@ -1562,7 +1562,7 @@ class AgendaController extends Controller
         $isTeacher = false;
         if (isset($lesson)) {
             $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-                $lesson->user_id === $user->id ||
+                $lesson->user_id == $user->id ||
                 $lesson->users()
                     ->where('user_id', $user->id)
                     ->wherePivot('teacher', true)
@@ -1609,7 +1609,7 @@ class AgendaController extends Controller
         }
 
         $canAlwaysView = $hasRoleAccess || $isUserListed || $isDirectUserAccess || $canViewAll;
-        if (!$canAlwaysView && count($allowedChildren) === 0) {
+        if (!$canAlwaysView && count($allowedChildren) == 0) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'View activity', 'agenda', 'Activity item id: ' . $id, 'Gebruiker had geen toegang tot Activiteit');
             return redirect()->route('agenda.month')->with('error', 'Je hebt geen toegang tot deze activiteit.');
@@ -1698,7 +1698,7 @@ class AgendaController extends Controller
 
                 $presence = $request->input('presence');
 
-                if ($presence === "1" && $request->filled('presence-date')) {
+                if ($presence == "1" && $request->filled('presence-date')) {
                     $presence = $request->input('presence-date');
                 }
 
@@ -1727,7 +1727,7 @@ class AgendaController extends Controller
                 $log->createLog(auth()->user()->id, 2, 'Create activity', 'agenda', 'Activity id: ' . $activity->id, '');
 
                 // Handle form elements (if provided)
-                if (isset($validatedData['form_labels']) && $request->input('reoccurrence') === "never") {
+                if (isset($validatedData['form_labels']) && $request->input('reoccurrence') == "never") {
                     foreach ($validatedData['form_labels'] as $index => $label) {
                         $type = $validatedData['form_types'][$index];
                         $isRequired = isset($validatedData['is_required'][$index]);
@@ -1796,7 +1796,7 @@ class AgendaController extends Controller
 
         // Check if the user is a teacher based on roles or lesson-specific permissions
         $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty() ||
-            ($lesson && $lesson->user_id === $user->id) ||
+            ($lesson && $lesson->user_id == $user->id) ||
             ($lesson && $lesson->users()
                     ->where('user_id', $user->id)
                     ->wherePivot('teacher', true)
@@ -1815,7 +1815,7 @@ class AgendaController extends Controller
             $log->createLog(auth()->user()->id, 1, 'Delete activity', 'activity', 'Actvity id: ' . $id, 'Activiteit bestaat niet');
             return redirect()->route('agenda.edit.activity', $id)->with('error', 'Deze activiteit bestaat niet.');
         }
-        if ($activity === null) {
+        if ($activity == null) {
             $log = new Log();
             $log->createLog(auth()->user()->id, 1, 'Delete activity', 'activity', 'Actvity id: ' . $id, 'Activiteit bestaat niet');
             return redirect()->route('agenda.edit.activity', $id)->with('error', 'Deze activiteit bestaat niet.');
@@ -1859,13 +1859,13 @@ class AgendaController extends Controller
         $view = $request->query('view', 'month');
 
         if (isset($lesson)) {
-            if ($view === 'month') {
+            if ($view == 'month') {
                 return redirect()->route('agenda.month', ['lessonId' => $lesson->id, 'month' => $month, 'all' => $wantViewAll])->with('success', 'Je agendapunt is verwijderd');
             } else {
                 return redirect()->route('agenda.schedule', ['lessonId' => $lesson->id, 'month' => $month, 'all' => $wantViewAll])->with('success', 'Je agendapunt is verwijderd');
             }
         } else {
-            if ($view === 'month') {
+            if ($view == 'month') {
                 return redirect()->route('agenda.month', ['month' => $month, 'all' => $wantViewAll])->with('success', 'Je activiteit is verwijderd');
             } else {
                 return redirect()->route('agenda.schedule', ['month' => $month, 'all' => $wantViewAll])->with('success', 'Je activiteit is verwijderd');
@@ -1900,10 +1900,10 @@ class AgendaController extends Controller
 
         Carbon::setLocale('nl');
         $baseDate = Carbon::now();
-        $calculatedDate = $baseDate->copy()->addMonths($monthOffset);
+        $calculatedDate = $baseDate->copy()->addMonths((int)$monthOffset);
 
-        $rangeStart = $calculatedDate->copy()->startOfMonth()->addMonths(-1)->startOfDay();
-        $rangeEnd = $calculatedDate->copy()->addMonths(5)->endOfMonth()->endOfDay();
+        $rangeStart = $calculatedDate->copy()->startOfMonth()->addMonths((int)-1)->startOfDay();
+        $rangeEnd = $calculatedDate->copy()->addMonths((int)5)->endOfMonth()->endOfDay();
 
         $lessonId = $request->query('lessonId');
         $lesson = Lesson::find($lessonId);
@@ -1913,7 +1913,7 @@ class AgendaController extends Controller
         $isTeacher = false;
         if (isset($lesson)) {
             $isTeacher = $roles->whereIn('role', $teacherRoles)->isNotEmpty()
-                || $lesson->user_id === $user->id
+                || $lesson->user_id == $user->id
                 || $lesson->users()
                     ->where('user_id', $user->id)
                     ->wherePivot('teacher', true)

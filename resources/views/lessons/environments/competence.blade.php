@@ -161,7 +161,7 @@
                                 @php
 
                                     $isUserTeacher =
-                                        $lesson->user_id === $user->id ||
+                                        $lesson->user_id == $user->id ||
                                         $lesson->users()
                                             ->where('user_id', $user->id)
                                             ->wherePivot('teacher', true)
@@ -171,7 +171,7 @@
                                 @if(!$isUserTeacher)
 
                                 <a href="{{ route('lessons.environment.lesson.competences', ['lessonId' => $lesson->id, 'user' => $user->id]) }}"
-                                   class="d-flex @if($selectedUser->id === $user->id) bg-primary text-white @else bg-light text-black @endif
+                                   class="d-flex @if($selectedUser->id == $user->id) bg-primary text-white @else bg-light text-black @endif
            text-decoration-none flex-column gap-1 justify-content-center align-items-center text-center m-2 p-2 rounded"
                                    style="min-width: 100px"
                                    id="user-{{ $user->id }}">

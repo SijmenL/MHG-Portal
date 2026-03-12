@@ -7,7 +7,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    @if($news !== null && $news->accepted === 1)
+    @if($news !== null && $news->accepted == 1)
 
         <title>{{ $news->title }}</title>
 
@@ -40,7 +40,7 @@
 <body class="bg-white">
 
 
-@if($news !== null && $news->accepted === 1)
+@if($news !== null && $news->accepted == 1)
     <script>
         function sendHeight() {
             const height = document.body.getBoundingClientRect().height + 100;
@@ -48,13 +48,13 @@
         }
 
         window.addEventListener('message', (event) => {
-            if (event.origin === 'https://waterscoutingmhg.nl' && event.data === 'getHeight') {
+            if (event.origin == 'https://waterscoutingmhg.nl' && event.data == 'getHeight') {
                 sendHeight();
             }
         });
 
 
-        if (window.top === window.self) {
+        if (window.top == window.self) {
             // Redirect to the parent page if the child page is accessed directly
             window.location.href = `https://waterscoutingmhg.nl/over-onze-club/nieuws-item/?news={{ $news->id }}`;
         } else {

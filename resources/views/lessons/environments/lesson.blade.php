@@ -136,7 +136,7 @@
                     @foreach($posts as $post)
                         <div id="{{$post->id}}" class="mt-5 rounded bg-white">
                             <div
-                                class="@if(isset($post->user) && $post->user->lessons()->where('lessons.id', $post->lesson_id)->wherePivot('teacher', true)->exists() && $post->user->id !== Auth::id())bg-danger-subtle @elseif($post->user->id === Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
+                                class="@if(isset($post->user) && $post->user->lessons()->where('lessons.id', $post->lesson_id)->wherePivot('teacher', true)->exists() && $post->user->id !== Auth::id())bg-danger-subtle @elseif($post->user->id == Auth::id()) bg-secondary-subtle @else bg-info @endif d-flex flex-row-responsive justify-content-center forum-post rounded">
                                 @if(isset($post->user))
                                     <div
                                         class="d-flex flex-column align-items-center justify-content-center forum-user-info h-100">
@@ -186,7 +186,7 @@
                                         </div>
 
                                         <div class="d-flex flex-row">
-                                            @if($post->user->id === Auth::id())
+                                            @if($post->user->id == Auth::id())
                                                 <a href="{{ route('lessons.environment.lesson.post.edit', [$lesson->id, $post->id]) }}"
                                                    class="btn d-flex align-items-center edit"><span
                                                         class="material-symbols-rounded">edit</span></a>
