@@ -56,13 +56,13 @@ class AgendaController extends Controller
 
         // Ownership or teacher check
         if ($activity->user_id !== Auth::id() && !$user->roles->contains('role', 'Administratie') &&
-        !$user->roles->contains('role', 'Dolfijnen Leiding') &&
-        !$user->roles->contains('role', 'Zeeverkenners Leiding') &&
-        !$user->roles->contains('role', 'Loodsen Stamoudste') &&
-        !$user->roles->contains('role', 'Afterloodsen Organisator') &&
-        !$user->roles->contains('role', 'Administratie') &&
-        !$user->roles->contains('role', 'Bestuur') &&
-        !$user->roles->contains('role', 'Praktijkbegeleider')) {
+            !$user->roles->contains('role', 'Dolfijnen Leiding') &&
+            !$user->roles->contains('role', 'Zeeverkenners Leiding') &&
+            !$user->roles->contains('role', 'Loodsen Stamoudste') &&
+            !$user->roles->contains('role', 'Afterloodsen Organisator') &&
+            !$user->roles->contains('role', 'Administratie') &&
+            !$user->roles->contains('role', 'Bestuur') &&
+            !$user->roles->contains('role', 'Praktijkbegeleider')) {
             if (!$lesson || !$isTeacher) {
                 return redirect()->route('agenda.month')->with('error', 'Activiteit niet gevonden.');
             }
@@ -72,7 +72,7 @@ class AgendaController extends Controller
         $wantViewAll = $request->query('all', '0');
         $view = $request->query('view', 'month');
 
-        if (isset($activity) && $activity->recurrence_rule !== null) {
+        if (isset($activity) && !empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
             $dateStart = $request->query('startDate');
 
             if (!$dateStart || !$activity->recurrence_rule) {
@@ -83,8 +83,6 @@ class AgendaController extends Controller
                 return redirect()->route('agenda.month')->with('error', 'Deze herhaling van de activiteit bestaat niet.');
             }
 
-
-// Update activity dates for the current occurrence
             // Update activity dates for the current occurrence
             $originalStart = \Carbon\Carbon::parse($activity->date_start);
             $originalEnd = \Carbon\Carbon::parse($activity->date_end);
@@ -211,7 +209,7 @@ class AgendaController extends Controller
 
             $log = new Log();
 
-// 3) Branch by editType
+            // 3) Branch by editType
             if ($editType === 'all' || !$activity->recurrence_rule) {
                 // Entire series
                 $activity->update($data);
@@ -232,7 +230,7 @@ class AgendaController extends Controller
 
                 $new->save();
 
-// Trim original up to the chosen date
+                // Trim original up to the chosen date
                 $activity->update([
                     'end_recurrence' => $occurrenceDate,
                 ]);
@@ -307,17 +305,24 @@ class AgendaController extends Controller
             );
 
             // 5) Redirect back
+            $redirectParams = [
+                'id' => $activity->id,
+                'month' => $month,
+                'all' => $wantViewAll,
+                'view' => $view,
+            ];
 
+            if ($occurrenceDate) {
+                $redirectParams['startDate'] = $occurrenceDate;
+            } elseif (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
+                $redirectParams['startDate'] = \Carbon\Carbon::parse($activity->date_start)->toDateString();
+            }
 
-            return redirect()
-                ->route(
-                    'agenda.activity',
-                    ['id' => $activity->id, 'startDate' => $occurrenceDate, 'month' => $month, 'all' => $wantViewAll, 'view' => $view, ''] +
-                    ($request->input('lesson_id')
-                        ? ['lessonId' => $request->input('lesson_id')]
-                        : []
-                    )
-                )
+            if ($request->input('lesson_id')) {
+                $redirectParams['lessonId'] = $request->input('lesson_id');
+            }
+
+            return redirect()->route('agenda.activity', $redirectParams)
                 ->with('success', 'Je agendapunt is bijgewerkt!');
 
         } catch (ValidationException $e) {
@@ -475,7 +480,7 @@ class AgendaController extends Controller
         $dateOccurrence = null;
 
         // Fetch users who set presence but are not part of the above sets
-        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+        if (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
             $dateOccurrence = $request->query('startDate');
         }
 
@@ -594,7 +599,7 @@ class AgendaController extends Controller
         $originalEnd = Carbon::parse($activity->date_end);
         $duration = $originalEnd->diffInSeconds($originalStart, true);
 
-        $lastOccurrence = $activity->end_recurrence ? Carbon::parse($activity->end_recurrence)->endOfDay() : Carbon::maxValue();
+        $lastOccurrence = $activity->end_recurrence ? Carbon::parse($activity->end_recurrence)->endOfDay() : Carbon::parse('9999-12-31 23:59:59');
 
         $currentOccurrenceStart = $originalStart->copy();
 
@@ -864,7 +869,7 @@ class AgendaController extends Controller
         }
 
         // Re-sort activities after adding birthdays
-            $activities = $activities->sortBy('date_start')->values();
+        $activities = $activities->sortBy('date_start')->values();
 
 
 
@@ -1287,7 +1292,7 @@ class AgendaController extends Controller
                     }
                 }
 
-                if ($activity->recurrence_rule === 'none') {
+                if ($activity->recurrence_rule === 'none' || $activity->recurrence_rule === 'never') {
                     $requestedDate = $request->query('dateStart');
                     if ($requestedDate && $occDate !== Carbon::parse($requestedDate)->toDateString()) {
                         continue;
@@ -1349,7 +1354,7 @@ class AgendaController extends Controller
         $activity = Activity::findOrFail($activityId);
 
         $dateOccurrence = null;
-        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+        if (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
             $dateOccurrence = $request->query('startDate');
         }
 
@@ -1394,7 +1399,7 @@ class AgendaController extends Controller
 
         $dateOccurrence = null;
 
-        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+        if (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
             $dateOccurrence = $request->query('startDate');
         }
 
@@ -1459,6 +1464,7 @@ class AgendaController extends Controller
 
             case null:
             case 'none':
+            case 'never':
             default:
                 return false;
         }
@@ -1492,7 +1498,7 @@ class AgendaController extends Controller
         // Fetch the activity using the provided id
         $activity = Activity::find($id);
 
-        if (isset($activity) && $activity->recurrence_rule !== null) {
+        if (isset($activity) && !empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
             $dateStart = $request->query('startDate');
 
             if (!$dateStart || !$activity->recurrence_rule) {
@@ -1532,7 +1538,7 @@ class AgendaController extends Controller
 
         $userPresence = null;
 
-        if ($activity->recurrence_rule !== null && $activity->recurrence_rule !== 'never') {
+        if (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
             $userPresence = Presence::where('user_id', $user->id)
                 ->where('activity_id', $activity->id)
                 ->where('date_occurrence', date("Y-m-d", strtotime($activity->date_start)))
@@ -1579,7 +1585,7 @@ class AgendaController extends Controller
             $childRoleIds = $child->roles->pluck('id')->toArray();
             if (!empty(array_intersect($childRoleIds, $activityRoleIds)) || in_array($child->id, $activityUserIds)) {
 
-                if ($activity->recurrence_rule !== null) {
+                if (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
                     $childPresence = Presence::where('user_id', $child->id)
                         ->where('activity_id', $activity->id)
                         ->where('date_occurrence', date("Y-m-d", strtotime($activity->date_start)))
@@ -1746,11 +1752,24 @@ class AgendaController extends Controller
                     $log->createLog(auth()->user()->id, 2, 'Create activity form', 'agenda', 'Activity id: ' . $activity->id, 'Er is een inschrijfformulier aangemaakt.');
                 }
 
-                if ($request->input('lesson_id') === null) {
-                    return redirect()->route('agenda.activity', ['id' => $activity->id, 'month' => $month, 'all' => $wantViewAll, 'view' => $view])->with('success', 'Je agendapunt is opgeslagen!');
-                } else {
-                    return redirect()->route('agenda.activity', ['id' => $activity->id, 'lessonId' => $request->input('lesson_id'), 'month' => $month, 'all' => $wantViewAll, 'view' => $view])->with('success', 'Je agendapunt is opgeslagen!');
+                $redirectParams = [
+                    'id' => $activity->id,
+                    'month' => $month,
+                    'all' => $wantViewAll,
+                    'view' => $view,
+                ];
+
+                if (!empty($activity->recurrence_rule) && !in_array($activity->recurrence_rule, ['never', 'none'])) {
+                    $redirectParams['startDate'] = \Carbon\Carbon::parse($activity->date_start)->toDateString();
                 }
+
+                if ($request->input('lesson_id') !== null) {
+                    $redirectParams['lessonId'] = $request->input('lesson_id');
+                }
+
+                return redirect()->route('agenda.activity', $redirectParams)
+                    ->with('success', 'Je agendapunt is opgeslagen!');
+
             } else {
                 throw ValidationException::withMessages(['content' => 'Je agendapunt kan niet opgeslagen worden.']);
             }

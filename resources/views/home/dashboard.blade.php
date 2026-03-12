@@ -398,6 +398,7 @@
                         $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                         $user->roles->contains('role', 'Loodsen Stamoudste') ||
                         $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                        $user->roles->contains('role', 'Technisch Team') ||
                         $user->roles->contains('role', 'Vrijwilliger') ||
                         $user->roles->contains('role', 'Administratie') ||
                         $user->roles->contains('role', 'Bestuur') ||
@@ -483,7 +484,7 @@
                         @endif
 
                         @if($user && $user->accepted === 1 &&
-                            ($user->roles->contains('role', 'Teachnisch Team') ||
+                            ($user->roles->contains('role', 'Technisch Team') ||
                             $user->roles->contains('role', 'Hoofd Technisch Team') ||
                             $user->roles->contains('role', 'Administratie') ||
                             $user->roles->contains('role', 'Bestuur'))
@@ -506,7 +507,7 @@
                         @endif
 
                         @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
-                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
+                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods', 'Technisch Team']);
                             })->where('accepted', true)->whereNull('member_date_end')->exists()))
 
                             <a class="btn btn-secondary quick-action" href="{{ route('news') }}">
@@ -516,7 +517,7 @@
                         @endif
 
                         @if($user && $user->accepted === 1 && ($user->roles()->exists() || $user->children()->whereHas('roles', function ($query) {
-                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods']);
+                               $query->whereIn('role', ['Afterloods', 'Dolfijn', 'Zeeverkenner', 'Loods'. 'Technisch Team']);
                             })->where('accepted', true)->whereNull('member_date_end')->exists()))
 
                             <a class="btn btn-secondary quick-action" href="{{ route('agenda.month') }}">

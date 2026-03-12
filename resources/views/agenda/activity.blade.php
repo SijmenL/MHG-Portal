@@ -18,7 +18,7 @@
                                return in_array($role->role, [
                                    'Dolfijnen Leiding', 'Zeeverkenners Leiding', 'Loodsen Stamoudste',
                                    'Loods', 'Afterloodsen Organisator', 'Administratie', 'Bestuur',
-                                   'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad'
+                                   'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad', 'Technisch Team'
                                ]);
                            }) || $isTeacher)
         <div id="popUpPresence" class="popup" style="display: none; position: fixed; top: 0">
@@ -75,6 +75,7 @@
                      $user->roles->contains('role', 'Afterloodsen Organisator') ||
                      $user->roles->contains('role', 'Administratie') ||
                      $user->roles->contains('role', 'Bestuur') ||
+                     $user->roles->contains('role', 'Technisch Team') ||
                      $user->roles->contains('role', 'Praktijkbegeleider'))
                     <a href="@if(!isset($lesson)){{ route('agenda.edit.activity', ['id' => $activity->id, 'startDate' => $activity->date_start->format('Y-m-d'), 'month' => $month, 'all' => $wantViewAll, 'view' => $view]) }}"
                 @else
@@ -300,7 +301,7 @@
                                         return in_array($role->role, [
                                             'Dolfijnen Leiding', 'Zeeverkenners Leiding', 'Loodsen Stamoudste',
                                             'Loods', 'Afterloodsen Organisator', 'Administratie', 'Bestuur',
-                                            'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad'
+                                            'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad', 'Technisch Team'
                                         ]);
                                     }) || $isTeacher)
                                         <div id="presence-button"
@@ -460,7 +461,7 @@
                             return in_array($role->role, [
                                 'Dolfijnen Leiding', 'Zeeverkenners Leiding', 'Loodsen Stamoudste',
                                 'Loods', 'Afterloodsen Organisator', 'Administratie', 'Bestuur',
-                                'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad'
+                                'Praktijkbegeleider', 'Loodsen Mentor', 'Ouderraad', 'Technisch Team'
                             ]);
                         }) || $isTeacher)
                             <div id="submission-button"

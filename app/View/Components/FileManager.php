@@ -19,9 +19,9 @@ class FileManager extends Component
     public $nonAdminName;
     public $location;
     public $locationId;
-
-    // New property for the sidebar and move/copy modals
     public $flatFolders;
+    public $isPublic;
+    public $shareHash;
 
     public function __construct(
         $files,
@@ -33,25 +33,43 @@ class FileManager extends Component
         $isAdmin = false,
         $adminName = "Administratie",
         $nonAdminName = "Administratie",
-        $locationId = null
+        $locationId = null,
+        $isPublic = false,
+        $shareHash = null
     ) {
         $this->files = $files;
         $this->breadcrumbs = $breadcrumbs;
         $this->folderId = $folderId;
-        $this->hasAdminViewers = $hasAdminViewers;
-        $this->isAdmin = $isAdmin;
-        $this->adminName = $adminName;
-        $this->nonAdminName = $nonAdminName;
         $this->storageUrl = $storageUrl;
         $this->location = $location;
         $this->locationId = $locationId;
+        $this->shareHash = $shareHash;
+        $this->adminName = $adminName;
+        $this->nonAdminName = $nonAdminName;
 
-        // Fetch all folders for this location to build the hierarchical tree
-        $allFolders = File::where('location', $location)
-            ->where('location_id', $locationId)
-            ->where('type', 2)
-            ->orderBy('file_name')
-            ->get();
+        // Zorg dat booleans goed worden uitgelezen, zelfs als ze als string/getal doorgegeven worden
+        $this->hasAdminViewers = filter_var($hasAdminViewers, FILTER_VALIDATE_BOOLEAN);
+        $this->isPublic = filter_var($isPublic, FILTER_VALIDATE_BOOLEAN);
+        $this->isAdmin = filter_var($isAdmin, FILTER_VALIDATE_BOOLEAN);
+
+        // De Kern-logica:
+        // Als dit een interne pagina is (niet publiek) EN er is geen specifiek 'Toegang' onderscheid ingesteld
+        // Dan krijgt elke bezoeker van deze pagina automatisch volledige bewerk-rechten (isAdmin = true)
+        if (!$this->isPublic && !$this->hasAdminViewers) {
+            $this->isAdmin = true;
+        }
+
+        // Haal alle mappen op voor deze locatie om de boomstructuur op te bouwen
+        if ($this->isPublic) {
+            // Beperk boomweergave tot alleen de specifieke publiek gedeelde structuur
+            $allFoldersQuery = File::where('share_hash', $this->shareHash)->where('type', 2);
+        } else {
+            $allFoldersQuery = File::where('location', $this->location)
+                ->where('location_id', $this->locationId)
+                ->where('type', 2);
+        }
+
+        $allFolders = $allFoldersQuery->orderBy('file_name')->get();
 
         $this->flatFolders = $this->buildFlatTree($allFolders);
     }
@@ -74,6 +92,12 @@ class FileManager extends Component
 
     public function render(): View|Closure|string
     {
-        return view('components.file_manager');
+        // Forceer de overschreven component-variabelen in de view
+        // Dit bypast het probleem waarbij het @props block in Blade onze logic negeert
+        return view('components.file_manager', [
+            'isAdmin' => $this->isAdmin,
+            'hasAdminViewers' => $this->hasAdminViewers,
+            'isPublic' => $this->isPublic,
+        ]);
     }
 }

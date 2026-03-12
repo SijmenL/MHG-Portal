@@ -16,6 +16,19 @@
             zelf ook nieuwe bugs aan toe!
         </div>
 
+        <h2>Update 5.0</h2>
+        <p class="fst-italic">12/03/2026</p>
+        <ul>
+            <li class="added">Laravel versie geupdate van 10.0 naar 12.52.</li>
+            <li class="added">Technisch Team toegevoegd aan Portal.</li>
+            <li class="added">Betere bestand verkenners.</li>
+            <ul>
+                <li class="added">Bestanden kunnen makkelijker bewerkt, bekijken, hernoemd en zelfs publiek gedeeld worden.</li>
+            </ul>
+            <li class="added">Het WYSIWYG veld is verbeterd met een nieuw design en backend verbeteringen.</li>
+
+        </ul>
+
         <h2>Update 4.1</h2>
         <p class="fst-italic">01/10/2025</p>
         <ul>

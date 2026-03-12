@@ -53,6 +53,7 @@
                     $user->roles->contains('role', 'Loodsen Stamoudste') ||
                     $user->roles->contains('role', 'Afterloodsen Organisator') ||
                     $user->roles->contains('role', 'Administratie') ||
+                    $user->roles->contains('role', 'Technisch Team') ||
                     $user->roles->contains('role', 'Bestuur')))
 
                             <a href="{{ route('agenda.new', ['month' => $monthOffset, 'all' => $wantViewAll, 'view' => 'schedule']) }}"
@@ -74,6 +75,7 @@
                     $user->roles->contains('role', 'Loodsen Mentor') ||
                     $user->roles->contains('role', 'Ouderraad')) ||
                     $user->roles->contains('role', 'Loods') ||
+                    $user->roles->contains('role', 'Technisch Team') ||
                     $user->roles->contains('role', 'Afterloods'))
 
                         <div class="form-check form-switch">

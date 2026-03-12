@@ -16,6 +16,9 @@ class File extends Model
         'folder_id',
         'location',
         'location_id',
+        'share_permission',
+        'share_hash',
+        'location_id',
         'user_id'
     ];
 

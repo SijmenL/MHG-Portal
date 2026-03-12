@@ -321,7 +321,7 @@ class TechnischTeamController extends Controller
 
         // Retrieve search and selected role from the GET request
         $search = request('search');
-        $selected_role = request('role', 'Zeeverkenner'); // Default to 'Zeeverkenner'
+        $selected_role = request('role', 'Technisch Team'); // Default to 'Zeeverkenner'
 
         // Query for users based on selected role dynamically
         $usersQuery = User::with('roles')
@@ -331,11 +331,11 @@ class TechnischTeamController extends Controller
         if ($selected_role === 'Ouders') {
             $usersQuery->whereHas('children', function ($query) {
                 $query->whereHas('roles', function ($roleQuery) {
-                    $roleQuery->where('role', 'Zeeverkenner');
+                    $roleQuery->where('role', 'Technisch Team');
                 });
             });
         } else {
-            $selected_role = 'Zeeverkenner';
+            $selected_role = 'Technisch Team';
             // Otherwise, find users based on their selected role
             $usersQuery->whereHas('roles', function ($query) use ($selected_role) {
                 $query->where('role', $selected_role); // Flexible match for roles
@@ -454,9 +454,9 @@ class TechnischTeamController extends Controller
         }
 
         // Check if the user or their parents/children have the role 'Zeeverkenner'
-        $hasZeeverkennerRole = $account->roles->contains('role', 'Zeeverkenner') ||
-            $account->children->pluck('roles')->flatten()->contains('role', 'Zeeverkenner') ||
-            $account->parents->pluck('roles')->flatten()->contains('role', 'Zeeverkenner');
+        $hasZeeverkennerRole = $account->roles->contains('role', 'Technisch Team') ||
+            $account->children->pluck('roles')->flatten()->contains('role', 'Technisch Team') ||
+            $account->parents->pluck('roles')->flatten()->contains('role', 'Technisch Team');
 
         // Log if no 'Zeeverkenner' role is found
         if (!$hasZeeverkennerRole) {

@@ -421,10 +421,14 @@ class LeidingController extends Controller
             $query->where('role', 'Administratie');
         })->get();
 
+        $technisch_team = User::whereHas('roles', function ($query) {
+            $query->where('role', 'Technisch Team');
+        })->get();
+
         $vrijwilliger = User::whereHas('roles', function ($query) {
             $query->where('role', 'Vrijwilliger');
         })->get();
 
-        return view('leiding.leiding', ['roles' => $roles, 'user' => $user, 'praktijkbgeleiding' => $praktijkbgeleiding, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'vrijwilliger' => $vrijwilliger]);
+        return view('leiding.leiding', ['roles' => $roles, 'user' => $user, 'praktijkbgeleiding' => $praktijkbgeleiding, 'bestuur' => $bestuur, 'dolfijnen' => $dolfijnen, 'zeeverkenners' => $zeeverkenners, 'loodsen' => $loodsen, 'afterloodsen' => $afterloodsen, 'ouderraad' => $ouderraad, 'admin' => $admin, 'technisch_team' => $technisch_team, 'vrijwilliger' => $vrijwilliger]);
     }
 }

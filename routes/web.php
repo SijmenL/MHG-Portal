@@ -50,6 +50,12 @@ Route::post('/agenda/public/activiteit/{id}', [NonLoggedInController::class, 'ha
 
 Route::get('/agenda/feed/{token}.ics', [AgendaController::class, 'exportFeed'])->name('agenda.feed');
 
+// Publicly shared files (not logged in users)
+Route::get('/bestanden/gedeeld/{hash}/{folder_id?}', [FileController::class, 'publicShared'])->name('files.shared_public');
+Route::post('/bestanden/gedeeld/{hash}/{folder_id?}/upload', [FileController::class, 'publicUpload'])->name('files.shared_public_upload');
+Route::post('/bestanden/gedeeld/{hash}/batch', [FileController::class, 'publicBatch'])->name('files.shared_public_batch');
+Route::get('/bestanden/gedeeld/{hash}/download/{file}', [FileController::class, 'publicDownloadFile'])->name('files.shared_public_download');
+Route::get('/bestanden/gedeeld/{hash}/zip/{folder}', [FileController::class, 'publicDownloadFolder'])->name('files.shared_public_zip');
 
 Auth::routes(['register' => false, 'password.request' => false,]);
 
@@ -151,7 +157,7 @@ Route::middleware(['checkAccepted', 'auth'])->group(function () {
 
 });
 
-Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
+Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Loods,Afterloodsen Organisator,Technisch Team,Administratie,Bestuur,Praktijkbegeleider,Loodsen Mentor,Ouderraad'])->group(function () {
     Route::get('/agenda/nieuw', [AgendaController::class, 'createAgenda'])->name('agenda.new');
     Route::post('/agenda/nieuw', [AgendaController::class, 'createAgendaSave'])->name('agenda.new.create');
 
@@ -228,7 +234,7 @@ Route::middleware(['checkAccepted', 'checkLesson'])->group(function () {
 });
 
 //Maintenance
-Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor,Loods,Zeeverkenner,Afterloods'])->group(function () {
+Route::middleware(['checkAccepted', 'checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Technisch Team,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor,Loods,Zeeverkenner,Afterloods'])->group(function () {
     Route::get('/onderhoud', [MaintenanceController::class, 'view'])->name('maintenance');
 });
 
@@ -238,7 +244,7 @@ Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevens
     Route::get('/administratie/account-beheer/details/{id}', [AdminController::class, 'accountDetails'])->name('admin.account-management.details');
 });
 
-Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevensadministratie,Hoofdleiding Dolfijnen,Hoofdleiding Zeeverkenners,Loodsen Stamhoofd,Afterloodsen Organisator'])->group(function () {
+Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris,Gegevensadministratie,Hoofdleiding Dolfijnen,Hoofdleiding Zeeverkenners,Loodsen Stamhoofd,Afterloodsen Organisator,Hoofd Technisch Team'])->group(function () {
     Route::post('/administratie/account-beheer/export', [AdminController::class, 'exportData'])->name('admin.account-management.export');
 });
 
@@ -328,7 +334,7 @@ Route::middleware(['checkAccepted', 'checkRole:Administratie,Secretaris'])->grou
 });
 
 // Leiding
-Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor'])->group(function () {
+Route::middleware(['checkRole:Dolfijnen Leiding,Zeeverkenners Leiding,Loodsen Stamoudste,Afterloodsen Organisator,Technisch Team,Vrijwilliger,Administratie,Bestuur,Ouderraad,Praktijkbegeleider,Loodsen Mentor'])->group(function () {
     Route::get('/leiding', [LeidingController::class, 'view'])->name('leiding');
 
     Route::get('/leiding/bestanden', [LeidingController::class, 'files'])->name('leiding.files');
@@ -569,7 +575,7 @@ Route::middleware(['checkRole:Administratie,Hoofd Technisch Team,Bestuur,Ouderra
     Route::post('/technisch-team/groep/export', [TechnischTeamController::class, 'exportData'])->name('technisch_team.groep.export');
 });
 
-Route::middleware(['checkRole:Administratie,Zeeverkenners Leiding,Bestuur'])->group(function () {
+Route::middleware(['checkRole:Administratie,Hoofd Technisch Team,Bestuur'])->group(function () {
     Route::get('/technisch-team/groep/details/{id}', [TechnischTeamController::class, 'groupDetails'])->name('technisch_team.groep.details');
 });
 

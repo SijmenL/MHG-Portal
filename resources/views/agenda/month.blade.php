@@ -56,6 +56,7 @@
                              $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                              $user->roles->contains('role', 'Loodsen Stamoudste') ||
                              $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                             $user->roles->contains('role', 'Technisch Team') ||
                              $user->roles->contains('role', 'Administratie') ||
                              $user->roles->contains('role', 'Bestuur'))
                         )
@@ -72,6 +73,7 @@
                          $user->roles->contains('role', 'Zeeverkenners Leiding') ||
                          $user->roles->contains('role', 'Loodsen Stamoudste') ||
                          $user->roles->contains('role', 'Afterloodsen Organisator') ||
+                         $user->roles->contains('role', 'Technisch Team') ||
                          $user->roles->contains('role', 'Administratie') ||
                          $user->roles->contains('role', 'Bestuur') ||
                          $user->roles->contains('role', 'Praktijkbegeleider') ||

@@ -166,6 +166,7 @@
                                                         $user->roles->contains('role', 'Administratie') ||
                                                         $user->roles->contains('role', 'Bestuur') ||
                                                         $user->roles->contains('role', 'Praktijkbegeleider') ||
+                                                        $user->roles->contains('role', 'Technisch Team') ||
                                                         $user->roles->contains('role', 'Loodsen Mentor') ||
                                                         $user->roles->contains('role', 'Ouderraad')
                                                         ))
@@ -211,6 +212,7 @@
                                      $user->roles->contains('role', 'Bestuur') ||
                                      $user->roles->contains('role', 'Praktijkbegeleider') ||
                                      $user->roles->contains('role', 'Loodsen Mentor') ||
+                                     $user->roles->contains('role', 'Technisch Team') ||
                                      $user->roles->contains('role', 'Ouderraad')
                                      ))
                                         <th>

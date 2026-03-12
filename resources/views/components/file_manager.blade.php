@@ -1,6 +1,6 @@
 @props([
     'files',
-    'breadcrumbs', // We no longer strictly rely on this, but keep it for prop compatibility
+    'breadcrumbs',
     'folderId',
     'isAdmin',
     'adminName',
@@ -8,19 +8,41 @@
     'storageUrl',
     'hasAdminViewers',
     'location',
-    'locationId'
+    'locationId',
+    'isPublic' => false,
+    'shareHash' => null
 ])
 
 @php
-    // Dynamically fetch and build the entire folder tree directly in the view
-    $allFoldersQuery = \App\Models\File::where('location', $location)
-        ->where('location_id', $locationId)
-        ->where('type', 2)
-        ->orderBy('file_name')
-        ->get();
+    // DYNAMISCHE URL LOGICA VOOR INTERN VS PUBLIEK
+    $rawUploadUrl = $isPublic
+        ? route('files.shared_public_upload', ['hash' => $shareHash, 'folder_id' => $folderId])
+        : route('files.store', [$location, $locationId]);
 
-    // Filter out restricted folders for non-admins so they don't show up in the tree
-    if (!$isAdmin) {
+    // Fix voor de Laravel router: haalt dubbele slashes weg als de optionele map-id ontbreekt in de URL
+    $uploadUrl = str_replace('//upload', '/upload', $rawUploadUrl);
+
+    $batchUrl = $isPublic
+        ? route('files.shared_public_batch', ['hash' => $shareHash])
+        : route('files.batch', [$location, $locationId]);
+
+    $baseFolderUrl = $isPublic
+        ? route('files.shared_public', ['hash' => $shareHash])
+        : '?folder=';
+
+    // Dynamically fetch and build the entire folder tree directly in the view
+    if ($isPublic) {
+        $allFoldersQuery = \App\Models\File::where('share_hash', $shareHash)->where('type', 2)->orderBy('file_name')->get();
+    } else {
+        $allFoldersQuery = \App\Models\File::where('location', $location)
+            ->where('location_id', $locationId)
+            ->where('type', 2)
+            ->orderBy('file_name')
+            ->get();
+    }
+
+    // Filter out restricted folders for non-admins
+    if (!$isAdmin && !$isPublic) {
         $allFolders = $allFoldersQuery->reject(function($folder) {
             return $folder->access === 'teachers';
         });
@@ -28,19 +50,20 @@
         $allFolders = $allFoldersQuery;
     }
 
-    // NATIVE DYNAMIC BREADCRUMBS: Build the trail automatically without relying on hardcoded Controller routes
     $dynamicBreadcrumbs = [];
+    $activePathIds = [];
+
     if (!empty($folderId)) {
-        // Use the unfiltered query so admins can still see breadcrumbs for protected folders
         $curr = $allFoldersQuery->firstWhere('id', $folderId);
         while ($curr) {
             array_unshift($dynamicBreadcrumbs, $curr);
+            $activePathIds[] = $curr->id;
             $curr = $allFoldersQuery->firstWhere('id', $curr->folder_id);
         }
     }
 
     // Recursive function for the visual sidebar tree
-    $buildTree = function($parentId, $depth) use (&$buildTree, $allFolders, $folderId) {
+    $buildTree = function($parentId, $depth) use (&$buildTree, $allFolders, $folderId, $isPublic, $shareHash) {
         $children = $allFolders->filter(function($folder) use ($parentId) {
             return $folder->folder_id == $parentId;
         });
@@ -52,12 +75,27 @@
             $icon = $isActive ? 'folder_open' : 'folder';
             $iconColor = $isActive ? 'text-primary' : 'text-secondary';
 
+            $hasChildren = $allFolders->where('folder_id', $folder->id)->count() > 0;
+
+            $toggleIcon = $hasChildren
+                ? '<span class="material-symbols-rounded cursor-pointer toggle-children text-secondary fs-5 me-1" data-target="'.$folder->id.'">chevron_right</span>'
+                : '<span style="width:24px; display:inline-block; flex-shrink:0;"></span>';
+
+            $folderLink = $isPublic ? route('files.shared_public', ['hash' => $shareHash, 'folder_id' => $folder->id]) : '?folder=' . $folder->id;
+
             $html .= '<li class="mb-1">';
-            $html .= '<a href="?folder=' . $folder->id . '" class="d-flex align-items-center py-2 px-3 ' . $activeClass . '" style="margin-left: ' . ($depth * 15) . 'px !important; text-decoration: none;">';
+            $html .= '<div class="d-flex align-items-center" style="padding-left: ' . (($depth - 1) * 15) . 'px;">';
+            $html .= $toggleIcon;
+            $html .= '<a href="' . $folderLink . '" class="flex-grow-1 d-flex align-items-center py-2 px-2 ' . $activeClass . '" style="text-decoration: none;">';
             $html .= '<span class="material-symbols-rounded me-2 ' . $iconColor . '">' . $icon . '</span>';
             $html .= '<span class="text-truncate">' . htmlspecialchars($folder->file_name) . '</span>';
             $html .= '</a>';
-            $html .= '<ul class="list-unstyled m-0">' . $buildTree($folder->id, $depth + 1) . '</ul>';
+            $html .= '</div>';
+
+            if ($hasChildren) {
+                $html .= '<ul class="list-unstyled m-0 folder-children-list" id="folder-children-' . $folder->id . '" style="display: none;">' . $buildTree($folder->id, $depth + 1) . '</ul>';
+            }
+
             $html .= '</li>';
         }
         return $html;
@@ -79,200 +117,55 @@
 @endphp
 
 <style>
-    /* Updated file-sidebar to stretch to full screen height */
-    .file-sidebar {
-        width: 100%;
-        max-width: 280px;
-        flex-shrink: 0;
-        min-height: calc(100vh - 120px);
-        overflow-y: auto;
-        overflow-x: hidden;
-        border-right: 1px solid #dee2e6;
-    }
+    .file-sidebar { width: 100%; max-width: 280px; flex-shrink: 0; min-height: calc(100vh - 120px); overflow-y: auto; overflow-x: hidden; border-right: 1px solid #dee2e6; }
     .hover-bg-light:hover { background-color: #f8f9fa; }
-
     .table-hover tbody tr.file:hover { background-color: #f8f9fa; }
     .table-primary, .table-hover tbody tr.file.table-primary:hover { background-color: #eef5ff !important; }
-
-    /* Drag and Drop Visuals */
     tr.file.drag-over { background-color: #e9ecef !important; border: 2px dashed #adb5bd !important; }
     tr.file[draggable="true"] { cursor: grab; }
     tr.file[draggable="true"]:active { cursor: grabbing; }
 
-    /* Context Menu */
-    #context-menu {
-        position: absolute; z-index: 1050; width: 220px; background: #fff;
-        border: 1px solid #dee2e6;
-        border-radius: .5rem; padding: .5rem 0; display: none;
-        box-shadow: 0 .25rem .75rem rgba(0,0,0,.05);
-    }
-    .context-item {
-        padding: .5rem 1.25rem; cursor: pointer; display: flex; align-items: center; gap: .75rem; color: #495057; font-weight: 500; font-size: 0.9rem;
-    }
+    #context-menu { position: absolute; z-index: 1050; width: 220px; background: #fff; border: 1px solid #dee2e6; border-radius: .5rem; padding: .5rem 0; display: none; box-shadow: 0 .25rem .75rem rgba(0,0,0,.05); }
+    .context-item { padding: .5rem 1.25rem; cursor: pointer; display: flex; align-items: center; gap: .75rem; color: #495057; font-weight: 500; font-size: 0.9rem; }
     .context-item:hover { background: #f8f9fa; color: var(--bs-primary); }
     .context-item.text-danger:hover { background: #fff5f5; color: #dc3545; }
-
     .cursor-pointer { cursor: pointer; }
+    .toggle-children:hover { color: var(--bs-primary) !important; background: #e9ecef; border-radius: 4px; }
 
-    /* Clearer Disabled Buttons */
-    .btn:disabled, .btn.disabled {
-        opacity: 0.4 !important;
-        cursor: not-allowed !important;
-        pointer-events: all !important;
-        background-color: #f8f9fa !important;
-        border-color: #e9ecef !important;
-        color: #adb5bd !important;
-        filter: grayscale(100%);
-    }
-    .btn:disabled .material-symbols-rounded, .btn.disabled .material-symbols-rounded {
-        color: #adb5bd !important;
-    }
-
-    /* Unified Modal Backdrop Blur (Darker - 50% Opacity) */
-    .modal {
-        background-color: rgba(0, 0, 0, 0.75) !important;
-        backdrop-filter: blur(5px);
-    }
-
-    /* Hide default bootstrap backdrop to prevent double-darkening */
-    .modal-backdrop {
-        display: none !important;
-    }
-
-    /* Immersive Preview Modal Override */
-    #previewModal .modal-content {
-        background-color: transparent !important;
-        border: none !important;
-    }
-
-    /* Preview Gallery Arrows Hover */
+    .btn:disabled, .btn.disabled { opacity: 0.4 !important; cursor: not-allowed !important; pointer-events: all !important; background-color: #f8f9fa !important; border-color: #e9ecef !important; color: #adb5bd !important; filter: grayscale(100%); }
+    .btn:disabled .material-symbols-rounded, .btn.disabled .material-symbols-rounded { color: #adb5bd !important; }
+    .modal { background-color: rgba(0, 0, 0, 0.75) !important; backdrop-filter: blur(5px); }
+    .modal-backdrop { display: none !important; }
+    #previewModal .modal-content { background-color: transparent !important; border: none !important; }
     .preview-arrow { opacity: 0.6; }
     .preview-arrow:hover { opacity: 1; background-color: rgba(0,0,0,0.8) !important; }
-
-    /* Custom Scrollbar */
     .file-sidebar::-webkit-scrollbar { width: 6px; }
     .file-sidebar::-webkit-scrollbar-track { background: transparent; }
     .file-sidebar::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 4px; }
     .file-sidebar::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
-
-    /* Lock body scroll completely when our preview is open */
     body.preview-open { overflow: hidden !important; }
 
-    /* VIEW TOGGLE BUTTONS */
     .view-toggle-btn { background: transparent; padding: 6px 10px; }
     .view-toggle-btn.active { background-color: var(--bs-primary) !important; border-radius: 6px; }
     .view-toggle-btn.active span { color: white !important; }
 
-    /* GRID VIEW STYLES */
     #file-browser-container.view-mode-grid .table-responsive { border: none !important; background: transparent; }
-    #file-browser-container.view-mode-grid table,
-    #file-browser-container.view-mode-grid thead,
-    #file-browser-container.view-mode-grid tbody,
-    #file-browser-container.view-mode-grid tr { display: block; width: 100%; }
+    #file-browser-container.view-mode-grid table, #file-browser-container.view-mode-grid thead, #file-browser-container.view-mode-grid tbody, #file-browser-container.view-mode-grid tr { display: block; width: 100%; }
     #file-browser-container.view-mode-grid thead { display: none; }
-
-    #file-browser-container.view-mode-grid tbody {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.25rem;
-    }
-
-    #file-browser-container.view-mode-grid tr.file {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #dee2e6;
-        border-radius: 0.75rem;
-        padding: 1rem;
-        position: relative;
-        background: #fff;
-        box-shadow: 0 .125rem .25rem rgba(0,0,0,.05);
-        height: 100%;
-    }
-    #file-browser-container.view-mode-grid tr.file:hover {
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
-        border-color: #b6d4fe;
-    }
-    #file-browser-container.view-mode-grid tr.file.table-primary {
-        border-color: var(--bs-primary);
-        box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.25);
-    }
-
-    #file-browser-container.view-mode-grid td {
-        display: block;
-        padding: 0.25rem 0 !important;
-        border: none !important;
-    }
-
-    /* Hidden fields in grid view */
-    #file-browser-container.view-mode-grid td.size-cell,
-    #file-browser-container.view-mode-grid td.date-cell {
-        display: none !important;
-    }
-
-    /* Icon / Image container */
-    #file-browser-container.view-mode-grid td.icon-cell {
-        display: flex;
-        justify-content: center;
-        height: 130px;
-        align-items: center;
-        margin-bottom: 0.75rem;
-        border-radius: 0.5rem;
-        background: #f8f9fa;
-        overflow: hidden;
-    }
-
-    /* Image Thumbnail Styling */
-    #file-browser-container.view-mode-grid td.icon-cell img.file-thumbnail {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-    }
-    #file-browser-container.view-mode-grid td.icon-cell img.file-icon-only {
-        width: 56px !important;
-        height: 56px !important;
-        object-fit: contain !important;
-    }
-
-    /* Title */
-    #file-browser-container.view-mode-grid td.name-cell {
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        width: 100%;
-        margin-top: auto;
-    }
-
-    /* Access Badge */
-    #file-browser-container.view-mode-grid td.access-cell {
-        text-align: center;
-        margin-top: 0.5rem;
-    }
-
-    /* Checkbox overlay */
-    #file-browser-container.view-mode-grid td.checkbox-cell {
-        position: absolute;
-        top: 0.75rem;
-        left: 0.75rem;
-        z-index: 2;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    #file-browser-container.view-mode-grid td.checkbox-cell input {
-        transform: scale(1.3);
-        box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
-        cursor: pointer;
-    }
-
-    /* Base styles for List view */
-    #file-browser-container:not(.view-mode-grid) img.file-thumbnail,
-    #file-browser-container:not(.view-mode-grid) img.file-icon-only {
-        width: 32px !important;
-        height: 32px !important;
-        object-fit: contain !important;
-        border-radius: 4px;
-    }
+    #file-browser-container.view-mode-grid tbody { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem; }
+    #file-browser-container.view-mode-grid tr.file { display: flex; flex-direction: column; border: 1px solid #dee2e6; border-radius: 0.75rem; padding: 1rem; position: relative; background: #fff; box-shadow: 0 .125rem .25rem rgba(0,0,0,.05); height: 100%; }
+    #file-browser-container.view-mode-grid tr.file:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); border-color: #b6d4fe; }
+    #file-browser-container.view-mode-grid tr.file.table-primary { border-color: var(--bs-primary); box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.25); }
+    #file-browser-container.view-mode-grid td { display: block; padding: 0.25rem 0 !important; border: none !important; }
+    #file-browser-container.view-mode-grid td.size-cell, #file-browser-container.view-mode-grid td.date-cell { display: none !important; }
+    #file-browser-container.view-mode-grid td.icon-cell { display: flex; justify-content: center; height: 130px; align-items: center; margin-bottom: 0.75rem; border-radius: 0.5rem; background: #f8f9fa; overflow: hidden; }
+    #file-browser-container.view-mode-grid td.icon-cell img.file-thumbnail { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+    #file-browser-container.view-mode-grid td.icon-cell img.file-icon-only { width: 56px !important; height: 56px !important; object-fit: contain !important; }
+    #file-browser-container.view-mode-grid td.name-cell { font-weight: 600; text-align: center; white-space: normal; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-top: auto; }
+    #file-browser-container.view-mode-grid td.access-cell { text-align: center; margin-top: 0.5rem; }
+    #file-browser-container.view-mode-grid td.checkbox-cell { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 2; padding: 0 !important; margin: 0 !important; }
+    #file-browser-container.view-mode-grid td.checkbox-cell input { transform: scale(1.3); box-shadow: 0 0 0 2px rgba(255,255,255,0.9); cursor: pointer; }
+    #file-browser-container:not(.view-mode-grid) img.file-thumbnail, #file-browser-container:not(.view-mode-grid) img.file-icon-only { width: 32px !important; height: 32px !important; object-fit: contain !important; border-radius: 4px; }
 </style>
 
 <!-- UPLOAD MODAL -->
@@ -284,20 +177,19 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
-                <!-- Nav Tabs -->
+                @if($isPublic)
+                    <div class="alert alert-warning m-4 mb-0 border-0 rounded-3 d-flex align-items-center shadow-sm">
+                        <span class="material-symbols-rounded me-2 fs-4">public</span>
+                        <small><strong>Publiek Gedeeld:</strong> Je uploadt direct in een publiek gedeelde map.</small>
+                    </div>
+                @endif
+
                 <ul class="nav nav-tabs px-3 pt-3 bg-light border-bottom-0" id="uploadTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-medium px-4" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">Bestanden</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-medium px-4" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">Hyperlink</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-medium px-4" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab">Map</button>
-                    </li>
+                    <li class="nav-item" role="presentation"><button class="nav-link active fw-medium px-4" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">Bestanden</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link fw-medium px-4" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">Hyperlink</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link fw-medium px-4" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab">Map</button></li>
                 </ul>
 
-                <!-- Min-height prevents layout shifting when switching between tabs -->
                 <div class="tab-content bg-white p-4 rounded-bottom-4" style="min-height: 380px;">
                     <!-- Tab 1: Bestanden -->
                     <div class="tab-pane show active" id="tab1" role="tabpanel">
@@ -329,7 +221,7 @@
                                     <input type="hidden" name="folder_paths" id="folder-paths-input">
                                 </div>
 
-                                @if($hasAdminViewers)
+                                @if(!$isPublic && $hasAdminViewers)
                                     <div class="form-group">
                                         <label for="access" class="form-label text-muted small fw-bold text-uppercase">Toegang</label>
                                         <select name="access" class="form-select rounded-3 py-2" id="access" >
@@ -364,7 +256,7 @@
                             <span class="material-symbols-rounded me-2 fs-4">info</span>
                             <small>Vul een geldige url in, inclusief <code>https://</code></small>
                         </div>
-                        <form method="post" action="{{ route('files.store', [$location, $locationId]) }}">
+                        <form method="post" action="{{ $uploadUrl }}">
                             @csrf
                             <div class="d-flex flex-column gap-3">
                                 <div class="form-group">
@@ -377,7 +269,7 @@
                                     <label for="title" class="form-label text-muted small fw-bold text-uppercase">Weergavenaam</label>
                                     <input type="text" name="title" class="form-control rounded-3 py-2" placeholder="Naam van de link" required>
                                 </div>
-                                @if($hasAdminViewers)
+                                @if(!$isPublic && $hasAdminViewers)
                                     <div class="form-group">
                                         <label for="access" class="form-label text-muted small fw-bold text-uppercase">Toegang</label>
                                         <select name="access" class="form-select rounded-3 py-2">
@@ -398,7 +290,7 @@
 
                     <!-- Tab 3: Map -->
                     <div class="tab-pane" id="tab3" role="tabpanel">
-                        <form method="post" action="{{ route('files.store', [$location, $locationId]) }}">
+                        <form method="post" action="{{ $uploadUrl }}">
                             @csrf
                             <div class="d-flex flex-column gap-3">
                                 <div class="form-group">
@@ -407,7 +299,7 @@
                                     <input type="hidden" name="type" value="2">
                                     <input type="hidden" name="folder_id" value="{{ $folderId }}">
                                 </div>
-                                @if($hasAdminViewers)
+                                @if(!$isPublic && $hasAdminViewers)
                                     <div class="form-group">
                                         <label for="access" class="form-label text-muted small fw-bold text-uppercase">Toegang</label>
                                         <select name="access" class="form-select rounded-3 py-2">
@@ -430,6 +322,67 @@
         </div>
     </div>
 </div>
+
+@if(!$isPublic)
+    <!-- SHARE MODAL -->
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-sm">
+                <div class="modal-header bg-light border-bottom rounded-top-4">
+                    <h5 class="modal-title fw-bold">Delen met Link</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="shareFileId">
+
+                    <div id="shareLoadingState" class="d-none text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted small">Instellingen bijwerken...</p>
+                    </div>
+
+                    <div id="shareContentState">
+                        <div class="form-check form-switch fs-5 mb-3 d-flex align-items-center">
+                            <input class="form-check-input cursor-pointer me-3" type="checkbox" role="switch" id="shareToggleSwitch">
+                            <label class="form-check-label fw-medium text-dark mt-1" for="shareToggleSwitch" style="font-size: 1rem;">Publiek delen inschakelen</label>
+                        </div>
+                        <div id="shareSettingsContainer" class="d-none mt-4 pt-3 border-top">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Link Instellingen</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="shareMode" id="shareModeMerge" value="merge" checked>
+                                    <label class="form-check-label text-dark" for="shareModeMerge">Koppel aan dichtstbijzijnde gedeelde map/link</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="shareMode" id="shareModeNew" value="new">
+                                    <label class="form-check-label text-dark" for="shareModeNew">Forceer een nieuwe, aparte link</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Rechten voor bezoekers</label>
+                                <select id="sharePermissionSelect" class="form-select rounded-3">
+                                    <option value="read">Alleen weergeven (Lezen)</option>
+                                    <option value="write">Weergeven & Toevoegen (Schrijven)</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Deelbare Link</label>
+                                <div class="input-group shadow-sm rounded-3">
+                                    <input type="text" id="shareLinkInput" class="form-control bg-light" readonly>
+                                    <button class="btn btn-outline-secondary bg-white d-flex align-items-center" type="button" id="copyShareLinkBtn" title="Kopiëren">
+                                        <span class="material-symbols-rounded fs-5 text-dark">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top rounded-bottom-4">
+                    <button type="button" class="btn btn-primary text-white px-4" data-bs-dismiss="modal">Klaar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 
 <!-- DYNAMIC BATCH ACTION MODAL -->
 <div class="modal fade" id="batchActionModal" tabindex="-1" aria-hidden="true">
@@ -494,29 +447,20 @@
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen m-0">
         <div class="modal-content border-0 rounded-0">
-
             <div class="modal-header border-0 pb-0 position-absolute top-0 w-100" style="z-index: 1050;">
                 <h5 class="modal-title text-white fw-medium text-truncate pe-4" id="previewTitle" style="max-width: 85%;">Bestand Preview</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <!-- Clickable backdrop handles closing the modal when clicking outside the media -->
             <div class="modal-body p-0 d-flex align-items-center justify-content-center position-relative w-100 h-100" id="previewBackdrop" style="cursor: pointer;">
-
-                <!-- Gallery Navigation -->
                 <button id="previewPrev" class="btn btn-dark bg-opacity-75 text-white position-absolute start-0 top-50 translate-middle-y ms-2 ms-md-4 rounded-circle p-2 border-0 preview-arrow" style="z-index: 10;">
                     <span class="material-symbols-rounded fs-2 d-block">chevron_left</span>
                 </button>
-
                 <div id="previewContainer" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 p-md-5 text-center" style="cursor: default; pointer-events: auto;">
-                    <!-- Dynamic content injected via JS -->
                 </div>
-
                 <button id="previewNext" class="btn btn-dark bg-opacity-75 text-white position-absolute end-0 top-50 translate-middle-y me-2 me-md-4 rounded-circle p-2 border-0 preview-arrow" style="z-index: 10;">
                     <span class="material-symbols-rounded fs-2 d-block">chevron_right</span>
                 </button>
             </div>
-
             <div class="modal-footer border-0 pt-0 position-absolute bottom-0 w-100 d-flex justify-content-between" style="z-index: 1050; padding: 1rem 2rem;">
                 <span id="previewCounter" class="text-white opacity-75 small fw-medium"></span>
                 <div class="d-flex gap-2">
@@ -526,7 +470,6 @@
                     <button type="button" class="btn btn-light " data-bs-dismiss="modal">Sluiten</button>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -537,12 +480,19 @@
         <div class="context-item" onclick="handleMenuAction('download')">
             <span class="material-symbols-rounded fs-5 text-black">download</span> Downloaden
         </div>
-        @if($hasAdminViewers)
-            <div class="context-item" onclick="handleMenuAction('toggle-access')">
-                <span class="material-symbols-rounded fs-5 text-black">security</span> Rechten wisselen
+
+        @if(!$isPublic)
+            <div class="context-item" onclick="handleMenuAction('share')">
+                <span class="material-symbols-rounded fs-5 text-black">share</span> Delen
             </div>
+            @if($hasAdminViewers)
+                <div class="context-item" onclick="handleMenuAction('toggle-access')">
+                    <span class="material-symbols-rounded fs-5 text-black">security</span> Rechten wisselen
+                </div>
+            @endif
             <hr class="my-1 border-light">
         @endif
+
         <div class="context-item" onclick="handleMenuAction('rename')">
             <span class="material-symbols-rounded fs-5 text-black">edit</span> Hernoemen
         </div>
@@ -560,11 +510,10 @@
 @endif
 
 <!-- MAIN LAYOUT -->
-<!-- Updated main layout container to stretch height properly -->
 <div class="w-100 border border-secondary-subtle rounded-4 bg-white overflow-hidden d-flex align-items-stretch">
     <div class="d-flex flex-column flex-md-row w-100 align-items-stretch">
 
-        <!-- LEFT SIDEBAR: FOLDER TREE (Hidden on Mobile) -->
+        <!-- LEFT SIDEBAR: FOLDER TREE -->
         <div class="file-sidebar bg-light d-none d-md-block">
             <div class="p-3 border-bottom bg-white d-flex align-items-center">
                 <h6 class="text-uppercase text-muted fw-bold mb-0 d-flex align-items-center flex-grow-1">
@@ -574,10 +523,14 @@
             <div class="p-2 py-3">
                 <ul class="list-unstyled folder-tree m-0">
                     <li>
-                        <a href="?folder=" class="d-flex align-items-center py-2 px-3 mb-1 {{ empty($folderId) ? 'active-folder bg-primary bg-opacity-10 text-primary fw-bold rounded-3' : 'text-dark hover-bg-light rounded-3' }}" style="text-decoration: none;">
-                            <span class="material-symbols-rounded me-2 {{ empty($folderId) ? 'text-primary' : 'text-secondary' }}">{{ empty($folderId) ? 'folder_open' : 'folder' }}</span> Hoofdmap
-                        </a>
-                        <ul class="list-unstyled m-0">
+                        <div class="d-flex align-items-center mb-1">
+                            <span style="width:24px; display:inline-block; flex-shrink:0;"></span>
+                            <a href="{{ $baseFolderUrl }}" class="flex-grow-1 d-flex align-items-center py-2 px-2 {{ empty($folderId) ? 'active-folder bg-primary bg-opacity-10 text-primary fw-bold rounded-3' : 'text-dark hover-bg-light rounded-3' }}" style="text-decoration: none;">
+                                <span class="material-symbols-rounded me-2 {{ empty($folderId) ? 'text-primary' : 'text-secondary' }}">{{ empty($folderId) ? 'folder_open' : 'folder' }}</span>
+                                <span class="text-truncate">Hoofdmap</span>
+                            </a>
+                        </div>
+                        <ul class="list-unstyled m-0 folder-children-list" id="folder-children-root">
                             {!! $buildTree(null, 1) !!}
                         </ul>
                     </li>
@@ -589,21 +542,23 @@
         <div class="file-manager p-3 p-md-4 flex-grow-1 bg-white" style="min-width: 0;">
             <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end border-bottom pb-3 mb-4">
                 <div>
-                    <h3 class="m-0 text-dark fw-bold">
+                    <h3 class="m-0 text-dark fw-bold d-flex align-items-center">
+                        @if($isPublic) <span class="material-symbols-rounded fs-2 text-primary me-2">public</span> @endif
                         @if (empty($dynamicBreadcrumbs))
-                            Bestanden
+                            {{ $isPublic ? 'Gedeelde Bestanden' : 'Bestanden' }}
                         @else
                             {{ end($dynamicBreadcrumbs)->file_name }}
                         @endif
                     </h3>
 
-                    <!-- DYNAMIC BREADCRUMBS: Generated from the DB tree natively -->
+                    <!-- DYNAMIC BREADCRUMBS -->
                     <ol class="breadcrumb m-0 mt-2 small flex-wrap">
                         @if(!empty($dynamicBreadcrumbs))
-                            <li class="breadcrumb-item"><a href="?folder=" class="text-decoration-none text-primary">Bestanden</a></li>
+                            <li class="breadcrumb-item"><a href="{{ $baseFolderUrl }}" class="text-decoration-none text-primary">{{ $isPublic ? 'Home' : 'Bestanden' }}</a></li>
                             @foreach ($dynamicBreadcrumbs as $crumb)
                                 @if (!$loop->last)
-                                    <li class="breadcrumb-item"><a href="?folder={{ $crumb->id }}" class="text-decoration-none text-primary">{{ $crumb->file_name }}</a></li>
+                                    @php $crumbLink = $isPublic ? route('files.shared_public', ['hash' => $shareHash, 'folder_id' => $crumb->id]) : '?folder=' . $crumb->id; @endphp
+                                    <li class="breadcrumb-item"><a href="{{ $crumbLink }}" class="text-decoration-none text-primary">{{ $crumb->file_name }}</a></li>
                                 @else
                                     <li class="breadcrumb-item active text-black fw-medium">{{ $crumb->file_name }}</li>
                                 @endif
@@ -613,7 +568,6 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <!-- VIEW TOGGLE (List/Grid) -->
                     <div class="d-flex align-items-center bg-light border border-secondary-subtle rounded-3 p-1">
                         <button class="btn border-0 view-toggle-btn active" data-view="list" title="Lijstweergave">
                             <span class="material-symbols-rounded fs-5 d-block text-secondary">view_list</span>
@@ -638,22 +592,28 @@
                 </div>
             </div>
 
-            <!-- BATCH ACTION TOOLBAR (Always Visible) -->
+            <!-- BATCH ACTION TOOLBAR -->
             @if($isAdmin)
                 <div id="selection-toolbar" class="bg-light border rounded-3 p-3 mb-4 d-flex flex-wrap gap-3 align-items-center justify-content-between">
                     <div>
                         <span id="selected-count" class="fw-medium text-dark ms-2 fs-6">0 items geselecteerd</span>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <!-- Swapped to batch-multi-action to allow bulk download -->
                         <button class="btn btn-sm btn-outline-dark d-flex align-items-center fw-medium batch-multi-action" disabled onclick="handleMenuAction('download')">
                             <span class="material-symbols-rounded fs-6 me-1">download</span> <span class="d-none d-sm-inline">Downloaden</span>
                         </button>
-                        @if($hasAdminViewers)
-                            <button class="btn btn-sm btn-outline-dark  d-flex align-items-center fw-medium batch-multi-action" disabled onclick="handleMenuAction('toggle-access')">
-                                <span class="material-symbols-rounded fs-6 me-1">security</span> <span class="d-none d-sm-inline">Rechten</span>
+
+                        @if(!$isPublic)
+                            <button class="btn btn-sm btn-outline-dark d-flex align-items-center fw-medium batch-multi-action" disabled onclick="handleMenuAction('share')">
+                                <span class="material-symbols-rounded fs-6 me-1">share</span> <span class="d-none d-sm-inline">Delen</span>
                             </button>
+                            @if($hasAdminViewers)
+                                <button class="btn btn-sm btn-outline-dark  d-flex align-items-center fw-medium batch-multi-action" disabled onclick="handleMenuAction('toggle-access')">
+                                    <span class="material-symbols-rounded fs-6 me-1">security</span> <span class="d-none d-sm-inline">Rechten</span>
+                                </button>
+                            @endif
                         @endif
+
                         <button class="btn btn-sm btn-outline-dark  d-flex align-items-center fw-medium batch-single-action" disabled onclick="handleMenuAction('rename')">
                             <span class="material-symbols-rounded fs-6 me-1">edit</span> <span class="d-none d-sm-inline">Hernoemen</span>
                         </button>
@@ -691,7 +651,7 @@
                                 <th class="d-none d-md-table-cell fw-bold">Grootte</th>
                                 @if($isAdmin)
                                     <th class="d-none d-lg-table-cell fw-bold">Gewijzigd</th>
-                                    @if($hasAdminViewers) <th class="fw-bold">Toegang</th> @endif
+                                    @if($hasAdminViewers && !$isPublic) <th class="fw-bold">Toegang</th> @endif
                                 @endif
                             </tr>
                             </thead>
@@ -725,38 +685,32 @@
                                                 case 'css': $icon = 'css.webp'; break;
                                                 case 'js': $icon = 'js.webp'; break;
                                                 case 'svg': $icon = 'ai.webp'; break;
+                                                case 'showm': $icon = 'showm.webp'; break;
                                             }
                                         } elseif ($file->type === 1) { $icon = 'url.webp'; }
                                           elseif ($file->type === 2) { $icon = 'folder.webp'; }
 
-                                        // CALCULATE LINKS CLEANLY IN PHP TO AVOID BLADE WHITESPACE ISSUES
+                                        // DYNAMIC URLS
                                         $fileLink = $file->file_path;
                                         $fileTarget = '_blank';
-                                        $downloadUrl = route('files.download', ['file' => $file->id]);
+                                        $downloadUrl = $isPublic
+                                            ? route('files.shared_public_download', ['hash' => $shareHash, 'file' => $file->id])
+                                            : route('files.download', ['file' => $file->id]);
 
                                         if ($file->type === 2) {
-                                            $fileLink = '?folder=' . $file->id;
+                                            $fileLink = $isPublic
+                                                ? route('files.shared_public', ['hash' => $shareHash, 'folder_id' => $file->id])
+                                                : '?folder=' . $file->id;
                                             $fileTarget = '_self';
-                                            $downloadUrl = route('files.zip', ['folder' => $file->id]);
+                                            $downloadUrl = $isPublic
+                                                ? route('files.shared_public_zip', ['hash' => $shareHash, 'folder' => $file->id])
+                                                : route('files.zip', ['folder' => $file->id]);
                                         } elseif ($file->type === 0 || $file->type === null) {
                                             $fileLink = $storageUrl . '/' . ltrim($file->file_path, '/');
                                         }
 
-                                        // Determine Thumbnail for Grid View
                                         $thumbnailSrc = asset('/files/file-icons/'.$icon);
                                         $imgClass = 'file-icon-only';
-
-                                        // WE REMOVED the override here that sets $thumbnailSrc = $fileLink;
-                                        // It will now use the lightweight file icon (e.g., jpg.webp) instead of downloading
-                                        // the full 200MB image just for a grid thumbnail on page load!
-                                        // If you eventually create a route for compressed thumbnails in Laravel,
-                                        // you can enable this and set $thumbnailSrc = route('files.thumbnail', $file->id);
-                                        /*
-                                        if ($isImage && ($file->type === 0 || $file->type === null)) {
-                                            $thumbnailSrc = $fileLink;
-                                            $imgClass = 'file-thumbnail';
-                                        }
-                                        */
                                     @endphp
 
                                     <tr class="file cursor-pointer"
@@ -768,6 +722,8 @@
                                         data-target="{{ $fileTarget }}"
                                         data-download-url="{{ $downloadUrl }}"
                                         data-access-url="{{ route('files.toggle-access', [$location, $file->id]) }}"
+                                        data-share-hash="{{ $file->share_hash ?? '' }}"
+                                        data-share-permission="{{ $file->share_permission ?? 'read' }}"
                                         data-icon="{{ asset('/files/file-icons/'.$icon) }}"
                                         data-is-image="{{ $isImage ? 'true' : 'false' }}"
                                         data-is-video="{{ $isVideo ? 'true' : 'false' }}"
@@ -783,7 +739,12 @@
                                         <td class="icon-cell">
                                             <img alt="icon" src="{{ $thumbnailSrc }}" class="{{ $imgClass }}" loading="lazy">
                                         </td>
-                                        <td class="name-cell fw-medium text-dark" title="{{ $file->file_name }}">{{ $file->file_name }}</td>
+                                        <td class="name-cell fw-medium text-dark" title="{{ $file->file_name }}">
+                                            {{ $file->file_name }}
+                                            @if(!$isPublic && !empty($file->share_hash))
+                                                <span class="material-symbols-rounded text-success fs-6 ms-2 align-middle share-badge" title="Gedeeld met publieke link" data-bs-toggle="tooltip">link</span>
+                                            @endif
+                                        </td>
                                         <td class="size-cell d-none d-md-table-cell text-muted small">
                                             @if(isset($file->file_path) && $file->file_path !== "" && Storage::disk('public')->exists($file->file_path))
                                                 {{ number_format(Storage::disk('public')->size($file->file_path) / 1024 / 1024, 2) }} MB
@@ -791,7 +752,7 @@
                                         </td>
                                         @if($isAdmin)
                                             <td class="date-cell d-none d-lg-table-cell text-muted small">{{ $file->updated_at->format('d M Y H:i') }}</td>
-                                            @if($hasAdminViewers)
+                                            @if($hasAdminViewers && !$isPublic)
                                                 <td class="access-cell small">
                                                     @if($file->access === 'teachers')
                                                         <span class="badge bg-danger rounded-pill px-3 py-1 fw-medium">{{ $adminName }}</span>
@@ -821,20 +782,45 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // --- MODAL UTILITY (Fail-safe initialization) ---
         const getModal = (id) => {
             const el = document.getElementById(id);
             if (!el) return null;
-            if (typeof bootstrap !== 'undefined') {
-                return bootstrap.Modal.getOrCreateInstance(el);
-            }
-            return {
-                show: () => el.classList.add('show', 'd-block'),
-                hide: () => el.classList.remove('show', 'd-block')
-            };
+            if (typeof bootstrap !== 'undefined') return bootstrap.Modal.getOrCreateInstance(el);
+            return { show: () => el.classList.add('show', 'd-block'), hide: () => el.classList.remove('show', 'd-block') };
         };
 
-        // --- CUSTOM UI MODAL HANDLERS (Replacing native alert/confirm) ---
+        const openFolders = JSON.parse(localStorage.getItem('fm_open_folders') || '[]');
+        const activePathIds = @json($activePathIds);
+
+        activePathIds.forEach(id => {
+            if(!openFolders.includes(id)) openFolders.push(id);
+        });
+
+        openFolders.forEach(id => {
+            const ul = document.getElementById('folder-children-' + id);
+            const icon = document.querySelector(`.toggle-children[data-target="${id}"]`);
+            if (ul) ul.style.display = 'block';
+            if (icon) icon.textContent = 'expand_more';
+        });
+
+        document.querySelectorAll('.toggle-children').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                const targetId = toggle.getAttribute('data-target');
+                const ul = document.getElementById('folder-children-' + targetId);
+                if (ul) {
+                    const isHidden = ul.style.display === 'none';
+                    ul.style.display = isHidden ? 'block' : 'none';
+                    toggle.textContent = isHidden ? 'expand_more' : 'chevron_right';
+
+                    let currentOpen = JSON.parse(localStorage.getItem('fm_open_folders') || '[]');
+                    if (isHidden) { if (!currentOpen.includes(parseInt(targetId))) currentOpen.push(parseInt(targetId)); }
+                    else { currentOpen = currentOpen.filter(id => id !== parseInt(targetId)); }
+                    localStorage.setItem('fm_open_folders', JSON.stringify(currentOpen));
+                }
+            });
+        });
+
         window.customAlert = function(message) {
             const msgEl = document.getElementById('customAlertMessage');
             if(msgEl) msgEl.textContent = message;
@@ -845,46 +831,32 @@
         window.customConfirm = function(message, onConfirmCallback) {
             const msgEl = document.getElementById('customConfirmMessage');
             if(msgEl) msgEl.textContent = message;
-
             const confirmBtn = document.getElementById('customConfirmBtn');
             if(confirmBtn) {
-                // Clone to cleanly remove any existing event listeners
                 const newConfirmBtn = confirmBtn.cloneNode(true);
                 confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
                 newConfirmBtn.addEventListener('click', () => {
                     const modalInstance = getModal('customConfirmModal');
                     if (modalInstance) modalInstance.hide();
-
-                    if (typeof onConfirmCallback === 'function') {
-                        onConfirmCallback();
-                    }
+                    if (typeof onConfirmCallback === 'function') onConfirmCallback();
                 });
             }
-
             const modalInstance = getModal('customConfirmModal');
             if (modalInstance) modalInstance.show();
         };
 
-        // --- GLOBAL FAIL-SAFE FOR ALL MODAL CLOSE BUTTONS ---
         document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                e.preventDefault(); // Stop any default button behavior
+                e.preventDefault();
                 const modalEl = this.closest('.modal');
                 if (modalEl) {
                     const modalInstance = getModal(modalEl.id);
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                    // Explicitly clean up if it's the preview modal
-                    if (modalEl.id === 'previewModal') {
-                        closeAndCleanPreview();
-                    }
+                    if (modalInstance) modalInstance.hide();
+                    if (modalEl.id === 'previewModal') closeAndCleanPreview();
                 }
             });
         });
 
-        // --- VIEW TOGGLE LOGIC (LIST VS GRID) ---
         const viewToggleBtns = document.querySelectorAll('.view-toggle-btn');
         const fileBrowserContainer = document.getElementById('file-browser-container');
 
@@ -900,13 +872,9 @@
             });
 
             function setViewMode(view) {
-                if(view === 'grid') {
-                    fileBrowserContainer.classList.add('view-mode-grid');
-                } else {
-                    fileBrowserContainer.classList.remove('view-mode-grid');
-                }
+                if(view === 'grid') fileBrowserContainer.classList.add('view-mode-grid');
+                else fileBrowserContainer.classList.remove('view-mode-grid');
                 localStorage.setItem('fileManagerView', view);
-
                 viewToggleBtns.forEach(b => {
                     if(b.dataset.view === view) {
                         b.classList.add('active');
@@ -919,14 +887,11 @@
             }
         }
 
-
-        // --- FULL XHR UPLOAD LOGIC ---
         window.openUploadModal = function(tabId) {
             const tabBtn = document.getElementById(tabId);
             if (typeof bootstrap !== 'undefined' && tabBtn) {
                 new bootstrap.Tab(tabBtn).show();
             } else if(tabBtn) {
-                // Manual fallback just in case
                 document.querySelectorAll('#uploadTabs .nav-link').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('#uploadModal .tab-pane').forEach(p => p.classList.remove('show', 'active'));
                 tabBtn.classList.add('active');
@@ -1023,7 +988,8 @@
                 uploadStatus.textContent = `0 MB / ${(totalSize / 1024 / 1024).toFixed(2)} MB`;
 
                 xhr = new XMLHttpRequest();
-                xhr.open('POST', "{{ route('files.store', [$location, $locationId]) }}", true);
+                // USE DYNAMIC UPLOAD URL
+                xhr.open('POST', "{{ $uploadUrl }}", true);
                 xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                 xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                 xhr.setRequestHeader('Accept', 'application/json');
@@ -1071,37 +1037,23 @@
             });
         }
 
-
-        // --- PROFESSIONAL MANAGER LOGIC ---
         let selectedFiles = [];
         const contextMenu = document.getElementById('context-menu');
 
-        // 1. Multi-select & Toolbar Sync
         function updateSelectionUI() {
             const countText = document.getElementById('selected-count');
             const num = selectedFiles.length;
+            if(countText) countText.textContent = `${num} item(s) geselecteerd`;
 
-            if(countText) {
-                countText.textContent = `${num} item(s) geselecteerd`;
-            }
-
-            // Enable/disable buttons dynamically based on selection count
-            document.querySelectorAll('.batch-multi-action').forEach(btn => {
-                btn.disabled = num === 0;
-            });
-            document.querySelectorAll('.batch-single-action').forEach(btn => {
-                btn.disabled = num !== 1;
-            });
+            document.querySelectorAll('.batch-multi-action').forEach(btn => btn.disabled = num === 0);
+            document.querySelectorAll('.batch-single-action').forEach(btn => btn.disabled = num !== 1);
 
             document.querySelectorAll('tr.file').forEach(row => {
                 const cb = row.querySelector('.file-checkbox');
                 if (cb) {
                     cb.checked = selectedFiles.includes(row.dataset.id);
-                    if (cb.checked) {
-                        row.classList.add('table-primary');
-                    } else {
-                        row.classList.remove('table-primary');
-                    }
+                    if (cb.checked) row.classList.add('table-primary');
+                    else row.classList.remove('table-primary');
                 }
             });
 
@@ -1110,59 +1062,44 @@
             if(selectAll) selectAll.checked = (num > 0 && num === totalRows);
         }
 
-        // Header Select All Checkbox
         const selectAllInput = document.getElementById('selectAll');
         if(selectAllInput) {
             selectAllInput.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    selectedFiles = Array.from(document.querySelectorAll('tr.file')).map(row => row.dataset.id);
-                } else {
-                    selectedFiles = [];
-                }
+                if (e.target.checked) selectedFiles = Array.from(document.querySelectorAll('tr.file')).map(row => row.dataset.id);
+                else selectedFiles = [];
                 updateSelectionUI();
             });
         }
 
-        // Individual Checkbox Click
         document.querySelectorAll('.file-checkbox').forEach(cb => {
             cb.addEventListener('change', function(e) {
                 const id = this.value;
-                if (this.checked && !selectedFiles.includes(id)) {
-                    selectedFiles.push(id);
-                } else if (!this.checked) {
-                    selectedFiles = selectedFiles.filter(fid => fid !== id);
-                }
+                if (this.checked && !selectedFiles.includes(id)) selectedFiles.push(id);
+                else if (!this.checked) selectedFiles = selectedFiles.filter(fid => fid !== id);
                 updateSelectionUI();
             });
         });
 
-        // Row Click / Navigation / Previews
         document.querySelectorAll('tr.file').forEach(row => {
             row.addEventListener('click', function (e) {
-                // Prevent row click if interacting with checkbox or within checkbox cell
                 if (e.target.closest('.checkbox-cell') || e.target.tagName.toLowerCase() === 'input') return;
 
                 const link = row.dataset.link;
                 const target = row.dataset.target || "_self";
 
-                // If it's a folder, directly navigate
                 if(row.dataset.type === '2') {
                     window.location.href = link;
                     return;
                 }
 
-                // Open Preview Modal Gallery if valid media
                 if (row.dataset.isImage === 'true' || row.dataset.isVideo === 'true' || row.dataset.isAudio === 'true' || row.dataset.isPdf === 'true' || row.dataset.isOffice === 'true') {
                     e.preventDefault();
                     openPreviewGallery(row);
                     return;
                 }
-
-                // Default navigation
                 window.open(link, target);
             });
 
-            // Context Menu Listener
             if(contextMenu) {
                 row.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
@@ -1177,13 +1114,10 @@
             }
         });
 
-        // Hide context menu when clicking anywhere else
         document.addEventListener('click', () => { if(contextMenu) contextMenu.style.display = 'none'; });
 
-        // 2. Drag & Drop functionality
         document.querySelectorAll('tr.file').forEach(row => {
             if(row.getAttribute('draggable') !== 'true') return;
-
             row.addEventListener('dragstart', (e) => {
                 if(!selectedFiles.includes(row.dataset.id)) {
                     selectedFiles = [row.dataset.id];
@@ -1193,12 +1127,11 @@
                 e.dataTransfer.effectAllowed = 'move';
             });
 
-            if(row.dataset.type == '2') { // Target must be a folder
+            if(row.dataset.type == '2') {
                 row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
                 row.addEventListener('dragleave', (e) => { row.classList.remove('drag-over'); });
                 row.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    e.preventDefault(); e.stopPropagation();
                     row.classList.remove('drag-over');
                     try {
                         const draggedIds = JSON.parse(e.dataTransfer.getData('text/plain'));
@@ -1207,20 +1140,108 @@
                             return;
                         }
                         executeBatchAjax('move', draggedIds, row.dataset.id, null);
-                    } catch(err) {
-                        console.error('Drop parsing error:', err);
-                    }
+                    } catch(err) {}
                 });
             }
         });
 
-        // 3. Batch Action AJAX Execution
+        const shareToggle = document.getElementById('shareToggleSwitch');
+        const shareSelect = document.getElementById('sharePermissionSelect');
+        const shareLinkInput = document.getElementById('shareLinkInput');
+        const shareRadios = document.querySelectorAll('input[name="shareMode"]');
+        const shareLoadingState = document.getElementById('shareLoadingState');
+        const shareContentState = document.getElementById('shareContentState');
+        const shareSettingsContainer = document.getElementById('shareSettingsContainer');
+
+        const updateShareSettings = () => {
+            const fileIds = document.getElementById('shareFileId').value.split(',');
+            const isShared = shareToggle.checked;
+            const permission = shareSelect.value;
+            const shareMode = document.querySelector('input[name="shareMode"]:checked').value;
+
+            // Show loading state
+            if(shareContentState && shareLoadingState) {
+                shareContentState.classList.add('opacity-50');
+                shareContentState.style.pointerEvents = 'none';
+            }
+
+            fetch(`{{ $batchUrl }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'share',
+                    file_ids: fileIds,
+                    is_shared: isShared,
+                    share_permission: permission,
+                    share_mode: shareMode,
+                    _token: '{{ csrf_token() }}'
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fileIds.forEach(id => {
+                            const row = document.querySelector(`tr[data-id="${id}"]`);
+                            if(!row) return;
+                            let nameCell = row.querySelector('.name-cell');
+
+                            if (isShared && data.share_hash) {
+                                row.dataset.shareHash = data.share_hash;
+                                row.dataset.sharePermission = permission;
+                                if (!nameCell.querySelector('.share-badge')) {
+                                    nameCell.innerHTML += ` <span class="material-symbols-rounded text-success fs-6 ms-2 align-middle share-badge" title="Gedeeld met publieke link" data-bs-toggle="tooltip">link</span>`;
+                                }
+                            } else {
+                                row.dataset.shareHash = '';
+                                row.dataset.sharePermission = 'read';
+                                if (nameCell.querySelector('.share-badge')) nameCell.querySelector('.share-badge').remove();
+                            }
+                        });
+
+                        if (isShared && data.share_hash) {
+                            shareSettingsContainer.classList.remove('d-none');
+                            shareLinkInput.value = `{{ url('/bestanden/gedeeld') }}/` + data.share_hash;
+                        } else {
+                            shareSettingsContainer.classList.add('d-none');
+                        }
+                    } else {
+                        customAlert(data.error || 'Fout bij het opslaan van deel-instellingen.');
+                        shareToggle.checked = !isShared;
+                    }
+                })
+                .catch(err => customAlert('Netwerkfout.'))
+                .finally(() => {
+                    if(shareContentState && shareLoadingState) {
+                        shareContentState.classList.remove('opacity-50');
+                        shareContentState.style.pointerEvents = 'auto';
+                    }
+                });
+        };
+
+        if(shareToggle) shareToggle.addEventListener('change', updateShareSettings);
+        if(shareSelect) shareSelect.addEventListener('change', updateShareSettings);
+        if(shareRadios) shareRadios.forEach(radio => radio.addEventListener('change', updateShareSettings));
+
+        document.getElementById('copyShareLinkBtn')?.addEventListener('click', () => {
+            if(!shareLinkInput.value) return;
+            shareLinkInput.select();
+            shareLinkInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(shareLinkInput.value).then(() => {
+                const btn = document.getElementById('copyShareLinkBtn');
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="material-symbols-rounded fs-5 text-success">check</span>';
+                setTimeout(() => btn.innerHTML = origHtml, 2000);
+            });
+        });
+
         window.handleMenuAction = function(action) {
             if(selectedFiles.length === 0) return;
 
-            // Single & Multiple Action handles
             if (action === 'download') {
-                // Loop through all selected items and trigger a staggered download to bypass popup blockers
                 selectedFiles.forEach((id, index) => {
                     const row = document.querySelector(`tr[data-id="${id}"]`);
                     if (row && row.dataset.downloadUrl) {
@@ -1237,7 +1258,41 @@
                 return;
             }
 
-            // Clever Bulk Permission XHR Loop that seamlessly avoids backend rewriting
+            if (action === 'share') {
+                document.getElementById('shareFileId').value = selectedFiles.join(',');
+                let hash = '';
+                let perm = 'read';
+
+                // Kijk NAAR DE ACTUELE DOM (niet naar de db, die weerspiegelt dit al)
+                for(let i=0; i<selectedFiles.length; i++) {
+                    const r = document.querySelector(`tr[data-id="${selectedFiles[i]}"]`);
+                    if(r && r.dataset.shareHash) {
+                        hash = r.dataset.shareHash;
+                        perm = r.dataset.sharePermission || 'read';
+                        break;
+                    }
+                }
+
+                // Reset UI state gebaseerd op DOM data
+                document.getElementById('shareModeMerge').checked = true;
+
+                if (hash && hash.trim() !== '') {
+                    shareToggle.checked = true;
+                    shareSettingsContainer.classList.remove('d-none');
+                    shareSelect.value = perm;
+                    shareLinkInput.value = `{{ url('/bestanden/gedeeld') }}/` + hash;
+                } else {
+                    shareToggle.checked = false;
+                    shareSettingsContainer.classList.add('d-none');
+                    shareSelect.value = 'read';
+                    shareLinkInput.value = '';
+                }
+
+                const modalInstance = getModal('shareModal');
+                if (modalInstance) modalInstance.show();
+                return;
+            }
+
             if (action === 'toggle-access') {
                 customConfirm(`Weet u zeker dat u de rechten van ${selectedFiles.length} item(s) wilt wijzigen?`, () => {
                     const btn = document.querySelector('button[onclick="handleMenuAction(\'toggle-access\')"]');
@@ -1245,24 +1300,14 @@
                         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Laden...';
                         btn.disabled = true;
                     }
-
-                    // Loop through selected items and hit the toggle route for each
                     let promises = selectedFiles.map(id => {
                         const row = document.querySelector(`tr[data-id="${id}"]`);
                         if(row && row.dataset.accessUrl) {
-                            return fetch(row.dataset.accessUrl, {
-                                method: 'GET',
-                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                            });
+                            return fetch(row.dataset.accessUrl, { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                         }
                         return Promise.resolve();
                     });
-
-                    Promise.all(promises).then(() => {
-                        location.reload();
-                    }).catch(() => {
-                        customAlert('Er is een fout opgetreden bij het bijwerken van de rechten.');
-                    });
+                    Promise.all(promises).then(() => location.reload()).catch(() => customAlert('Fout opgetreden.'));
                 });
                 return;
             }
@@ -1313,7 +1358,7 @@
         });
 
         function executeBatchAjax(action, fileIds, targetFolderId = null, newName = null) {
-            fetch(`{{ route('files.batch', [$location, $locationId]) }}`, {
+            fetch(`{{ $batchUrl }}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1343,39 +1388,32 @@
             if (modalInstance) modalInstance.hide();
         }
 
-        // 4. File Previews Native Engine with GALLERY Logic
         let previewableFilesList = [];
         let currentPreviewIndex = -1;
 
-        // Build array of media elements on load
         document.querySelectorAll('tr.file').forEach((row) => {
             const isMedia = row.dataset.isImage === 'true' || row.dataset.isVideo === 'true' || row.dataset.isAudio === 'true' || row.dataset.isPdf === 'true' || row.dataset.isOffice === 'true';
-            if (isMedia) {
-                previewableFilesList.push(row);
-            }
+            if (isMedia) previewableFilesList.push(row);
         });
 
-        // Dedicated secure cleaning function that force-kills media
         function closeAndCleanPreview() {
             const container = document.getElementById('previewContainer');
             if (container) {
                 const mediaElements = container.querySelectorAll('audio, video, iframe');
                 mediaElements.forEach(media => {
-                    if (media.pause) media.pause(); // Pause if supported
-                    media.removeAttribute('src'); // Forcibly wipe source
-                    if (media.load) media.load(); // Force reset to release buffer
+                    if (media.pause) media.pause();
+                    media.removeAttribute('src');
+                    if (media.load) media.load();
                 });
                 container.innerHTML = '';
             }
-            document.body.classList.remove('preview-open'); // Release scroll
+            document.body.classList.remove('preview-open');
         }
 
         function loadPreviewContent(index) {
             if(index < 0 || index >= previewableFilesList.length) return;
 
-            // Clean up any previously playing media before loading the next one
             closeAndCleanPreview();
-
             currentPreviewIndex = index;
 
             const row = previewableFilesList[index];
@@ -1390,15 +1428,12 @@
 
             container.innerHTML = '<div class="spinner-border text-white" role="status"></div>';
 
-            // Toggle Arrows
             document.getElementById('previewPrev').style.display = index > 0 ? 'block' : 'none';
             document.getElementById('previewNext').style.display = index < previewableFilesList.length - 1 ? 'block' : 'none';
 
-            // Load Content clean & rounded
             if (row.dataset.isImage === 'true') {
                 container.innerHTML = `<img src="${link}" class="img-fluid" style="max-height: 85vh; max-width: 100%; object-fit: contain;">`;
             } else if (row.dataset.isPdf === 'true') {
-                // FIXED: Wrapped the iframe in a touch-scrolling container to fix mobile iOS scrolling issues
                 container.innerHTML = `
                     <div class="w-100 h-100" style="max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                         <iframe src="${link}#toolbar=0" class="w-100 h-100 border-0" style="min-height: 85vh; display: block;"></iframe>
@@ -1428,20 +1463,17 @@
         function openPreviewGallery(row) {
             const index = previewableFilesList.findIndex(r => r === row);
             if(index !== -1) {
-                document.body.classList.add('preview-open'); // Lock body scroll securely
+                document.body.classList.add('preview-open');
                 const modalInstance = getModal('previewModal');
                 if (modalInstance) modalInstance.show();
                 loadPreviewContent(index);
             }
         }
 
-        // Gallery Arrow Listeners (Mouse Clicks)
         document.getElementById('previewPrev')?.addEventListener('click', (e) => { e.stopPropagation(); loadPreviewContent(currentPreviewIndex - 1); });
         document.getElementById('previewNext')?.addEventListener('click', (e) => { e.stopPropagation(); loadPreviewContent(currentPreviewIndex + 1); });
 
-        // Gallery Arrow Listeners (Keyboard)
         document.addEventListener('keydown', function(e) {
-            // Only trigger if preview is open
             if (document.body.classList.contains('preview-open')) {
                 if (e.key === 'ArrowLeft') {
                     const prevBtn = document.getElementById('previewPrev');
@@ -1457,7 +1489,6 @@
             }
         });
 
-        // Smart Backdrop Click to Close (Ignoring clicks directly on the media)
         const previewBackdrop = document.getElementById('previewBackdrop');
         if(previewBackdrop) {
             previewBackdrop.addEventListener('click', function(e) {
@@ -1469,7 +1500,6 @@
             });
         }
 
-        // Ensure Media aggressively stops and unlocks body scroll when modal closes natively via bootstrap
         document.getElementById('previewModal').addEventListener('hidden.bs.modal', closeAndCleanPreview);
     });
 </script>

@@ -7,6 +7,7 @@
     auth()->user()->roles->contains('role', 'Administratie') ||
     auth()->user()->roles->contains('role', 'Bestuur') ||
     auth()->user()->roles->contains('role', 'Praktijkbegeleider') ||
+    auth()->user()->roles->contains('role', 'Technisch Team') ||
     auth()->user()->roles->contains('role', 'Ouderraad')
     ? 'layouts.leiding'
     : 'layouts.app'
@@ -26,6 +27,7 @@
                     auth()->user()->roles->contains('role', 'Administratie') ||
                     auth()->user()->roles->contains('role', 'Bestuur') ||
                     auth()->user()->roles->contains('role', 'Praktijkbegeleider') ||
+                    auth()->user()->roles->contains('role', 'Technisch Team') ||
                     auth()->user()->roles->contains('role', 'Ouderraad'))
                     )
             <nav aria-label="breadcrumb">
@@ -60,6 +62,7 @@
             <li><a href="#afterloodsen">Afterloodsen</a></li>
             <li><a href="#praktijkbegeleiding">Praktijkbegeleiding</a></li>
             <li><a href="#ouderraad">Ouderraad</a></li>
+            <li><a href="#technisch_team">Technisch Team</a></li>
             <li><a href="#vrijwilligers">Vrijwilligers</a></li>
         </ul>
 
@@ -452,6 +455,49 @@
                                    href="mailto:ouderraad@waterscoutingmhg.nl"><span
                                         class="material-symbols-rounded">email</span><span
                                     >ouderraad@waterscoutingmhg.nl</span></a>
+                                @if(isset($leiding_individual->phone))
+                                    <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
+                                       href="tel:{{ $leiding_individual->phone }}"><span
+                                            class="material-symbols-rounded">phone</span> {{ $leiding_individual->phone }}
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div id="technisch_team" class="bg-light rounded p-2">
+                <h2>Technisch Team</h2>
+                <div class="d-flex flex-row justify-content-center gap-4 flex-wrap">
+                    @foreach($technisch_team as $leiding_individual)
+                        <div class="card">
+                            @if($leiding_individual->profile_picture)
+                                <img alt="foto leiding" class="card-img-top"
+                                     src="{{ asset('/profile_pictures/' . $leiding_individual->profile_picture) }}">
+                            @else
+                                <img alt="foto leiding" class="card-img-top"
+                                     src="{{ asset('img/no_profile_picture.webp') }}">
+                            @endif
+                            <div class="card-body card-body-leiding">
+
+                                @if(auth()->user()->roles->contains('role', 'Dolfijn') && $leiding_individual->dolfijnen_name !== null)
+                                    <h2 class="card-title">{{ $leiding_individual->dolfijnen_name }}</h2>
+                                @else
+                                    <h2 class="card-title">{{ $leiding_individual->name.' '.$leiding_individual->infix.' '.$leiding_individual->last_name }}</h2>
+                                @endif
+
+                                <div
+                                    class="bg-info text-dark rounded d-flex align-items-center justify-content-center role-badge">
+                                    @if($leiding_individual->roles->contains('role', 'Hoofd Technisch Team'))
+                                        <h4 class="m-0">Hoofd Technisch Team</h4>
+                                    @endif
+                                    @if(!$leiding_individual->roles->contains('role', 'Hoofd Technisch Team'))
+                                        <h4 class="m-0">Technisch Team</h4>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex flex-column gap-1">
                                 @if(isset($leiding_individual->phone))
                                     <a class="btn btn-outline-dark btn-text d-flex flex-row gap-1 align-items-center"
                                        href="tel:{{ $leiding_individual->phone }}"><span
